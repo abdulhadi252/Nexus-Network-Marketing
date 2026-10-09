@@ -1,0 +1,75 @@
+@model PagedResult<Payment>
+@{
+    ViewData["Title"] = "Payments";
+    var pageTotal = Model.Items.Sum(p => p.Amount);
+}
+
+<h1 class="h4 mb-1">Payments</h1>
+<p class="text-muted">All recorded payments. Page total: PKR @pageTotal.ToString("N2")</p>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2">
+            <div class="col-md-4">
+                <input type="text" name="q" value="@ViewData["q"]" class="form-control" placeholder="Receipt number, customer or account" />
+            </div>
+            <div class="col-md-3">
+                <select name="method" class="form-select">
+                    <option value="">All methods</option>
+                    @foreach (var method in Enum.GetValues<PaymentMethod>())
+                    {
+                        <option value="@method" selected="@(ViewData["method"]?.ToString() == method.ToString())">@method</option>
+                    }
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-outline-primary">Search</button>
+                <a class="btn btn-outline-secondary" asp-action="Index">Reset</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        @if (Model.Items.Count == 0)
+        {
+            <div class="empty-state"><p class="mb-0">No payments match your search.</p></div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Receipt</th>
+                            <th>Customer</th>
+                            <th>Bill</th>
+                            <th>Date</th>
+                            <th>Method</th>
+                            <th>Amount</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var payment in Model.Items)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@payment.ReceiptNumber</td>
+                                <td>@payment.Customer.FirstName @payment.Customer.LastName</td>
+                                <td>@payment.Bill.BillNumber</td>
+                                <td>@payment.PaidAt.ToLocalTime().ToString("dd MMM yyyy")</td>
+                                <td>@payment.Method</td>
+                                <td class="text-price">PKR @payment.Amount.ToString("N2")</td>
+                                <td class="table-actions">
+                                    <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@payment.Id">View</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <partial name="_Pagination" model="Model" />
+        }
+    </div>
+</div>

@@ -1,0 +1,134 @@
+@model Order
+@{
+    ViewData["Title"] = "Order Details";
+    var address = Model.Customer.Addresses.OrderByDescending(a => a.IsPrimary).FirstOrDefault();
+}
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div>
+        <h1 class="h4 mb-1">Order @Model.OrderNumber</h1>
+        <p class="text-muted mb-0">
+            @Model.ConnectionType &middot; <partial name="_Badge" model="@((object?)Model.Status)" />
+        </p>
+    </div>
+    <div class="d-flex gap-2">
+        @if (Model.FeasibilityReport is null)
+        {
+            <a class="btn btn-primary" asp-controller="Feasibility" asp-action="Create" asp-route-orderId="@Model.Id">+ Feasibility Check</a>
+        }
+        else if (Model.Connection is null && Model.Status == OrderStatus.Feasible)
+        {
+            <a class="btn btn-primary" asp-controller="Connections" asp-action="Create" asp-route-orderId="@Model.Id">+ Create Connection</a>
+        }
+        <a class="btn btn-outline-secondary" asp-action="Index">Back to orders</a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card p-4 mb-3">
+            <h6 class="mb-3">Site &amp; Customer</h6>
+            <dl class="row detail-list mb-0">
+                <dt class="col-5">Customer</dt>
+                <dd class="col-7">@Model.Customer.FirstName @Model.Customer.LastName</dd>
+                <dt class="col-5">Contact</dt>
+                <dd class="col-7">@Model.Customer.PrimaryContactNumber</dd>
+                <dt class="col-5">Installation address</dt>
+                <dd class="col-7">@(address is null ? "-" : $"{address.AddressLine1}{(string.IsNullOrEmpty(address.AddressLine2) ? "" : ", " + address.AddressLine2)}, {address.City?.Name}")</dd>
+                <dt class="col-5">Connection type</dt>
+                <dd class="col-7">@Model.ConnectionType</dd>
+                <dt class="col-5">Plan</dt>
+                <dd class="col-7">@(Model.Plan?.Name ?? "-")</dd>
+                <dt class="col-5">Submitted</dt>
+                <dd class="col-7">@Model.SubmittedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</dd>
+                <dt class="col-5">Remarks</dt>
+                <dd class="col-7">@(Model.Remarks ?? "-")</dd>
+            </dl>
+        </div>
+
+        <div class="card p-4">
+            <h6 class="mb-3">Requested Equipment</h6>
+            @if (Model.Items.Count == 0)
+            {
+                <p class="text-muted mb-0">No products were requested with this order.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead><tr><th>Product</th><th>Qty</th></tr></thead>
+                        <tbody>
+                            @foreach (var item in Model.Items)
+                            {
+                                <tr><td>@item.Product.Name</td><td>@item.Quantity</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card p-4 mb-3">
+            <h6 class="mb-3">Feasibility</h6>
+            @if (Model.FeasibilityReport is null)
+            {
+                <p class="text-muted mb-0">No feasibility check has been recorded yet.</p>
+            }
+            else
+            {
+                <dl class="row detail-list mb-0">
+                    <dt class="col-5">Result</dt>
+                    <dd class="col-7"><partial name="_Badge" model="@((object?)Model.FeasibilityReport.Status)" /></dd>
+                    <dt class="col-5">Distance</dt>
+                    <dd class="col-7">@(Model.FeasibilityReport.DistanceMeters.HasValue ? $"{Model.FeasibilityReport.DistanceMeters} m" : "-")</dd>
+                    <dt class="col-5">Server available</dt>
+                    <dd class="col-7">@(Model.FeasibilityReport.ServerAvailable.HasValue ? (Model.FeasibilityReport.ServerAvailable.Value ? "Yes" : "No") : "-")</dd>
+                    <dt class="col-5">Checked by</dt>
+                    <dd class="col-7">@(Model.FeasibilityReport.TechnicalEmployee is null ? "-" : $"{Model.FeasibilityReport.TechnicalEmployee.FirstName} {Model.FeasibilityReport.TechnicalEmployee.LastName}")</dd>
+                    <dt class="col-5">Checked at</dt>
+                    <dd class="col-7">@(Model.FeasibilityReport.CheckedAt?.ToLocalTime().ToString("dd MMM yyyy HH:mm") ?? "-")</dd>
+                    <dt class="col-5">Remarks</dt>
+                    <dd class="col-7">@(Model.FeasibilityReport.Remarks ?? "-")</dd>
+                </dl>
+                <a class="btn btn-sm btn-outline-primary mt-3" asp-controller="Feasibility" asp-action="Edit" asp-route-id="@Model.FeasibilityReport.Id">Update report</a>
+            }
+        </div>
+
+        <div class="card p-4 mb-3">
+            <h6 class="mb-3">Connection</h6>
+            @if (Model.Connection is null)
+            {
+                <p class="text-muted mb-0">No connection has been created for this order yet.</p>
+            }
+            else
+            {
+                <dl class="row detail-list mb-0">
+                    <dt class="col-5">Account number</dt>
+                    <dd class="col-7 fw-semibold">@Model.Connection.AccountNumber</dd>
+                    <dt class="col-5">Status</dt>
+                    <dd class="col-7"><partial name="_Badge" model="@((object?)Model.Connection.Status)" /></dd>
+                    <dt class="col-5">Installed</dt>
+                    <dd class="col-7">@(Model.Connection.InstalledAt?.ToLocalTime().ToString("dd MMM yyyy") ?? "-")</dd>
+                </dl>
+                <a class="btn btn-sm btn-outline-primary mt-3" asp-controller="Connections" asp-action="Details" asp-route-id="@Model.Connection.Id">Open connection</a>
+            }
+        </div>
+
+        <div class="card p-4">
+            <h6 class="mb-3">Update Order Status</h6>
+            <form asp-action="UpdateStatus" asp-route-id="@Model.Id" method="post" class="row g-2">
+                <div class="col-12">
+                    <select name="status" class="form-select" asp-items="Html.GetEnumSelectList<OrderStatus>()"></select>
+                </div>
+                <div class="col-12">
+                    <textarea name="remarks" class="form-control" rows="2" placeholder="Technical remarks (optional)"></textarea>
+                </div>
+                <div class="col-12 d-grid">
+                    <button type="submit" class="btn btn-primary">Update Status</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

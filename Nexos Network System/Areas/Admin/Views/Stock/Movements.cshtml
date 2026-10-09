@@ -1,0 +1,49 @@
+@model PagedResult<StockMovement>
+@{
+    ViewData["Title"] = "Stock Movements";
+    var product = ViewData["Product"] as Product;
+}
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div>
+        <h1 class="h4 mb-1">Stock Movements</h1>
+        <p class="text-muted mb-0">@product?.Name</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-primary" asp-action="Adjust" asp-route-id="@product?.Id">Adjust Stock</a>
+        <a class="btn btn-outline-secondary" asp-action="Index">Back to stock</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        @if (Model.Items.Count == 0)
+        {
+            <div class="empty-state"><p class="mb-0">No stock movements recorded for this product.</p></div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr><th>Date</th><th>Type</th><th>Change</th><th>Quantity after</th><th>Reason</th><th>Recorded by</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var movement in Model.Items)
+                        {
+                            <tr>
+                                <td>@movement.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
+                                <td><partial name="_Badge" model="@((object?)movement.MovementType)" /></td>
+                                <td class="text-price">@(movement.QuantityChange > 0 ? "+" : "")@movement.QuantityChange</td>
+                                <td>@movement.QuantityAfter</td>
+                                <td>@(movement.Reason ?? "-")</td>
+                                <td>@(movement.PerformedByEmployee is null ? "System" : $"{movement.PerformedByEmployee.FirstName} {movement.PerformedByEmployee.LastName}")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <partial name="_Pagination" model="Model" />
+        }
+    </div>
+</div>

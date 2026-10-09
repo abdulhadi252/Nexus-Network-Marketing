@@ -1,0 +1,52 @@
+@model IReadOnlyList<Bill>
+@{
+    ViewData["Title"] = "My Bills";
+    var outstanding = Model.SumLatestOutstanding();
+}
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div>
+        <h1 class="h4 mb-1">My Bills</h1>
+        <p class="text-muted mb-0">Total outstanding: <strong class="@(outstanding > 0 ? "text-danger" : "text-success")">PKR @outstanding.ToString("N2")</strong></p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        @if (Model.Count == 0)
+        {
+            <div class="empty-state">
+                <div class="empty-icon">&#129534;</div>
+                <p class="mb-0">You do not have any bills yet.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr><th>Bill</th><th>Account</th><th>Period</th><th>Due date</th><th>Total</th><th>Paid</th><th>Due</th><th>Status</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var bill in Model)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@bill.BillNumber</td>
+                                <td>@bill.Connection.AccountNumber</td>
+                                <td>@bill.BillingPeriodStart.ToString("MMM yyyy")</td>
+                                <td>@bill.DueDate.ToString("dd MMM yyyy")</td>
+                                <td class="text-price">PKR @bill.TotalAmount.ToString("N2")</td>
+                                <td class="text-price">PKR @bill.PaidAmount.ToString("N2")</td>
+                                <td class="text-price">PKR @bill.DueAmount.ToString("N2")</td>
+                                <td><partial name="_Badge" model="@((object?)bill.Status)" /></td>
+                                <td class="table-actions">
+                                    <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@bill.Id">View</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

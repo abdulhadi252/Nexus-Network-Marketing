@@ -1,0 +1,66 @@
+@model PagedResult<ContactMessage>
+@{
+    ViewData["Title"] = "Messages";
+    var unreadOnly = (bool)(ViewData["unreadOnly"] ?? false);
+}
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div>
+        <h1 class="h4 mb-1">Contact Messages</h1>
+        <p class="text-muted mb-0">Messages submitted through the public contact form.</p>
+    </div>
+    <a class="btn @(unreadOnly ? "btn-primary" : "btn-outline-primary")" asp-action="Index" asp-route-unreadOnly="true">Unread Only</a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        @if (Model.Items.Count == 0)
+        {
+            <div class="empty-state">
+                <div class="empty-icon">&#9993;</div>
+                <p class="mb-0">@(unreadOnly ? "No unread messages." : "No contact messages received yet.")</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr><th>Received</th><th>From</th><th>Subject</th><th>Message</th><th>Status</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var message in Model.Items)
+                        {
+                            <tr class="@(message.IsRead ? "" : "table-light")">
+                                <td>@message.SubmittedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
+                                <td>
+                                    @message.Name
+                                    <div class="text-muted small">@message.Email</div>
+                                </td>
+                                <td class="fw-semibold">@message.Subject</td>
+                                <td class="text-truncate" style="max-width: 320px;">@message.Message</td>
+                                <td>
+                                    @if (message.IsRead)
+                                    {
+                                        <span class="badge bg-secondary">Read</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">New</span>
+                                    }
+                                </td>
+                                <td class="table-actions">
+                                    <form asp-action="ToggleRead" method="post" class="d-inline"
+                                          asp-route-id="@message.Id" asp-route-unreadOnly="@unreadOnly" asp-route-page="@Model.Page">
+                                        <button type="submit" class="btn btn-outline-primary">@(message.IsRead ? "Mark unread" : "Mark read")</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <partial name="_Pagination" model="Model" />
+        }
+    </div>
+</div>

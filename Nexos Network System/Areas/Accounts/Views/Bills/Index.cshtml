@@ -1,0 +1,79 @@
+@model PagedResult<Bill>
+@{
+    ViewData["Title"] = "Bills";
+    var totalDue = (decimal)(ViewBag.TotalOutstanding ?? 0m);
+    var payableBillIds = ViewBag.PayableBillIds as HashSet<int> ?? new HashSet<int>();
+}
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div>
+        <h1 class="h4 mb-1">Bills</h1>
+        <p class="text-muted mb-0">Manage generated bills. Current outstanding: PKR @totalDue.ToString("N2")</p>
+    </div>
+    <a class="btn btn-primary" asp-action="Generate">+ Generate Bill</a>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2">
+            <div class="col-md-4">
+                <input type="text" name="q" value="@ViewData["q"]" class="form-control" placeholder="Bill number, account or customer" />
+            </div>
+            <div class="col-md-3">
+                <select name="status" class="form-select">
+                    <option value="">All statuses</option>
+                    @foreach (var status in Enum.GetValues<BillStatus>())
+                    {
+                        <option value="@status" selected="@(ViewData["status"]?.ToString() == status.ToString())">@status</option>
+                    }
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-outline-primary">Search</button>
+                <a class="btn btn-outline-secondary" asp-action="Index">Reset</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        @if (Model.Items.Count == 0)
+        {
+            <div class="empty-state"><p class="mb-0">No bills found.</p></div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr><th>Bill</th><th>Customer</th><th>Account</th><th>Due date</th><th>Total</th><th>Paid</th><th>Due</th><th>Status</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var bill in Model.Items)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@bill.BillNumber</td>
+                                <td>@bill.Customer.FirstName @bill.Customer.LastName</td>
+                                <td>@bill.Connection.AccountNumber</td>
+                                <td>@bill.DueDate.ToString("dd MMM yyyy")</td>
+                                <td class="text-price">PKR @bill.TotalAmount.ToString("N2")</td>
+                                <td class="text-price">PKR @bill.PaidAmount.ToString("N2")</td>
+                                <td class="text-price">PKR @bill.DueAmount.ToString("N2")</td>
+                                <td><partial name="_Badge" model="@((object?)bill.Status)" /></td>
+                                <td class="table-actions">
+                                    <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@bill.Id">View</a>
+                                    @if (payableBillIds.Contains(bill.Id))
+                                    {
+                                        <a class="btn btn-outline-primary" asp-controller="Payments" asp-action="Create" asp-route-billId="@bill.Id">Collect</a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <partial name="_Pagination" model="Model" />
+        }
+    </div>
+</div>

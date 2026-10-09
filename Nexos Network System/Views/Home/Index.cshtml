@@ -1,0 +1,216 @@
+@model IReadOnlyList<Plan>
+@{
+    ViewData["Title"] = "Home";
+}
+
+@* ============================== HERO ============================== *@
+<section class="hero">
+    <div class="container">
+        <div class="row align-items-center gy-5">
+            <div class="col-lg-7">
+                <span class="hero-eyebrow">Internet &middot; Broadband &middot; Networking &middot; Telephone</span>
+                <h1 class="hero-title">Connected. Reliable. Built for You.</h1>
+                <p class="hero-lead">
+                    NEXUS delivers reliable internet, broadband and telephone services to homes and
+                    businesses across the region &mdash; with rapid installation, transparent billing
+                    and dedicated technical support from our own team.
+                </p>
+                <div class="hero-actions">
+                    <a class="btn btn-primary btn-lg" asp-action="Contact">Get Started</a>
+                    <a class="btn btn-outline-light btn-lg" asp-action="Plans">View Plans</a>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="hero-panel">
+                    <h2 class="hero-panel-title">Check your connection</h2>
+                    <p class="hero-panel-text">
+                        Enter your 16-character account number to view the live status of your connection.
+                    </p>
+                    <a class="btn btn-primary w-100" asp-action="ConnectionStatus">Check Connection Status</a>
+                    <div class="hero-panel-divider"></div>
+                    <p class="hero-panel-text mb-2">Already a customer? Sign in to manage your account.</p>
+                    <a class="btn btn-outline-primary w-100" asp-area="Identity" asp-controller="Account" asp-action="Login">Customer Login</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@* ============================ SERVICES ============================ *@
+<section class="section" id="services">
+    <div class="container">
+        <div class="section-head">
+            <span class="section-eyebrow">Our Services</span>
+            <h2 class="section-title">Internet, networking and telephone from one provider</h2>
+            <p class="section-subtitle">
+                Choose the service that fits your needs &mdash; or combine them for a complete solution.
+            </p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-4">
+                <article class="service-card">
+                    <span class="service-icon"><svg class="svg-icon"><use href="#i-broadband" /></svg></span>
+                    <h3 class="service-title">Broadband</h3>
+                    <p class="service-text">
+                        High-speed unlimited internet for homes and businesses, with modem/router
+                        installation handled by our own technical team.
+                    </p>
+                    <ul class="service-list">
+                        <li>Speeds up to 50 Mbps</li>
+                        <li>Unlimited usage</li>
+                        <li>Free equipment installation</li>
+                    </ul>
+                    <a class="service-link" asp-action="Plans">
+                        View broadband plans
+                        <svg class="svg-icon"><use href="#i-arrow-right" /></svg>
+                    </a>
+                </article>
+            </div>
+
+            <div class="col-md-6 col-lg-4">
+                <article class="service-card">
+                    <span class="service-icon"><svg class="svg-icon"><use href="#i-router" /></svg></span>
+                    <h3 class="service-title">Dial-Up</h3>
+                    <p class="service-text">
+                        A low-cost, always-available backup connection for areas where broadband
+                        coverage is limited, with a fixed monthly usage allowance.
+                    </p>
+                    <ul class="service-list">
+                        <li>Low monthly cost</li>
+                        <li>Works on existing phone lines</li>
+                        <li>Free monthly usage hours</li>
+                    </ul>
+                    <a class="service-link" asp-action="Plans">
+                        View dial-up plans
+                        <svg class="svg-icon"><use href="#i-arrow-right" /></svg>
+                    </a>
+                </article>
+            </div>
+
+            <div class="col-md-6 col-lg-4">
+                <article class="service-card">
+                    <span class="service-icon"><svg class="svg-icon"><use href="#i-phone" /></svg></span>
+                    <h3 class="service-title">Telephone / Landline</h3>
+                    <p class="service-text">
+                        Reliable landline telephone service for homes and offices with clear voice
+                        quality and optional calling packages.
+                    </p>
+                    <ul class="service-list">
+                        <li>Clear voice quality</li>
+                        <li>Free local calls</li>
+                        <li>Optional add-on packages</li>
+                    </ul>
+                    <a class="service-link" asp-action="Plans">
+                        View telephone plans
+                        <svg class="svg-icon"><use href="#i-arrow-right" /></svg>
+                    </a>
+                </article>
+            </div>
+        </div>
+    </div>
+</section>
+
+@* ============================= PLANS ============================== *@
+<section class="section section-alt" id="plans">
+    <div class="container">
+        <div class="section-head center">
+            <span class="section-eyebrow">Popular Plans</span>
+            <h2 class="section-title">Broadband plans for your home or business</h2>
+            <p class="section-subtitle">Transparent monthly pricing with no hidden charges.</p>
+        </div>
+
+        @if (Model == null || Model.Count == 0)
+        {
+            <div class="row">
+                <div class="col-12">
+                    <div class="empty-state">
+                        <span class="empty-icon"><svg class="svg-icon"><use href="#i-broadband" /></svg></span>
+                        <p class="empty-title">Plans are being updated</p>
+                        <p class="mb-0">Please check back soon or contact us for current pricing.</p>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="row g-4 justify-content-center">
+                @foreach (var plan in Model)
+                {
+                    <div class="col-md-6 col-lg-4">
+                        <article class="card plan-card h-100">
+                            <div class="card-body d-flex flex-column p-4">
+                                <div class="plan-header">
+                                    <h3 class="plan-name h5 mb-2">@plan.Name</h3>
+                                    <span class="plan-type">@plan.ConnectionType</span>
+                                </div>
+
+                                <div class="plan-price-section mb-3">
+                                    <span class="price-amount">Rs. @plan.RecurringCharge.ToString("N0")</span>
+                                    <span class="price-period">/ @plan.BillingCycle</span>
+                                </div>
+
+                                <ul class="plan-features list-unstyled mb-4">
+                                    @if (plan.SpeedMbps.HasValue)
+                                    {
+                                        <li><span class="plan-check">&#10003;</span>Up to @plan.SpeedMbps Mbps speed</li>
+                                    }
+                                    <li><span class="plan-check">&#10003;</span>Security deposit Rs. @plan.SecurityDeposit.ToString("N0")</li>
+                                    <li><span class="plan-check">&#10003;</span>Installation Rs. @plan.InstallationCharge.ToString("N0")</li>
+                                </ul>
+
+                                <a class="btn btn-outline-primary w-100 mt-auto" asp-action="Contact">Order This Plan</a>
+                            </div>
+                        </article>
+                    </div>
+                }
+            </div>
+
+            <div class="text-center mt-4">
+                <a class="btn btn-primary btn-lg" asp-action="Plans">Compare all plans</a>
+            </div>
+        }
+    </div>
+</section>
+
+@* ======================== TRUST / FEATURES ======================== *@
+<section class="section">
+    <div class="container">
+        <div class="section-head center">
+            <span class="section-eyebrow">Why NEXUS</span>
+            <h2 class="section-title">Built for dependable connectivity</h2>
+            <p class="section-subtitle">The service, support and security our customers rely on every day.</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-sm-6 col-lg-3">
+                <article class="feature-card">
+                    <span class="feature-icon"><svg class="svg-icon"><use href="#i-connections" /></svg></span>
+                    <h3 class="feature-title">Reliable Network</h3>
+                    <p class="feature-text">Our own technical team builds and maintains the network, so installations and faults are handled in-house.</p>
+                </article>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <article class="feature-card">
+                    <span class="feature-icon"><svg class="svg-icon"><use href="#i-headset" /></svg></span>
+                    <h3 class="feature-title">24/7 Support</h3>
+                    <p class="feature-text">Reach our support desk any time by phone or email for faults, plan changes and service questions.</p>
+                </article>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <article class="feature-card">
+                    <span class="feature-icon"><svg class="svg-icon"><use href="#i-plans" /></svg></span>
+                    <h3 class="feature-title">Flexible Plans</h3>
+                    <p class="feature-text">Broadband, dial-up and telephone plans you can combine and change as your needs grow.</p>
+                </article>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <article class="feature-card">
+                    <span class="feature-icon"><svg class="svg-icon"><use href="#i-shield" /></svg></span>
+                    <h3 class="feature-title">Secure Connectivity</h3>
+                    <p class="feature-text">Account access is protected by authenticated, role-based login, and your billing data stays private.</p>
+                </article>
+            </div>
+        </div>
+    </div>
+</section>

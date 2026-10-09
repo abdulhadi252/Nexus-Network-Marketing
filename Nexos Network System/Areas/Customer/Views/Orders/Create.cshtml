@@ -1,0 +1,31 @@
+@model CustomerOrderViewModel
+@{
+    ViewData["Title"] = "Place an Order";
+}
+
+<h1 class="h4 mb-1">Place a service order</h1>
+<p class="text-muted">Choose an active plan. Your order number and status will be available in your account.</p>
+
+<div class="card">
+    <div class="card-body">
+        <form asp-action="Create" method="post" class="row g-3">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+            <div class="col-md-8">
+                <label asp-for="PlanId" class="form-label"></label>
+                <select asp-for="PlanId" class="form-select" asp-items="ViewBag.Plans">
+                    <option value="0">-- Choose an active plan --</option>
+                </select>
+                <span asp-validation-for="PlanId" class="field-validation-error"></span>
+            </div>
+            <div class="col-12">
+                <label asp-for="Notes" class="form-label"></label>
+                <textarea asp-for="Notes" class="form-control" rows="4" placeholder="Share any useful installation details (optional)"></textarea>
+                <span asp-validation-for="Notes" class="field-validation-error"></span>
+            </div>
+            <div class="col-12 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Submit order</button>
+                <a class="btn btn-outline-secondary" asp-action="Index">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>

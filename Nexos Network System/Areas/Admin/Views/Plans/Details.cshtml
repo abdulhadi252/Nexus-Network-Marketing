@@ -1,0 +1,96 @@
+@model Plan
+@{
+    ViewData["Title"] = "Plan Details";
+}
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div>
+        <h1 class="h4 mb-1">@Model.Name</h1>
+        <p class="text-muted mb-0">@Model.ConnectionType &middot; @Model.BillingCycle billing</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-primary" asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
+        <a class="btn btn-outline-secondary" asp-action="Index">Back to list</a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-5">
+        <div class="card p-4 h-100">
+            <h6 class="mb-3">Plan Details</h6>
+            <dl class="row detail-list mb-0">
+                <dt class="col-6">Description</dt>
+                <dd class="col-6">@(Model.Description ?? "-")</dd>
+                <dt class="col-6">Recurring charge</dt>
+                <dd class="col-6 text-price">PKR @Model.RecurringCharge.ToString("N2")</dd>
+                <dt class="col-6">Security deposit</dt>
+                <dd class="col-6 text-price">PKR @Model.SecurityDeposit.ToString("N2")</dd>
+                <dt class="col-6">Installation charge</dt>
+                <dd class="col-6 text-price">PKR @Model.InstallationCharge.ToString("N2")</dd>
+                <dt class="col-6">Validity</dt>
+                <dd class="col-6">@(Model.ValidityDays.HasValue ? $"{Model.ValidityDays} days" : "-")</dd>
+                <dt class="col-6">Speed</dt>
+                <dd class="col-6">@(Model.SpeedMbps.HasValue ? $"{Model.SpeedMbps} Mbps" : "-")</dd>
+                <dt class="col-6">Included usage</dt>
+                <dd class="col-6">@(Model.IncludedUsageHours.HasValue ? $"{Model.IncludedUsageHours} hours" : "-")</dd>
+                <dt class="col-6">Status</dt>
+                <dd class="col-6"><partial name="_Badge" model="@((object?)(Model.IsActive ? "Active" : "Inactive"))" /></dd>
+            </dl>
+        </div>
+    </div>
+    <div class="col-lg-7">
+        <div class="card mb-3">
+            <div class="card-header">Connections on this plan (@Model.Connections.Count)</div>
+            <div class="card-body p-0">
+                @if (Model.Connections.Count == 0)
+                {
+                    <div class="empty-state"><p class="mb-0">No active connections use this plan.</p></div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead><tr><th>Account</th><th>Status</th></tr></thead>
+                            <tbody>
+                                @foreach (var connection in Model.Connections.Take(10))
+                                {
+                                    <tr>
+                                        <td class="fw-semibold">@connection.AccountNumber</td>
+                                        <td><partial name="_Badge" model="@((object?)connection.Status)" /></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">Orders referencing this plan (@Model.Orders.Count)</div>
+            <div class="card-body p-0">
+                @if (Model.Orders.Count == 0)
+                {
+                    <div class="empty-state"><p class="mb-0">No orders reference this plan.</p></div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead><tr><th>Order</th><th>Status</th><th>Submitted</th></tr></thead>
+                            <tbody>
+                                @foreach (var order in Model.Orders.OrderByDescending(o => o.SubmittedAt).Take(10))
+                                {
+                                    <tr>
+                                        <td class="fw-semibold">@order.OrderNumber</td>
+                                        <td><partial name="_Badge" model="@((object?)order.Status)" /></td>
+                                        <td>@order.SubmittedAt.ToLocalTime().ToString("dd MMM yyyy")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

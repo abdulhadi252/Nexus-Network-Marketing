@@ -1,0 +1,91 @@
+@model ContactViewModel
+@{
+    ViewData["Title"] = "Contact";
+}
+
+<section class="page-hero" aria-labelledby="page-title">
+    <span class="page-hero__glow" aria-hidden="true"></span>
+    <div class="container page-hero__inner">
+        <nav class="page-hero__crumbs" aria-label="Breadcrumb">
+            <a asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+            <span class="page-hero__sep" aria-hidden="true">/</span>
+            <span aria-current="page">@ViewData["Title"]</span>
+        </nav>
+        <h1 id="page-title" class="page-hero__title">Contact Us</h1>
+        <p class="page-hero__lead">Questions about coverage, plans or your existing connection? Send us a message.</p>
+        <span class="page-hero__bar" aria-hidden="true"></span>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="row gy-4">
+            <div class="col-lg-7">
+                <div class="card p-4">
+                    <h5 class="mb-3">Send us a message</h5>
+
+                    @if (TempData["Success"] is string success)
+                    {
+                        <div class="alert alert-success">@success</div>
+                    }
+
+                    <form asp-action="Contact" method="post">
+                        <div asp-validation-summary="ModelOnly" class="mb-3"></div>
+                        <div class="row gy-3">
+                            <div class="col-md-6">
+                                <label asp-for="Name" class="form-label"></label>
+                                <input asp-for="Name" class="form-control" placeholder="Your full name" />
+                                <span asp-validation-for="Name" class="field-validation-error"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Email" class="form-label"></label>
+                                <input asp-for="Email" class="form-control" placeholder="you@example.com" />
+                                <span asp-validation-for="Email" class="field-validation-error"></span>
+                            </div>
+                            <div class="col-12">
+                                <label asp-for="Subject" class="form-label"></label>
+                                <input asp-for="Subject" class="form-control" placeholder="How can we help?" />
+                                <span asp-validation-for="Subject" class="field-validation-error"></span>
+                            </div>
+                            <div class="col-12">
+                                <label asp-for="Message" class="form-label"></label>
+                                <textarea asp-for="Message" class="form-control" rows="5" placeholder="Tell us about your requirement"></textarea>
+                                <span asp-validation-for="Message" class="field-validation-error"></span>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">Send Message</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="card p-4 mb-3">
+                    <h6>Head Office</h6>
+                    <p class="text-muted small mb-1">12 Shahrah-e-Faisal, Karachi</p>
+                    <p class="text-muted small mb-1">Phone: +92 21 111 122 333</p>
+                    <p class="text-muted small mb-0">Email: support&#64;nexos.local</p>
+                    <hr />
+                    <p class="text-muted small mb-0"><strong>Business hours:</strong> Mon-Sat, 9:00 AM - 9:00 PM</p>
+                </div>
+                <div class="card p-4 mb-3">
+                    <h6>Branch Network</h6>
+                    <ul class="list-unstyled text-muted small mb-0">
+                        <li class="mb-1">Karachi - Shahrah-e-Faisal</li>
+                        <li class="mb-1">Lahore - Main Boulevard Gulberg</li>
+                        <li>Islamabad - Blue Area, Jinnah Avenue</li>
+                    </ul>
+                </div>
+                <div class="card p-4">
+                    <h6>Already a customer?</h6>
+                    <p class="text-muted small">Login to your customer panel to view bills, payments and connection details.</p>
+                    <a class="btn btn-outline-primary btn-sm" asp-area="Identity" asp-controller="Account" asp-action="Login">Customer Login</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

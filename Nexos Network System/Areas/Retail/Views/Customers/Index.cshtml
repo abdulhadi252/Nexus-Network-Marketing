@@ -1,0 +1,58 @@
+@model PagedResult<Nexos_Network_System.Models.Customer>
+@{
+    ViewData["Title"] = "Customers";
+}
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div>
+        <h1 class="h4 mb-1">Customers</h1>
+        <p class="text-muted mb-0">Search existing customers or register a new one.</p>
+    </div>
+    <a class="btn btn-primary" asp-action="Create">+ New Customer</a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="get" class="row g-2 mb-3">
+            <div class="col-sm-6 col-md-4">
+                <input type="text" name="q" value="@ViewData["q"]" class="form-control" placeholder="Search name, email or phone..." />
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-outline-primary">Search</button>
+                <a class="btn btn-outline-secondary" asp-action="Index">Reset</a>
+            </div>
+        </form>
+
+        @if (Model.Items.Count == 0)
+        {
+            <div class="empty-state"><p class="mb-0">No customers match your search.</p></div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr><th>Name</th><th>Email</th><th>Contact</th><th>City</th><th>Connections</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var customer in Model.Items)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@customer.FirstName @customer.LastName</td>
+                                <td>@customer.Email</td>
+                                <td>@customer.PrimaryContactNumber</td>
+                                <td>@(customer.Addresses.OrderByDescending(a => a.IsPrimary).FirstOrDefault()?.City?.Name ?? "-")</td>
+                                <td>@customer.Connections.Count</td>
+                                <td class="table-actions">
+                                    <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@customer.Id">View</a>
+                                    <a class="btn btn-outline-primary" asp-controller="Orders" asp-action="Create" asp-route-customerId="@customer.Id">New Order</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <partial name="_Pagination" model="Model" />
+        }
+    </div>
+</div>

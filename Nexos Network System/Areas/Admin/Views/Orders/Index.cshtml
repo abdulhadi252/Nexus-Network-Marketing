@@ -1,0 +1,94 @@
+@model PagedResult<Order>
+@{
+    ViewData["Title"] = "Orders";
+}
+
+<h1 class="h4 mb-1">Orders</h1>
+<p class="text-muted">All service orders with filtering by status, type and date range.</p>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2">
+            <div class="col-md-3">
+                <input type="text" name="Query" value="@Context.Request.Query["Query"]" class="form-control" placeholder="Order number or customer" />
+            </div>
+            <div class="col-md-2">
+                <select name="Status" class="form-select">
+                    <option value="">All statuses</option>
+                    @foreach (var status in Enum.GetValues<OrderStatus>())
+                    {
+                        <option value="@status" selected="@(Context.Request.Query["Status"] == status.ToString())">@status</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="ConnectionType" class="form-select">
+                    <option value="">All types</option>
+                    @foreach (var type in Enum.GetValues<ConnectionType>())
+                    {
+                        <option value="@type" selected="@(Context.Request.Query["ConnectionType"] == type.ToString())">@type</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="From" value="@Context.Request.Query["From"]" class="form-control" title="From date" />
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="To" value="@Context.Request.Query["To"]" class="form-control" title="To date" />
+            </div>
+            <div class="col-md-1 d-grid">
+                <button type="submit" class="btn btn-outline-primary">Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        @if (Model.Items.Count == 0)
+        {
+            <div class="empty-state"><p class="mb-0">No orders match the selected filters.</p></div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Order</th>
+                            <th>Customer</th>
+                            <th>Type</th>
+                            <th>Plan</th>
+                            <th>Shop</th>
+                            <th>Submitted</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model.Items)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@order.OrderNumber</td>
+                                <td>@order.Customer.FirstName @order.Customer.LastName</td>
+                                <td>@order.ConnectionType</td>
+                                <td>@(order.Plan?.Name ?? "-")</td>
+                                <td>@(order.RetailShop?.Name ?? "-")</td>
+                                <td>@order.SubmittedAt.ToLocalTime().ToString("dd MMM yyyy")</td>
+                                <td><partial name="_Badge" model="@((object?)order.Status)" /></td>
+                                <td class="table-actions">
+                                    <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@order.Id">View</a>
+                                    @if (order.Connection is not null)
+                                    {
+                                        <a class="btn btn-outline-primary" asp-controller="Connections" asp-action="Details" asp-route-id="@order.Connection.Id">Connection</a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <partial name="_Pagination" model="Model" />
+        }
+    </div>
+</div>

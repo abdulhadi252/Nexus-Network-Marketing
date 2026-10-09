@@ -1,0 +1,97 @@
+@model OrderCreateViewModel
+@{
+    ViewData["Title"] = "New Order";
+    var products = ViewBag.Products as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+}
+
+<h1 class="h4 mb-1">New Order</h1>
+<p class="text-muted">The order number is generated automatically (for example B0000000001) - it can never be typed manually.</p>
+
+<div class="card">
+    <div class="card-body">
+        <form asp-action="Create" method="post" class="row g-3">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+            <div class="col-md-6">
+                <label asp-for="CustomerId" class="form-label"></label>
+                <select asp-for="CustomerId" class="form-select" asp-items="ViewBag.Customers">
+                    <option value="">-- Select customer --</option>
+                </select>
+                <span asp-validation-for="CustomerId" class="field-validation-error"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="ConnectionType" class="form-label"></label>
+                <select asp-for="ConnectionType" class="form-select" asp-items="Html.GetEnumSelectList<ConnectionType>()"></select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Assigned branch</label>
+                <p class="form-control">@ViewBag.RetailShopName</p>
+                <input asp-for="RetailShopId" type="hidden" />
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="PlanId" class="form-label"></label>
+                <select asp-for="PlanId" class="form-select" asp-items="ViewBag.Plans">
+                    <option value="">-- Select plan (must match connection type) --</option>
+                </select>
+                <span asp-validation-for="PlanId" class="field-validation-error"></span>
+            </div>
+            <div class="col-12">
+                <label asp-for="Notes" class="form-label"></label>
+                <textarea asp-for="Notes" class="form-control" rows="2" placeholder="Installation notes, preferred timing, etc."></textarea>
+            </div>
+
+            <div class="col-12">
+                <h6 class="text-muted mb-0">Products / Equipment (optional)</h6>
+                <p class="text-muted small">Quantities are checked against available stock and reserved for this order.</p>
+            </div>
+
+            <div class="col-12">
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr><th>Product</th><th>Available stock</th><th style="width: 140px;">Quantity</th></tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                var index = 0;
+                            }
+                            @foreach (var product in products)
+                            {
+                                <tr>
+                                    <td>
+                                        @product.Name
+                                        <input type="hidden" name="Items[@index].ProductId" value="@product.Id" />
+                                    </td>
+                                    <td>
+                                        @if (product.Available <= 0)
+                                        {
+                                            <span class="badge bg-danger">Out of stock</span>
+                                        }
+                                        else
+                                        {
+                                            <span>@product.Available</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <input type="number" name="Items[@index].Quantity" value="0" min="0" max="999" class="form-control form-control-sm" />
+                                    </td>
+                                </tr>
+                                index++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="col-12 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Create Order</button>
+                <a class="btn btn-outline-secondary" asp-action="Index">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

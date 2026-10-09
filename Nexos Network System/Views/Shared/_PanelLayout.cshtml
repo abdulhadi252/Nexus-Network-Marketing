@@ -1,0 +1,129 @@
+@{
+    var currentUser = User.Identity?.Name ?? "Account";
+    var userInitial = string.IsNullOrWhiteSpace(currentUser) ? "?" : currentUser.Trim()[..1].ToUpperInvariant();
+    var userRole = User.IsInRole("Admin") ? "Administrator"
+        : User.IsInRole("Retail") ? "Retail Agent"
+        : User.IsInRole("Technical") ? "Technical Team"
+        : User.IsInRole("Accounts") ? "Accounts"
+        : User.IsInRole("Customer") ? "Customer"
+        : "User";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - NEXUS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <script>
+        // NEXUS boot loader gate: decide before first paint whether the
+        // intro animation may play (first page of a session, motion allowed).
+        (function () {
+            try {
+                if (sessionStorage.getItem("nx-boot-skip") ||
+                    window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+                    document.documentElement.classList.add("nx-boot-skip");
+                }
+            } catch (e) {
+                document.documentElement.classList.add("nx-boot-skip");
+            }
+        })();
+    </script>
+</head>
+<body class="panel-body">
+    <div id="nx-loader" aria-hidden="true">
+        <div class="nx-loader-inner">
+            <span class="nx-logo-ghost"></span>
+            <span class="nx-logo-fill"></span>
+            <span class="nx-logo-glow"></span>
+            <span class="nx-loader-word">NEXUS</span>
+            <span class="nx-loader-bar"></span>
+        </div>
+    </div>
+    <partial name="_Icons" />
+    <div class="panel-wrapper">
+        <aside class="panel-sidebar">
+            <div class="panel-sidebar-head">
+                <a class="panel-brand text-decoration-none" asp-area="" asp-controller="Home" asp-action="Index">
+                    <partial name="_Brand" />
+                </a>
+                <span class="panel-area-name">@(ViewData["PanelName"] ?? "Panel")</span>
+            </div>
+
+            <div class="panel-sidebar-scroll">
+                <partial name="_PanelSidebar" />
+            </div>
+
+            <div class="panel-user">
+                <span class="panel-user-avatar">@userInitial</span>
+                <span class="panel-user-meta">
+                    <span class="panel-user-name">@currentUser</span>
+                    <span class="panel-user-role">@userRole</span>
+                </span>
+                <form asp-area="Identity" asp-controller="Account" asp-action="Logout" method="post">
+                    <button type="submit" class="panel-user-logout" title="Logout" aria-label="Logout">
+                        <svg class="nav-icon"><use href="#i-logout" /></svg>
+                    </button>
+                </form>
+            </div>
+        </aside>
+
+        <div class="panel-main">
+            <header class="panel-topbar">
+                <h5>@ViewData["Title"]</h5>
+                <div class="d-flex align-items-center gap-2">
+                    <a class="btn btn-sm btn-outline-secondary" asp-area="" asp-controller="Home" asp-action="Index">Public Site</a>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            @(User.Identity?.Name ?? "Account")
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item" asp-area="Identity" asp-controller="Account" asp-action="Profile">My Profile</a>
+                            </li>
+                            <li><hr class="dropdown-divider" /></li>
+                            <li>
+                                <form asp-area="Identity" asp-controller="Account" asp-action="Logout" method="post">
+                                    <button type="submit" class="dropdown-item">Logout</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </header>
+
+            <main class="panel-content">
+                @if (TempData["Success"] is string successMessage)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @successMessage
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+                @if (TempData["Error"] is string errorMessage)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @errorMessage
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+                @RenderBody()
+            </main>
+
+            <footer class="panel-footer">
+                &copy; 2026 NEXUS &middot; @(ViewData["PanelName"] ?? "Panel") &middot;
+                <a asp-area="" asp-controller="Home" asp-action="Index">Back to public website</a>
+            </footer>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

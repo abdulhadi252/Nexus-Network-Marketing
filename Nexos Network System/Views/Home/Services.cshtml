@@ -1,0 +1,108 @@
+@{
+    ViewData["Title"] = "Services";
+}
+
+<section class="page-hero" aria-labelledby="page-title">
+    <span class="page-hero__glow" aria-hidden="true"></span>
+    <div class="container page-hero__inner">
+        <nav class="page-hero__crumbs" aria-label="Breadcrumb">
+            <a asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+            <span class="page-hero__sep" aria-hidden="true">/</span>
+            <span aria-current="page">@ViewData["Title"]</span>
+        </nav>
+        <h1 id="page-title" class="page-hero__title">Our Services</h1>
+        <p class="page-hero__lead">Choose the service that fits your needs - or combine them for a complete solution.</p>
+        <span class="page-hero__bar" aria-hidden="true"></span>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="row gy-4">
+            <div class="col-md-4">
+                <div class="card card-hover h-100 p-4">
+                    <h4 class="card-title">Broadband Internet</h4>
+                    <p class="text-muted">
+                        High speed unlimited internet for homes and businesses with speeds up to 50 Mbps.
+                        Includes modem/router installation and technical support.
+                    </p>
+                    <ul class="list-unstyled small text-muted">
+                        <li>&#10003; Unlimited usage</li>
+                        <li>&#10003; Free equipment installation</li>
+                        <li>&#10003; Priority technical support</li>
+                    </ul>
+                    <a class="btn btn-outline-primary mt-auto" asp-action="Plans">View broadband plans</a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card card-hover h-100 p-4">
+                    <h4 class="card-title">Dial-Up Internet</h4>
+                    <p class="text-muted">
+                        A low cost, always-available backup internet option for areas where broadband
+                        coverage is limited. Includes a fixed monthly usage allowance.
+                    </p>
+                    <ul class="list-unstyled small text-muted">
+                        <li>&#10003; Low monthly cost</li>
+                        <li>&#10003; Works on existing phone lines</li>
+                        <li>&#10003; Free usage hours every month</li>
+                    </ul>
+                    <a class="btn btn-outline-primary mt-auto" asp-action="Plans">View dial-up plans</a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card card-hover h-100 p-4">
+                    <h4 class="card-title">Telephone / Landline</h4>
+                    <p class="text-muted">
+                        Reliable landline telephone service for homes and offices with free local calls
+                        and optional international packages.
+                    </p>
+                    <ul class="list-unstyled small text-muted">
+                        <li>&#10003; Clear voice quality</li>
+                        <li>&#10003; Free local calls</li>
+                        <li>&#10003; Optional add-on packages</li>
+                    </ul>
+                    <a class="btn btn-outline-primary mt-auto" asp-action="Plans">View telephone plans</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section section-alt">
+    <div class="container">
+        <div class="text-center">
+            <h2 class="section-title">Support &amp; account services</h2>
+            <p class="section-subtitle">Everything you need to manage your connection after installation.</p>
+        </div>
+        <div class="row gy-4">
+            <div class="col-md-3">
+                <div class="card h-100 p-4 text-center">
+                    <h6>Order Tracking</h6>
+                    <p class="text-muted small">Follow your order from submission to activation.</p>
+                    <a class="btn btn-sm btn-outline-primary" asp-action="TrackOrder">Track Order</a>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100 p-4 text-center">
+                    <h6>Connection Status</h6>
+                    <p class="text-muted small">Check the live status of an active account.</p>
+                    <a class="btn btn-sm btn-outline-primary" asp-action="ConnectionStatus">Check Status</a>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100 p-4 text-center">
+                    <h6>Billing &amp; Payments</h6>
+                    <p class="text-muted small">View bills, payment history and outstanding dues.</p>
+                    <a class="btn btn-sm btn-outline-primary" asp-area="Identity" asp-controller="Account" asp-action="Login">Customer Login</a>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100 p-4 text-center">
+                    <h6>Technical Help</h6>
+                    <p class="text-muted small">Report a fault or request a plan change.</p>
+                    <a class="btn btn-sm btn-outline-primary" asp-action="Contact">Contact Support</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

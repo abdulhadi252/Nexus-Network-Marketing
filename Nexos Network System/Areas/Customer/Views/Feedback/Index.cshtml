@@ -1,0 +1,65 @@
+@model IReadOnlyList<Feedback>
+@{
+    ViewData["Title"] = "Feedback";
+}
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div>
+        <h1 class="h4 mb-1">Feedback</h1>
+        <p class="text-muted mb-0">Tell us how we are doing - every submission is reviewed by our team.</p>
+    </div>
+    <a class="btn btn-primary" asp-action="Create">+ Submit Feedback</a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        @if (Model.Count == 0)
+        {
+            <div class="empty-state">
+                <div class="empty-icon">&#128172;</div>
+                <p class="mb-2">You have not submitted any feedback yet.</p>
+                <a class="btn btn-sm btn-primary" asp-action="Create">Share your experience</a>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr><th>Submitted</th><th>Connection</th><th>Rating</th><th>Message</th><th>Reviewed</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var feedback in Model)
+                        {
+                            <tr>
+                                <td>@feedback.SubmittedAt.ToLocalTime().ToString("dd MMM yyyy")</td>
+                                <td>@(feedback.Connection?.AccountNumber ?? "-")</td>
+                                <td>
+                                    @if (feedback.Rating.HasValue)
+                                    {
+                                        <span class="text-warning">&#9733; @feedback.Rating.Value/5</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td style="max-width: 420px;">@feedback.Message</td>
+                                <td>
+                                    @if (feedback.IsReviewed)
+                                    {
+                                        <span class="badge bg-success">Reviewed</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Pending review</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

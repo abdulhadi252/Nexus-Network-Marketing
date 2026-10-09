@@ -1,0 +1,29 @@
+@model Vendor
+@{
+    ViewData["Title"] = "Delete Vendor";
+}
+
+<h1 class="h4 mb-1">Delete Vendor</h1>
+<p class="text-muted">Vendors linked to products or equipment are deactivated instead of deleted.</p>
+
+<div class="card">
+    <div class="card-body">
+        <dl class="row detail-list">
+            <dt class="col-sm-4">Name</dt>
+            <dd class="col-sm-8">@Model.Name</dd>
+            <dt class="col-sm-4">Contact number</dt>
+            <dd class="col-sm-8">@Model.ContactNumber</dd>
+            <dt class="col-sm-4">Email</dt>
+            <dd class="col-sm-8">@(Model.Email ?? "-")</dd>
+            <dt class="col-sm-4">Linked products</dt>
+            <dd class="col-sm-8">@Model.Products.Count</dd>
+            <dt class="col-sm-4">Linked equipment</dt>
+            <dd class="col-sm-8">@Model.EquipmentItems.Count</dd>
+        </dl>
+
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-flex gap-2">
+            <button type="submit" class="btn btn-danger">Delete / Deactivate Vendor</button>
+            <a class="btn btn-outline-secondary" asp-action="Index">Cancel</a>
+        </form>
+    </div>
+</div>

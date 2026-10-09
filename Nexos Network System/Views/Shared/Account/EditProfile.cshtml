@@ -1,0 +1,88 @@
+@model ProfileEditViewModel
+@{
+    Layout = "~/Views/Shared/_PanelLayout.cshtml";
+    ViewData["Title"] = "Edit Profile";
+}
+
+<h1 class="h4 mb-1">Edit Profile</h1>
+<p class="text-muted">
+    Update your own profile information.
+    @if (Model.IsCustomer)
+    {
+        @:Email changes require contacting support.
+    }
+    else
+    {
+        @:Your role, employee number and shop assignment are managed by the Admin panel.
+    }
+</p>
+
+<div class="card">
+    <div class="card-body">
+        <form asp-action="Edit" method="post" class="row g-3">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+            <div class="col-md-6">
+                <label asp-for="FirstName" class="form-label"></label>
+                <input asp-for="FirstName" class="form-control" />
+                <span asp-validation-for="FirstName" class="field-validation-error"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="LastName" class="form-label"></label>
+                <input asp-for="LastName" class="form-control" />
+                <span asp-validation-for="LastName" class="field-validation-error"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="ContactNumber" class="form-label"></label>
+                <input asp-for="ContactNumber" class="form-control" />
+                <span asp-validation-for="ContactNumber" class="field-validation-error"></span>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Email (read-only)</label>
+                <input class="form-control" value="@Model.Email" readonly />
+                <span class="text-muted small">Login email cannot be changed here.</span>
+            </div>
+
+            @if (Model.IsCustomer)
+            {
+                <h6 class="text-muted mt-2 mb-0">Contact &amp; Address</h6>
+
+                <div class="col-md-6">
+                    <label asp-for="AlternateContactNumber" class="form-label"></label>
+                    <input asp-for="AlternateContactNumber" class="form-control" />
+                    <span asp-validation-for="AlternateContactNumber" class="field-validation-error"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="CityId" class="form-label"></label>
+                    <select asp-for="CityId" class="form-select" asp-items="Model.Cities">
+                        <option value="">-- Select city --</option>
+                    </select>
+                    <span asp-validation-for="CityId" class="field-validation-error"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="AddressLine1" class="form-label"></label>
+                    <input asp-for="AddressLine1" class="form-control" />
+                    <span asp-validation-for="AddressLine1" class="field-validation-error"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="AddressLine2" class="form-label"></label>
+                    <input asp-for="AddressLine2" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="PostalCode" class="form-label"></label>
+                    <input asp-for="PostalCode" class="form-control" />
+                    <span asp-validation-for="PostalCode" class="field-validation-error"></span>
+                </div>
+            }
+
+            <div class="col-12 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <a class="btn btn-outline-secondary" asp-action="Index">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

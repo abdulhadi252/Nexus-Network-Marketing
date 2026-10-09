@@ -1,0 +1,128 @@
+@model Nexos_Network_System.Models.Customer
+@{
+    ViewData["Title"] = "Customer Details";
+    var address = Model.Addresses.OrderByDescending(a => a.IsPrimary).FirstOrDefault();
+    var outstanding = Model.Bills.SumLatestOutstanding();
+}
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div>
+        <h1 class="h4 mb-1">@Model.FirstName @Model.LastName</h1>
+        <p class="text-muted mb-0">@Model.Email &middot; @Model.PrimaryContactNumber</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-primary" asp-controller="Orders" asp-action="Create" asp-route-customerId="@Model.Id">+ New Order</a>
+        <a class="btn btn-outline-secondary" asp-action="Index">Back to customers</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-lg-6">
+        <div class="card p-4 h-100">
+            <h6 class="mb-3">Details</h6>
+            <dl class="row detail-list mb-0">
+                <dt class="col-5">National ID</dt>
+                <dd class="col-7">@(Model.NationalId ?? "-")</dd>
+                <dt class="col-5">Alternate contact</dt>
+                <dd class="col-7">@(Model.AlternateContactNumber ?? "-")</dd>
+                <dt class="col-5">Address</dt>
+                <dd class="col-7">@(address is null ? "-" : $"{address.AddressLine1}, {address.City?.Name}")</dd>
+                <dt class="col-5">Registered</dt>
+                <dd class="col-7">@Model.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")</dd>
+                <dt class="col-5">Outstanding</dt>
+                <dd class="col-7 text-price">PKR @outstanding.ToString("N2")</dd>
+            </dl>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">Connections (@Model.Connections.Count)</div>
+            <div class="card-body p-0">
+                @if (Model.Connections.Count == 0)
+                {
+                    <div class="empty-state"><p class="mb-0">No active connections for this customer.</p></div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead><tr><th>Account</th><th>Plan</th><th>Status</th></tr></thead>
+                            <tbody>
+                                @foreach (var connection in Model.Connections)
+                                {
+                                    <tr>
+                                        <td class="fw-semibold">@connection.AccountNumber</td>
+                                        <td>@connection.Plan?.Name</td>
+                                        <td><partial name="_Badge" model="@((object?)connection.Status)" /></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">Orders (@Model.Orders.Count)</div>
+            <div class="card-body p-0">
+                @if (Model.Orders.Count == 0)
+                {
+                    <div class="empty-state"><p class="mb-0">No orders placed yet.</p></div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead><tr><th>Order</th><th>Plan</th><th>Status</th></tr></thead>
+                            <tbody>
+                                @foreach (var order in Model.Orders.OrderByDescending(o => o.SubmittedAt))
+                                {
+                                    <tr>
+                                        <td class="fw-semibold">@order.OrderNumber</td>
+                                        <td>@(order.Plan?.Name ?? "-")</td>
+                                        <td><partial name="_Badge" model="@((object?)order.Status)" /></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">Bills (@Model.Bills.Count)</div>
+            <div class="card-body p-0">
+                @if (Model.Bills.Count == 0)
+                {
+                    <div class="empty-state"><p class="mb-0">No bills generated yet.</p></div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead><tr><th>Bill</th><th>Total</th><th>Due</th><th>Status</th></tr></thead>
+                            <tbody>
+                                @foreach (var bill in Model.Bills.OrderByDescending(b => b.GeneratedAt).Take(8))
+                                {
+                                    <tr>
+                                        <td>@bill.BillNumber</td>
+                                        <td class="text-price">PKR @bill.TotalAmount.ToString("N2")</td>
+                                        <td class="text-price">PKR @bill.DueAmount.ToString("N2")</td>
+                                        <td><partial name="_Badge" model="@((object?)bill.Status)" /></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

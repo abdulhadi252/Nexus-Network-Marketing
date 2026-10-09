@@ -1,0 +1,47 @@
+@model FeasibilityFormViewModel
+@{
+    ViewData["Title"] = "Edit Feasibility";
+}
+
+<h1 class="h4 mb-1">Update Feasibility - @Model.OrderNumber</h1>
+<p class="text-muted">The order status is updated automatically when you change the result.</p>
+
+<div class="card">
+    <div class="card-body">
+        <form asp-action="Edit" asp-route-id="@Model.Id" method="post" class="row g-3">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="OrderId" />
+            <input type="hidden" asp-for="OrderNumber" />
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+            <div class="col-md-4">
+                <label asp-for="Status" class="form-label"></label>
+                <select asp-for="Status" class="form-select" asp-items="Html.GetEnumSelectList<FeasibilityStatus>()"></select>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="DistanceMeters" class="form-label"></label>
+                <input asp-for="DistanceMeters" type="number" step="0.01" class="form-control" />
+            </div>
+            <div class="col-md-4">
+                <label asp-for="ServerAvailable" class="form-label">Server / Network Available</label>
+                <select asp-for="ServerAvailable" class="form-select">
+                    <option value="">Unknown</option>
+                    <option value="true" selected="@(Model.ServerAvailable == true)">Yes</option>
+                    <option value="false" selected="@(Model.ServerAvailable == false)">No</option>
+                </select>
+            </div>
+            <div class="col-12">
+                <label asp-for="Remarks" class="form-label"></label>
+                <textarea asp-for="Remarks" class="form-control" rows="3"></textarea>
+            </div>
+            <div class="col-12 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@Model.Id">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,56 @@
+@model RetailShopFormViewModel
+@{
+    ViewData["Title"] = "New Retail Shop";
+}
+
+<h1 class="h4 mb-1">New Retail Shop</h1>
+<p class="text-muted">Register a branch where customers can place orders.</p>
+
+<div class="card">
+    <div class="card-body">
+        <form asp-action="Create" method="post" class="row g-3">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+            <div class="col-md-6">
+                <label asp-for="Name" class="form-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="field-validation-error"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="ContactNumber" class="form-label"></label>
+                <input asp-for="ContactNumber" class="form-control" />
+                <span asp-validation-for="ContactNumber" class="field-validation-error"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="CityId" class="form-label"></label>
+                <select asp-for="CityId" class="form-select" asp-items="ViewBag.Cities">
+                    <option value="">-- Select city --</option>
+                </select>
+                <span asp-validation-for="CityId" class="field-validation-error"></span>
+            </div>
+            <div class="col-md-8">
+                <label asp-for="AddressLine1" class="form-label"></label>
+                <input asp-for="AddressLine1" class="form-control" />
+                <span asp-validation-for="AddressLine1" class="field-validation-error"></span>
+            </div>
+            <div class="col-md-8">
+                <label asp-for="AddressLine2" class="form-label"></label>
+                <input asp-for="AddressLine2" class="form-control" />
+            </div>
+            <div class="col-12">
+                <div class="form-check">
+                    <input asp-for="IsActive" class="form-check-input" />
+                    <label asp-for="IsActive" class="form-check-label"></label>
+                </div>
+            </div>
+            <div class="col-12 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Create Shop</button>
+                <a class="btn btn-outline-secondary" asp-action="Index">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

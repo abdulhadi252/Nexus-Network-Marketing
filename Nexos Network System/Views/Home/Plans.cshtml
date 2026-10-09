@@ -1,0 +1,111 @@
+@model IReadOnlyList<Plan>
+@{
+    ViewData["Title"] = "Plans";
+    var groups = Model.GroupBy(p => p.ConnectionType).OrderBy(g => g.Key).ToList();
+}
+
+<section class="page-hero" aria-labelledby="page-title">
+    <span class="page-hero__glow" aria-hidden="true"></span>
+    <div class="container page-hero__inner">
+        <nav class="page-hero__crumbs" aria-label="Breadcrumb">
+            <a asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+            <span class="page-hero__sep" aria-hidden="true">/</span>
+            <span aria-current="page">@ViewData["Title"]</span>
+        </nav>
+        <h1 id="page-title" class="page-hero__title">Plans &amp; Pricing</h1>
+        <p class="page-hero__lead">Simple monthly pricing with no hidden charges. All prices are in PKR.</p>
+        <span class="page-hero__bar" aria-hidden="true"></span>
+    </div>
+</section>
+
+@if (groups.Count == 0)
+{
+    <section class="section">
+        <div class="container">
+            <div class="empty-state">
+                <div class="empty-icon">&#128225;</div>
+                <h5>No plans published yet</h5>
+                <p class="mb-3">Our team is updating the plan catalogue. Please contact us for current pricing.</p>
+                <a class="btn btn-primary" asp-action="Contact">Contact Us</a>
+            </div>
+        </div>
+    </section>
+}
+else
+{
+    foreach (var group in groups)
+    {
+        <section class="section @(group.Key == ConnectionType.Broadband ? "" : "section-alt")">
+            <div class="container">
+                <h2 class="section-title">@group.Key services</h2>
+                <p class="section-subtitle">
+                    @switch (group.Key)
+                    {
+                        case ConnectionType.Broadband:
+                            <text>Unlimited high speed internet for homes and businesses.</text>
+                            break;
+                        case ConnectionType.DialUp:
+                            <text>Affordable backup internet with a fixed monthly usage allowance.</text>
+                            break;
+                        default:
+                            <text>Reliable landline telephone service with free local calls.</text>
+                            break;
+                    }
+                </p>
+                <div class="row gy-4">
+                    @foreach (var plan in group.OrderBy(p => p.RecurringCharge))
+                    {
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card card-hover price-card h-100">
+                                <div class="card-body d-flex flex-column">
+                                    <h5 class="card-title mb-1">@plan.Name</h5>
+                                    <span class="badge bg-secondary mb-2" style="width: fit-content;">@plan.BillingCycle</span>
+                                    <p class="text-muted small flex-grow-1">@plan.Description</p>
+                                    <div class="plan-price">
+                                        PKR @plan.RecurringCharge.ToString("N0") <small>/ @plan.BillingCycle.ToString().ToLowerInvariant()</small>
+                                    </div>
+                                    <hr />
+                                    <dl class="row small mb-3">
+                                        @if (plan.SpeedMbps.HasValue)
+                                        {
+                                            <dt class="col-6 text-muted">Speed</dt>
+                                            <dd class="col-6 text-end">@plan.SpeedMbps Mbps</dd>
+                                        }
+                                        @if (plan.IncludedUsageHours.HasValue)
+                                        {
+                                            <dt class="col-6 text-muted">Free hours</dt>
+                                            <dd class="col-6 text-end">@plan.IncludedUsageHours / month</dd>
+                                        }
+                                        @if (plan.ValidityDays.HasValue)
+                                        {
+                                            <dt class="col-6 text-muted">Validity</dt>
+                                            <dd class="col-6 text-end">@plan.ValidityDays days</dd>
+                                        }
+                                        <dt class="col-6 text-muted">Security deposit</dt>
+                                        <dd class="col-6 text-end text-price">PKR @plan.SecurityDeposit.ToString("N0")</dd>
+                                        <dt class="col-6 text-muted">Installation</dt>
+                                        <dd class="col-6 text-end text-price">PKR @plan.InstallationCharge.ToString("N0")</dd>
+                                    </dl>
+                                    <a class="btn btn-primary mt-auto" asp-action="Contact">Order This Plan</a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </section>
+    }
+}
+
+<section class="section">
+    <div class="container">
+        <div class="card p-4 text-center">
+            <h5>Ready to get connected?</h5>
+            <p class="text-muted mb-3">Visit your nearest NEXUS branch or send us a message and our retail team will register your order.</p>
+            <div class="d-flex justify-content-center gap-2">
+                <a class="btn btn-primary" asp-action="Contact">Contact Us</a>
+                <a class="btn btn-outline-secondary" asp-action="TrackOrder">Track Existing Order</a>
+            </div>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,59 @@
+@model StockAdjustViewModel
+@{
+    ViewData["Title"] = "Adjust Stock";
+}
+
+<h1 class="h4 mb-1">Adjust Stock</h1>
+<p class="text-muted">Record stock in, stock out or a correction for <strong>@Model.ProductName</strong>.</p>
+
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="card p-4">
+            <h6 class="mb-3">Current Levels</h6>
+            <dl class="row detail-list mb-0">
+                <dt class="col-7">On hand</dt>
+                <dd class="col-5">@Model.QuantityOnHand</dd>
+                <dt class="col-7">Reserved</dt>
+                <dd class="col-5">@Model.QuantityReserved</dd>
+                <dt class="col-7">Available</dt>
+                <dd class="col-5">@(Model.QuantityOnHand - Model.QuantityReserved)</dd>
+                <dt class="col-7">Reorder level</dt>
+                <dd class="col-5">@Model.ReorderLevel</dd>
+            </dl>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <form asp-action="Adjust" asp-route-id="@Model.ProductId" method="post" class="row g-3">
+                    <input type="hidden" asp-for="ProductId" />
+                    <input type="hidden" asp-for="ProductName" />
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+                    <div class="col-md-4">
+                        <label asp-for="MovementType" class="form-label"></label>
+                        <select asp-for="MovementType" class="form-select" asp-items="Html.GetEnumSelectList<StockMovementType>()"></select>
+                        <div class="form-text">Record a receipt, issue, or increase/decrease correction. Corrections cannot reduce stock below reserved quantities.</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="Quantity" class="form-label"></label>
+                        <input asp-for="Quantity" type="number" min="1" class="form-control" />
+                        <span asp-validation-for="Quantity" class="field-validation-error"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="Reason" class="form-label"></label>
+                        <input asp-for="Reason" class="form-control" placeholder="e.g. Supplier delivery" />
+                    </div>
+                    <div class="col-12 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">Record Movement</button>
+                        <a class="btn btn-outline-secondary" asp-action="Index">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

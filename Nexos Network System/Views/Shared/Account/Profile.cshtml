@@ -1,0 +1,131 @@
+@model ProfileViewModel
+@{
+    Layout = "~/Views/Shared/_PanelLayout.cshtml";
+    ViewData["Title"] = "My Profile";
+    var displayName = Model.Employee is not null
+        ? $"{Model.Employee.FirstName} {Model.Employee.LastName}"
+        : Model.Customer is not null
+            ? $"{Model.Customer.FirstName} {Model.Customer.LastName}"
+            : Model.UserName;
+}
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div>
+        <h1 class="h4 mb-1">My Profile</h1>
+        <p class="text-muted mb-0">Your account details, loaded live from the database.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-primary" asp-action="Edit">Edit Profile</a>
+        <a class="btn btn-outline-secondary" asp-action="ChangePassword">Change Password</a>
+    </div>
+</div>
+
+<div class="row gy-3">
+    <div class="col-lg-6">
+        <div class="card p-4 h-100">
+            <h6 class="mb-3">Account</h6>
+            <dl class="row detail-list mb-0">
+                <dt class="col-5">Name</dt>
+                <dd class="col-7">@displayName</dd>
+                <dt class="col-5">Email</dt>
+                <dd class="col-7">@Model.Email</dd>
+                <dt class="col-5">Username</dt>
+                <dd class="col-7">@Model.UserName</dd>
+                <dt class="col-5">Role(s)</dt>
+                <dd class="col-7"><span class="badge bg-primary">@Model.Roles</span></dd>
+                <dt class="col-5">Phone</dt>
+                <dd class="col-7">@(string.IsNullOrWhiteSpace(Model.PhoneNumber) ? "Not provided" : Model.PhoneNumber)</dd>
+            </dl>
+            <p class="text-muted small mb-0 mt-3">
+                Roles and permissions can only be managed by an administrator &mdash; they cannot be changed from this page.
+            </p>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        @if (Model.Employee is not null)
+        {
+            <div class="card p-4 h-100">
+                <h6 class="mb-3">Employee Details</h6>
+                <dl class="row detail-list mb-0">
+                    <dt class="col-5">Employee number</dt>
+                    <dd class="col-7">@Model.Employee.EmployeeNumber</dd>
+                    <dt class="col-5">Role</dt>
+                    <dd class="col-7">@Model.Employee.Role</dd>
+                    <dt class="col-5">Retail shop</dt>
+                    <dd class="col-7">@(Model.Employee.RetailShop?.Name ?? "Head office")</dd>
+                    <dt class="col-5">Hire date</dt>
+                    <dd class="col-7">@Model.Employee.HireDate.ToLocalTime().ToString("dd MMM yyyy")</dd>
+                    <dt class="col-5">Status</dt>
+                    <dd class="col-7"><partial name="_Badge" model="@((object?)(Model.Employee.IsActive ? "Active" : "Inactive"))" /></dd>
+                </dl>
+            </div>
+        }
+
+        @if (Model.Customer is not null)
+        {
+            <div class="card p-4 mb-3">
+                <h6 class="mb-3">Customer Details</h6>
+                @{ var primaryAddress = Model.Customer.Addresses.OrderByDescending(a => a.IsPrimary).FirstOrDefault(); }
+                <dl class="row detail-list mb-0">
+                    <dt class="col-5">Contact number</dt>
+                    <dd class="col-7">@Model.Customer.PrimaryContactNumber</dd>
+                    <dt class="col-5">Alternate contact</dt>
+                    <dd class="col-7">@(string.IsNullOrWhiteSpace(Model.Customer.AlternateContactNumber) ? "-" : Model.Customer.AlternateContactNumber)</dd>
+                    <dt class="col-5">National ID</dt>
+                    <dd class="col-7">@(Model.Customer.NationalId ?? "-")</dd>
+                    <dt class="col-5">Address</dt>
+                    <dd class="col-7">
+                        @if (primaryAddress is not null)
+                        {
+                            @($"{primaryAddress.AddressLine1}{(string.IsNullOrWhiteSpace(primaryAddress.AddressLine2) ? "" : $", {primaryAddress.AddressLine2}")}, {primaryAddress.City?.Name}")
+                        }
+                        else
+                        {
+                            @("Not provided")
+                        }
+                    </dd>
+                    <dt class="col-5">Member since</dt>
+                    <dd class="col-7">@Model.Customer.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")</dd>
+                </dl>
+            </div>
+
+            <div class="card p-4">
+                <h6 class="mb-3">My Connections</h6>
+                @if (Model.CustomerConnections.Count == 0)
+                {
+                    <p class="text-muted mb-0">No connections are registered on this account yet.</p>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Account Number</th>
+                                    <th>Type</th>
+                                    <th>Plan</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var connection in Model.CustomerConnections)
+                                {
+                                    <tr>
+                                        <td class="fw-semibold">@connection.AccountNumber</td>
+                                        <td>@connection.ConnectionType</td>
+                                        <td>@connection.Plan?.Name</td>
+                                        <td><partial name="_Badge" model="@((object?)connection.Status)" /></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                <p class="text-muted small mb-0 mt-3">
+                    Connection, billing and payment records are managed by the company &mdash; they are read-only here.
+                </p>
+            </div>
+        }
+    </div>
+</div>

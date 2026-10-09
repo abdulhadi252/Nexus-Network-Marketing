@@ -1,0 +1,165 @@
+@model SearchViewModel
+@{
+    ViewData["Title"] = "Advanced Search";
+}
+
+<h1 class="h4 mb-1">Advanced Search</h1>
+<p class="text-muted">Search across orders, connections and customers directly in SQL Server.</p>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <form asp-action="Index" method="get" class="row g-2">
+            <div class="col-md-3">
+                <input type="text" name="OrderNumber" value="@Model.OrderNumber" class="form-control" placeholder="Order number (D0000000001)" />
+            </div>
+            <div class="col-md-3">
+                <input type="text" name="AccountNumber" value="@Model.AccountNumber" class="form-control" placeholder="Account number" />
+            </div>
+            <div class="col-md-3">
+                <input type="text" name="CustomerName" value="@Model.CustomerName" class="form-control" placeholder="Customer name" />
+            </div>
+            <div class="col-md-3">
+                <input type="text" name="ContactNumber" value="@Model.ContactNumber" class="form-control" placeholder="Contact number" />
+            </div>
+            <div class="col-md-2">
+                <select name="ConnectionType" class="form-select">
+                    <option value="">All types</option>
+                    @foreach (var type in Enum.GetValues<ConnectionType>())
+                    {
+                        <option value="@type" selected="@(Model.ConnectionType.HasValue && Model.ConnectionType.Value == type)">@type</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="OrderStatus" class="form-select">
+                    <option value="">Order status</option>
+                    @foreach (var status in Enum.GetValues<OrderStatus>())
+                    {
+                        <option value="@status" selected="@(Model.OrderStatus.HasValue && Model.OrderStatus.Value == status)">@status</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="ConnectionStatus" class="form-select">
+                    <option value="">Connection status</option>
+                    @foreach (var status in Enum.GetValues<ConnectionStatus>())
+                    {
+                        <option value="@status" selected="@(Model.ConnectionStatus.HasValue && Model.ConnectionStatus.Value == status)">@status</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="From" value="@Model.From?.ToString("yyyy-MM-dd")" class="form-control" title="From date" />
+            </div>
+            <div class="col-md-1">
+                <input type="date" name="To" value="@Model.To?.ToString("yyyy-MM-dd")" class="form-control" title="To date" />
+            </div>
+            <div class="col-md-1 d-grid">
+                <button type="submit" class="btn btn-primary">Search</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (!Model.HasSearched)
+{
+    <div class="card">
+        <div class="empty-state">
+            <div class="empty-icon">&#128269;</div>
+            <h6>Enter at least one search criterion</h6>
+            <p class="mb-0">You can search by order ID, account ID, customer name, contact number, connection type, statuses and date range.</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        <div class="col-lg-6">
+            <div class="card mb-3">
+                <div class="card-header">Orders (@Model.Orders.Count)</div>
+                <div class="card-body p-0">
+                    @if (Model.Orders.Count == 0)
+                    {
+                        <div class="empty-state"><p class="mb-0">No orders matched.</p></div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table align-middle mb-0">
+                                <thead><tr><th>Order</th><th>Customer</th><th>Status</th><th>Connection</th></tr></thead>
+                                <tbody>
+                                    @foreach (var order in Model.Orders)
+                                    {
+                                        <tr>
+                                            <td class="fw-semibold">@order.OrderNumber</td>
+                                            <td>@order.Customer.FirstName @order.Customer.LastName</td>
+                                            <td><partial name="_Badge" model="@((object?)order.Status)" /></td>
+                                            <td>@(order.Connection?.AccountNumber ?? "-")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card mb-3">
+                <div class="card-header">Connections (@Model.Connections.Count)</div>
+                <div class="card-body p-0">
+                    @if (Model.Connections.Count == 0)
+                    {
+                        <div class="empty-state"><p class="mb-0">No connections matched.</p></div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table align-middle mb-0">
+                                <thead><tr><th>Account</th><th>Customer</th><th>Plan</th><th>Status</th></tr></thead>
+                                <tbody>
+                                    @foreach (var connection in Model.Connections)
+                                    {
+                                        <tr>
+                                            <td class="fw-semibold">@connection.AccountNumber</td>
+                                            <td>@connection.Customer.FirstName @connection.Customer.LastName</td>
+                                            <td>@connection.Plan?.Name</td>
+                                            <td><partial name="_Badge" model="@((object?)connection.Status)" /></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">Customers (@Model.Customers.Count)</div>
+                <div class="card-body p-0">
+                    @if (Model.Customers.Count == 0)
+                    {
+                        <div class="empty-state"><p class="mb-0">No customers matched.</p></div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table align-middle mb-0">
+                                <thead><tr><th>Name</th><th>Email</th><th>Contact</th></tr></thead>
+                                <tbody>
+                                    @foreach (var customer in Model.Customers)
+                                    {
+                                        <tr>
+                                            <td>@customer.FirstName @customer.LastName</td>
+                                            <td>@customer.Email</td>
+                                            <td>@customer.PrimaryContactNumber</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}

@@ -1,0 +1,45 @@
+@model PagedResultBase
+@{
+    var action = ViewContext.RouteData.Values["action"]?.ToString();
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString();
+    var area = ViewContext.RouteData.Values["area"]?.ToString();
+
+    var baseValues = new RouteValueDictionary();
+    foreach (var item in ViewContext.HttpContext.Request.Query)
+    {
+        baseValues[item.Key] = item.Value.ToString();
+    }
+    baseValues["action"] = action;
+    baseValues["controller"] = controller;
+    if (!string.IsNullOrEmpty(area))
+    {
+        baseValues["area"] = area;
+    }
+
+    var start = Math.Max(1, Model.Page - 2);
+    var end = Math.Min(Model.TotalPages, Model.Page + 2);
+    var previous = new RouteValueDictionary(baseValues) { ["page"] = Model.Page - 1 };
+    var next = new RouteValueDictionary(baseValues) { ["page"] = Model.Page + 1 };
+}
+
+@if (Model.TotalPages > 1)
+{
+    <nav class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3" aria-label="Pagination">
+        <span class="text-muted small">Page @Model.Page of @Model.TotalPages &middot; @Model.TotalItems item(s)</span>
+        <ul class="pagination pagination-sm mb-0">
+            <li class="page-item @(Model.HasPrevious ? string.Empty : "disabled")">
+                <a class="page-link" href="@Url.Action(action, controller, previous)">Previous</a>
+            </li>
+            @for (var i = start; i <= end; i++)
+            {
+                var pageLink = new RouteValueDictionary(baseValues) { ["page"] = i };
+                <li class="page-item @(i == Model.Page ? "active" : string.Empty)">
+                    <a class="page-link" href="@Url.Action(action, controller, pageLink)">@i</a>
+                </li>
+            }
+            <li class="page-item @(Model.HasNext ? string.Empty : "disabled")">
+                <a class="page-link" href="@Url.Action(action, controller, next)">Next</a>
+            </li>
+        </ul>
+    </nav>
+}

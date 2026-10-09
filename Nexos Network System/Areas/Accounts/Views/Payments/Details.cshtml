@@ -1,0 +1,60 @@
+@model Payment
+@{
+    ViewData["Title"] = "Payment Details";
+}
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div>
+        <h1 class="h4 mb-1">Receipt @Model.ReceiptNumber</h1>
+        <p class="text-muted mb-0"><partial name="_Badge" model="@((object?)Model.Status)" /></p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-primary" asp-controller="Bills" asp-action="Details" asp-route-id="@Model.BillId">Open bill</a>
+        <a class="btn btn-outline-secondary" asp-action="Index">Back to payments</a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-5">
+        <div class="card p-4">
+            <h6 class="mb-3">Payment</h6>
+            <dl class="row detail-list mb-0">
+                <dt class="col-6">Amount</dt>
+                <dd class="col-6 text-price">PKR @Model.Amount.ToString("N2")</dd>
+                <dt class="col-6">Paid at</dt>
+                <dd class="col-6">@Model.PaidAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</dd>
+                <dt class="col-6">Method</dt>
+                <dd class="col-6">@Model.Method</dd>
+                <dt class="col-6">Reference</dt>
+                <dd class="col-6">@(Model.PaymentReference ?? "-")</dd>
+                <dt class="col-6">Recorded by</dt>
+                <dd class="col-6">@(Model.RecordedByEmployee is null ? "-" : $"{Model.RecordedByEmployee.FirstName} {Model.RecordedByEmployee.LastName}")</dd>
+                <dt class="col-6">Notes</dt>
+                <dd class="col-6">@(Model.Notes ?? "-")</dd>
+            </dl>
+        </div>
+    </div>
+    <div class="col-lg-7">
+        <div class="card p-4">
+            <h6 class="mb-3">Bill After Payment</h6>
+            <dl class="row detail-list mb-0">
+                <dt class="col-5">Bill number</dt>
+                <dd class="col-7">@Model.Bill.BillNumber</dd>
+                <dt class="col-5">Customer</dt>
+                <dd class="col-7">@Model.Customer.FirstName @Model.Customer.LastName</dd>
+                <dt class="col-5">Account</dt>
+                <dd class="col-7">@Model.Connection.AccountNumber</dd>
+                <dt class="col-5">Plan</dt>
+                <dd class="col-7">@Model.Connection.Plan?.Name</dd>
+                <dt class="col-5">Bill total</dt>
+                <dd class="col-7 text-price">PKR @Model.Bill.TotalAmount.ToString("N2")</dd>
+                <dt class="col-5">Paid</dt>
+                <dd class="col-7 text-price">PKR @Model.Bill.PaidAmount.ToString("N2")</dd>
+                <dt class="col-5">Due</dt>
+                <dd class="col-7 text-price">PKR @Model.Bill.DueAmount.ToString("N2")</dd>
+                <dt class="col-5">Status</dt>
+                <dd class="col-7"><partial name="_Badge" model="@((object?)Model.Bill.Status)" /></dd>
+            </dl>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,33 @@
+@model Customer
+@{
+    ViewData["Title"] = "Deactivate Customer";
+}
+
+<h1 class="h4 mb-1">Deactivate Customer</h1>
+<p class="text-muted">Customers are deactivated instead of deleted so billing history is never lost.</p>
+
+<div class="card">
+    <div class="card-body">
+        <dl class="row detail-list">
+            <dt class="col-sm-4">Name</dt>
+            <dd class="col-sm-8">@Model.FirstName @Model.LastName</dd>
+            <dt class="col-sm-4">Email</dt>
+            <dd class="col-sm-8">@Model.Email</dd>
+            <dt class="col-sm-4">Contact number</dt>
+            <dd class="col-sm-8">@Model.PrimaryContactNumber</dd>
+            <dt class="col-sm-4">Connections</dt>
+            <dd class="col-sm-8">@Model.Connections.Count</dd>
+            <dt class="col-sm-4">Outstanding bills</dt>
+            <dd class="col-sm-8">@Model.Bills.Count(b => b.DueAmount > 0)</dd>
+        </dl>
+
+        <div class="alert alert-warning small">
+            The customer will be marked inactive. Existing orders, connections, bills and payments are preserved.
+        </div>
+
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-flex gap-2">
+            <button type="submit" class="btn btn-danger">Deactivate Customer</button>
+            <a class="btn btn-outline-secondary" asp-action="Index">Cancel</a>
+        </form>
+    </div>
+</div>
