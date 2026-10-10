@@ -1,55 +1,63 @@
 @{
-    ViewData["Title"] = "About Us";
+    ViewData["Title"] = "About";
 }
 
-<section class="hero" style="padding: 3.5rem 0 3rem;">
-    <div class="container">
-        <h1 class="display-6">About NEXUS</h1>
-        <p class="lead mb-0">Connecting homes and businesses with dependable dial-up, broadband and telephone services.</p>
-    </div>
-</section>
-
-<section class="section">
-    <div class="container">
-        <div class="row gy-4">
-            <div class="col-lg-6">
-                <h2 class="section-title">Who we are</h2>
-                <p class="text-muted">
-                    NEXUS is a regional internet and telephony service provider. Our retail branches
-                    in Karachi, Lahore and Islamabad register customers and place service orders, our technical
-                    teams verify feasibility and install connections, and our accounts department manages billing
-                    and payments.
-                </p>
-                <p class="text-muted">
-                    Every order placed with us is tracked through a unique order number and every connection is
-                    issued a unique account number, so customers always know exactly where their request stands.
-                </p>
-            </div>
-            <div class="col-lg-6">
-                <div class="row gy-3">
-                    <div class="col-6">
-                        <div class="card p-3 h-100">
-                            <h6 class="mb-1">3 Branches</h6>
-                            <p class="text-muted small mb-0">Karachi, Lahore and Islamabad</p>
-                        </div>
+<!-- ================= About hero ================= -->
+<section class="ab-hero" aria-labelledby="about-title">
+    <span class="ab-hero__bg" aria-hidden="true"></span>
+    <span class="ab-hero__frame" aria-hidden="true"></span>
+    <span class="ab-hero__grid" aria-hidden="true"></span>
+    <span class="ab-hero__glow" aria-hidden="true"></span>
+    <div class="container ab-hero__inner">
+        <div class="ab-hero__copy">
+            <p class="ab-eyebrow">
+                <span class="ab-eyebrow__mark" aria-hidden="true" style="background: var(--nexos-accent);"></span>
+                - ABOUT NEXUS -
+            </p>
+            <h1 id="about-title" class="ab-hero__title">
+                Connecting Communities.<br />
+                <span>Building Trust.</span>
+            </h1>
+            <p class="ab-hero__lead">
+                NEXUS connects homes and businesses across Karachi, Lahore and Islamabad with reliable internet and telephone services &mdash; keeping you connected, always.
+            </p>
+            <div class="ab-hero__badges">
+                <div class="ab-badge">
+                    <span class="ab-badge__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                        </svg>
+                    </span>
+                    <div>
+                        <div class="ab-badge__title">Customer First</div>
+                        <div class="ab-badge__sub">People at the heart of everything</div>
                     </div>
-                    <div class="col-6">
-                        <div class="card p-3 h-100">
-                            <h6 class="mb-1">3 Service Types</h6>
-                            <p class="text-muted small mb-0">Dial-up, broadband and telephone</p>
-                        </div>
+                </div>
+                <div class="ab-badge">
+                    <span class="ab-badge__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M12 21s-7-5.6-7-11a7 7 0 1 1 14 0c0 5.4-7 11-7 11Z" />
+                            <circle cx="12" cy="10" r="2.6" />
+                        </svg>
+                    </span>
+                    <div>
+                        <div class="ab-badge__title">Local Expertise</div>
+                        <div class="ab-badge__sub">On the ground in your city</div>
                     </div>
-                    <div class="col-6">
-                        <div class="card p-3 h-100">
-                            <h6 class="mb-1">Dedicated Teams</h6>
-                            <p class="text-muted small mb-0">Retail, technical and accounts staff</p>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="card p-3 h-100">
-                            <h6 class="mb-1">Transparent Billing</h6>
-                            <p class="text-muted small mb-0">Itemised bills with service tax</p>
-                        </div>
+                </div>
+                <div class="ab-badge">
+                    <span class="ab-badge__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                            <path d="m9 12 2 2 4-4" />
+                        </svg>
+                    </span>
+                    <div>
+                        <div class="ab-badge__title">Reliable Support</div>
+                        <div class="ab-badge__sub">Quiet confidence, always here</div>
                     </div>
                 </div>
             </div>
@@ -57,34 +65,256 @@
     </div>
 </section>
 
-<section class="section section-alt">
+<!-- ================= Our story ================= -->
+<section class="ab-section ab-story" aria-labelledby="story-title">
     <div class="container">
-        <div class="text-center">
-            <h2 class="section-title">How we work</h2>
-            <p class="section-subtitle">From order to active connection in a clear, trackable process.</p>
+        <div class="row align-items-center g-4">
+            <div class="col-lg-6">
+                <p class="ab-eyebrow ab-eyebrow--dark">OUR STORY</p>
+                <h2 id="story-title" class="ab-h2">
+                    From Local Roots to a <span>Stronger Tomorrow</span>
+                </h2>
+                <p class="ab-sub">
+                    NEXUS is a regional internet and telephony service provider, committed to delivering fast, reliable and affordable internet and telephone services to homes and businesses in Karachi, Lahore and Islamabad.
+                </p>
+                <p class="ab-sub">
+                    Our retail branches register new customers, take payments, handle service orders and work closely with our technical and accounts teams to ensure seamless service delivery and customer satisfaction.
+                </p>
+                <div class="ab-city-pill">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 21s-7-5.6-7-11a7 7 0 1 1 14 0c0 5.4-7 11-7 11Z" />
+                        <circle cx="12" cy="10" r="2.6" />
+                    </svg>
+                    Karachi &nbsp;&bull;&nbsp; Lahore &nbsp;&bull;&nbsp; Islamabad
+                </div>
+            </div>                <div class="col-lg-6">
+                    <div class="ab-story__photo">
+                        <img class="ab-story__photo-img" src="~/img/home/hero-city.jpg" width="760" height="300"
+                             loading="lazy" decoding="async" alt="NEXUS operations and connectivity across the city" />
+                    </div>
+            </div>
         </div>
-        <div class="row gy-4">
-            <div class="col-md-4">
-                <div class="card h-100 p-4">
-                    <span class="badge bg-primary mb-2" style="width: fit-content;">Step 1</span>
-                    <h6>Place an order</h6>
-                    <p class="text-muted small mb-0">Visit a retail branch and register your request. You receive a unique order number.</p>
+    </div>
+</section>
+
+<!-- ================= What we stand for ================= -->
+<section class="ab-section ab-values" aria-labelledby="values-title">
+    <div class="container">
+        <div class="row g-4 align-items-start">
+            <div class="col-lg-8">
+                <p class="ab-eyebrow ab-eyebrow--dark">WHAT WE STAND FOR</p>
+                <h2 id="values-title" class="ab-h2">Our Values. Our Commitment.</h2>
+                <p class="ab-sub" style="max-width:100%;">
+                    We believe in doing what's right &mdash; for our customers, our team and our communities.
+                </p>
+            </div>
+        </div>
+        <div class="ab-values__grid">
+            <div class="ab-value-card">
+                <span class="ab-value__icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
+                </span>
+                <h3>People First</h3>
+                <p>Our customers, team and community are at the heart of everything we do.</p>
+            </div>
+            <div class="ab-value-card">
+                <span class="ab-value__icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        <path d="m9 12 2 2 4-4" />
+                    </svg>
+                </span>
+                <h3>Dependable Service</h3>
+                <p>We deliver consistent, reliable and high-quality connections, every time.</p>
+            </div>
+            <div class="ab-value-card">
+                <span class="ab-value__icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                    </svg>
+                </span>
+                <h3>Clear Communication</h3>
+                <p>We keep you informed with honest, simple and timely updates.</p>
+            </div>
+            <div class="ab-value-card">
+                <span class="ab-value__icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M3 17 9 11" /><path d="m9 11 6-6 4 4 8-8" /><path d="M16 7h5v5" />
+                    </svg>
+                </span>
+                <h3>Continuous Improvement</h3>
+                <p>We learn, adapt and innovate to bring you a better experience, always.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ================= Our presence ================= -->
+<section class="ab-section ab-presence" aria-labelledby="presence-title">
+    <div class="container">
+        <div class="row g-4 align-items-start">
+            <div class="col-lg-8">
+                <p class="ab-eyebrow ab-eyebrow--dark">OUR PRESENCE</p>
+                <h2 id="presence-title" class="ab-h2">On Ground. In Your City.</h2>
+                <p class="ab-sub">
+                    Our network of retail branches and field teams ensures smooth installation, maintenance and support across Karachi, Lahore and Islamabad.
+                </p>
+                <div class="ab-presence__photo">
+                    <img class="ab-presence__photo-img" src="~/img/home/hero-city.jpg" width="760" height="220"
+                         loading="lazy" decoding="async" alt="NEXUS field technicians at work across the city" />
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="card h-100 p-4">
-                    <span class="badge bg-primary mb-2" style="width: fit-content;">Step 2</span>
-                    <h6>Feasibility check</h6>
-                    <p class="text-muted small mb-0">Our technical team verifies network availability at your address and records the result.</p>
+        </div>
+        <div class="ab-presence__strip">
+            <div class="ab-presence__grid">
+                <div class="ab-info-block">
+                    <span class="ab-info-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M12 21s-7-5.6-7-11a7 7 0 1 1 14 0c0 5.4-7 11-7 11Z" />
+                            <circle cx="12" cy="10" r="2.6" />
+                        </svg>
+                    </span>
+                    <h4>3 Cities</h4>
+                    <p>Karachi &bull; Lahore &bull; Islamabad</p>
                 </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card h-100 p-4">
-                    <span class="badge bg-primary mb-2" style="width: fit-content;">Step 3</span>
-                    <h6>Installation &amp; activation</h6>
-                    <p class="text-muted small mb-0">Equipment is assigned, the connection is installed and your account becomes active.</p>
+                <div class="ab-info-block">
+                    <span class="ab-info-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                        </svg>
+                    </span>
+                    <h4>Retail, Technical &amp;<br />Accounts Teams</h4>
+                    <p>Dedicated teams for every step</p>
+                </div>
+                <div class="ab-info-block">
+                    <span class="ab-info-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10" />
+                            <circle cx="12" cy="12" r="6" />
+                            <circle cx="12" cy="12" r="2" />
+                        </svg>
+                    </span>
+                    <h4>Unique Order Tracking</h4>
+                    <p>Real-time updates on your requests</p>
+                </div>
+                <div class="ab-info-block">
+                    <span class="ab-info-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M12 21a9 9 0 0 0 9-9" /><path d="M12 21a7 7 0 0 0 7-7" /><path d="M12 21a5 5 0 0 0 5-5" /><path d="M12 21a3 3 0 0 0 3-3" /><circle cx="12" cy="21" r=".8" />
+                        </svg>
+                    </span>
+                    <h4>Broadband, Dial-Up &amp;<br />Telephone</h4>
+                    <p>Multiple solutions for your needs</p>
                 </div>
             </div>
         </div>
     </div>
 </section>
+
+<!-- ================= Our journey ================= -->
+<section class="ab-section ab-journey" aria-labelledby="journey-title">
+    <div class="container">
+        <div class="row g-4 align-items-start">
+            <div class="col-lg-8">
+                <p class="ab-eyebrow ab-eyebrow--dark">OUR JOURNEY</p>
+                <h2 id="journey-title" class="ab-h2">How We Support You</h2>
+                <p class="ab-sub" style="max-width:100%;">
+                    A simple process, powered by a dedicated team, for a better connected you.
+                </p>
+            </div>
+        </div>
+        <div class="ab-journey__flow" style="margin-top:1.4rem;">
+            <div class="ab-step">
+                <div class="ab-step__head">
+                    <span class="ab-step__badge">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M3 11.5 5 5h14l2 6.5" />
+                            <path d="M4.5 11.5V20a1 1 0 0 0 1 1h13a1 1 0 0 0 1-1V11.5" />
+                            <path d="M4.5 11.5h15" />
+                            <path d="M9 21v-5h6v5" />
+                        </svg>
+                    </span>
+                    <div>
+                        <h4>Local Enquiry</h4>
+                        <p>Visit our branch or contact us to register your request.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="ab-step__arrow" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 12h14" /><path d="m13 6 6 6-6 6" />
+                </svg>
+            </div>
+            <div class="ab-step">
+                <div class="ab-step__head">
+                    <span class="ab-step__badge">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="3" />
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                        </svg>
+                    </span>
+                    <div>
+                        <h4>Coordinated Service</h4>
+                        <p>Our technical and accounts teams work together to process your order and set up your connection.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="ab-step__arrow" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 12h14" /><path d="m13 6 6 6-6 6" />
+                </svg>
+            </div>
+            <div class="ab-step">
+                <div class="ab-step__head">
+                    <span class="ab-step__badge">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M3 18v-6a9 9 0 0 1 18 0v6" />
+                            <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z" />
+                            <path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" />
+                        </svg>
+                    </span>
+                    <div>
+                        <h4>Ongoing Support</h4>
+                        <p>We're here for you with continuous support and quick assistance.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ================= CTA banner ================= -->
+<section class="ab-cta" aria-labelledby="cta-title">
+    <div class="container">
+        <div class="ab-cta__inner">
+            <h2 id="cta-title" class="ab-cta__title">Let's Build a Better Connection</h2>
+            <p class="ab-cta__sub">
+                Learn more about NEXUS or get in touch with our team. We're here to help you stay connected.
+            </p>
+            <div class="ab-cta__actions">
+                <a class="btn-nexos-solid" asp-action="Contact">
+                    Contact Us
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14" /><path d="m13 6 6 6-6 6" />
+                    </svg>
+                </a>
+                <a class="btn-nexos-outline" asp-action="Index">
+                    Explore NEXUS
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14" /><path d="m13 6 6 6-6 6" />
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+

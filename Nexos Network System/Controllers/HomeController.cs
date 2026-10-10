@@ -26,6 +26,10 @@ public class HomeController(ApplicationDbContext db, ILogger<HomeController> log
 
     public IActionResult Services() => View();
 
+    public IActionResult Privacy() => View();
+
+    public IActionResult Terms() => View();
+
     public async Task<IActionResult> Plans()
     {
         var plans = await db.Plans

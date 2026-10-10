@@ -1,108 +1,152 @@
 @{
     ViewData["Title"] = "Services";
-}
+}<!-- ================= Hero ================= -->
+<section class="svc-hero" aria-labelledby="page-title">
+    <span class="svc-hero__grid-pattern" aria-hidden="true"></span>
+    <span class="svc-hero__glow" aria-hidden="true"></span>
 
-<section class="page-hero" aria-labelledby="page-title">
-    <span class="page-hero__glow" aria-hidden="true"></span>
-    <div class="container page-hero__inner">
-        <nav class="page-hero__crumbs" aria-label="Breadcrumb">
-            <a asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-            <span class="page-hero__sep" aria-hidden="true">/</span>
-            <span aria-current="page">@ViewData["Title"]</span>
-        </nav>
-        <h1 id="page-title" class="page-hero__title">Our Services</h1>
-        <p class="page-hero__lead">Choose the service that fits your needs - or combine them for a complete solution.</p>
-        <span class="page-hero__bar" aria-hidden="true"></span>
+    <div class="container svc-hero__inner">
+        <div class="svc-hero__copy">
+            <p class="svc-eyebrow svc-eyebrow--light">-- OUR SERVICES --</p>
+            <h1 id="page-title" class="svc-hero__title">
+                Reliable Connections.<br />
+                <span>For a Better Tomorrow.</span>
+            </h1>
+            <p class="svc-hero__lead">
+                Choose the service that fits your needs &mdash; from high-speed internet to crystal-clear voice communication. NEXUS brings you closer to what matters most.
+            </p>
+            <div class="svc-hero__badges">
+                <div class="svc-badge">
+                    <span class="svc-badge__icon"><svg class="svg-icon"><use href="#i-bolt" /></svg></span>
+                    <div>
+                        <div class="svc-badge__title">Fast &amp; Stable</div>
+                        <div class="svc-badge__sub">Connection</div>
+                    </div>
+                </div>
+                <div class="svc-badge">
+                    <span class="svc-badge__icon"><svg class="svg-icon"><use href="#i-shield" /></svg></span>
+                    <div>
+                        <div class="svc-badge__title">Secure &amp;</div>
+                        <div class="svc-badge__sub">Reliable</div>
+                    </div>
+                </div>
+                <div class="svc-badge">
+                    <span class="svc-badge__icon"><svg class="svg-icon"><use href="#i-headset" /></svg></span>
+                    <div>
+                        <div class="svc-badge__title">24/7 Customer</div>
+                        <div class="svc-badge__sub">Support</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-</section>
-
-<section class="section">
+    <span class="svc-handwritten" aria-hidden="true">Stay Connected Always</span>
+</section><!-- ================= Main services ================= -->
+<section class="section svc-services svc-services--main" aria-labelledby="main-services-title">
     <div class="container">
-        <div class="row gy-4">
-            <div class="col-md-4">
-                <div class="card card-hover h-100 p-4">
-                    <h4 class="card-title">Broadband Internet</h4>
-                    <p class="text-muted">
-                        High speed unlimited internet for homes and businesses with speeds up to 50 Mbps.
-                        Includes modem/router installation and technical support.
-                    </p>
-                    <ul class="list-unstyled small text-muted">
-                        <li>&#10003; Unlimited usage</li>
-                        <li>&#10003; Free equipment installation</li>
-                        <li>&#10003; Priority technical support</li>
-                    </ul>
-                    <a class="btn btn-outline-primary mt-auto" asp-action="Plans">View broadband plans</a>
-                </div>
+        <div class="svc-section-head">
+            <div>
+                <p class="svc-eyebrow">-- MAIN SERVICES --</p>
+                <h2 id="main-services-title" class="svc-h2">Our Internet &amp; Communication <span>Services</span></h2>
+                <p class="svc-section-sub">Reliable, affordable and high-speed services to keep you connected, always.</p>
             </div>
+        </div>
+
+        <div class="row g-4">
             <div class="col-md-4">
-                <div class="card card-hover h-100 p-4">
-                    <h4 class="card-title">Dial-Up Internet</h4>
-                    <p class="text-muted">
-                        A low cost, always-available backup internet option for areas where broadband
-                        coverage is limited. Includes a fixed monthly usage allowance.
-                    </p>
-                    <ul class="list-unstyled small text-muted">
-                        <li>&#10003; Low monthly cost</li>
-                        <li>&#10003; Works on existing phone lines</li>
-                        <li>&#10003; Free usage hours every month</li>
-                    </ul>
-                    <a class="btn btn-outline-primary mt-auto" asp-action="Plans">View dial-up plans</a>
-                </div>
+                <article class="svc-main-card">
+                    <span class="svc-main-card__media">
+                        <img class="svc-main-card__photo" src="~/img/home/svc-broadband.jpg" width="760" height="300"
+                             loading="lazy" decoding="async" alt="Wi-Fi router providing a broadband internet connection" />
+                        <span class="svc-main-card__icon">
+                            <svg class="svg-icon"><use href="#i-wifi" /></svg>
+                        </span>
+                    </span>
+                    <div class="svc-main-card__body">
+                        <div class="svc-main-card__meta">
+                            <h3 class="svc-main-card__title">Broadband Internet</h3>
+                            <p class="svc-main-card__sub">High-speed internet for your home &amp; business</p>
+                        </div>
+                        <p class="svc-main-card__desc">
+                            Enjoy faster, more stable and unlimited internet with our broadband plans. Perfect for streaming, gaming, work and more.
+                        </p>
+                        <ul class="svc-main-card__feats">
+                            <li><svg class="svc-check" aria-hidden="true"><use href="#i-check-circle" /></svg>High Speed (Fiber / Wireless)</li>
+                            <li><svg class="svc-check" aria-hidden="true"><use href="#i-check-circle" /></svg>Unlimited Data Plans</li>
+                            <li><svg class="svc-check" aria-hidden="true"><use href="#i-check-circle" /></svg>Stable &amp; Reliable Connection</li>
+                            <li><svg class="svc-check" aria-hidden="true"><use href="#i-check-circle" /></svg>24/7 Technical Support</li>
+                        </ul>
+                        <a class="btn btn-primary svc-main-card__cta" asp-action="Plans">
+                            View Broadband Plans
+                            <svg class="btn-icon" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+                        </a>
+                    </div>
+                </article>
             </div>
+
             <div class="col-md-4">
-                <div class="card card-hover h-100 p-4">
-                    <h4 class="card-title">Telephone / Landline</h4>
-                    <p class="text-muted">
-                        Reliable landline telephone service for homes and offices with free local calls
-                        and optional international packages.
-                    </p>
-                    <ul class="list-unstyled small text-muted">
-                        <li>&#10003; Clear voice quality</li>
-                        <li>&#10003; Free local calls</li>
-                        <li>&#10003; Optional add-on packages</li>
-                    </ul>
-                    <a class="btn btn-outline-primary mt-auto" asp-action="Plans">View telephone plans</a>
-                </div>
+                <article class="svc-main-card">
+                    <span class="svc-main-card__media">
+                        <img class="svc-main-card__photo" src="~/img/home/svc-dialup.jpg" width="760" height="300"
+                             loading="lazy" decoding="async" alt="Dial-up modem with connection status lights" />
+                        <span class="svc-main-card__icon">
+                            <svg class="svg-icon"><use href="#i-signal" /></svg>
+                        </span>
+                    </span>
+                    <div class="svc-main-card__body">
+                        <div class="svc-main-card__meta">
+                            <h3 class="svc-main-card__title">Dial-Up Internet</h3>
+                            <p class="svc-main-card__sub">Simple, reliable and affordable</p>
+                        </div>
+                        <p class="svc-main-card__desc">
+                            Stay connected with our dial-up internet service. Ideal for basic browsing, email and essential online tasks.
+                        </p>
+                        <ul class="svc-main-card__feats">
+                            <li><svg class="svc-check" aria-hidden="true"><use href="#i-check-circle" /></svg>Affordable Monthly Packages</li>
+                            <li><svg class="svc-check" aria-hidden="true"><use href="#i-check-circle" /></svg>Reliable Connection</li>
+                            <li><svg class="svc-check" aria-hidden="true"><use href="#i-check-circle" /></svg>Easy Setup &amp; Support</li>
+                            <li><svg class="svc-check" aria-hidden="true"><use href="#i-check-circle" /></svg>Great for Light Usage</li>
+                        </ul>
+                        <a class="btn btn-primary svc-main-card__cta" asp-action="Plans">
+                            View Dial-Up Plans
+                            <svg class="btn-icon" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+                        </a>
+                    </div>
+                </article>
+            </div>
+
+            <div class="col-md-4">
+                <article class="svc-main-card">
+                    <span class="svc-main-card__media">
+                        <img class="svc-main-card__photo" src="~/img/home/svc-landline.jpg" width="760" height="300"
+                             loading="lazy" decoding="async" alt="Landline desk telephone for clear voice calls" />
+                        <span class="svc-main-card__icon">
+                            <svg class="svg-icon"><use href="#i-phone" /></svg>
+                        </span>
+                    </span>
+                    <div class="svc-main-card__body">
+                        <div class="svc-main-card__meta">
+                            <h3 class="svc-main-card__title">Telephone / Landline</h3>
+                            <p class="svc-main-card__sub">Clear voice, better communication</p>
+                        </div>
+                        <p class="svc-main-card__desc">
+                            Get a dedicated landline connection for crystal-clear calls, both local and international. Stay in touch with what matters.
+                        </p>
+                        <ul class="svc-main-card__feats">
+                            <li><svg class="svc-check" aria-hidden="true"><use href="#i-check-circle" /></svg>Crystal Clear Voice Quality</li>
+                            <li><svg class="svc-check" aria-hidden="true"><use href="#i-check-circle" / /></svg>Local &amp; International Calls</li>
+                            <li><svg class="svc-check" aria-hidden="true"><use href="#i-check-circle" /></svg>Business &amp; Home Solutions</li>
+                            <li><svg class="svc-check" aria-hidden="true"><use href="#i-check-circle" /></svg>Reliable &amp; Always On</li>
+                        </ul>
+                        <a class="btn btn-primary svc-main-card__cta" asp-action="Plans">
+                            View Landline Plans
+                            <svg class="btn-icon" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+                        </a>
+                    </div>
+                </article>
             </div>
         </div>
     </div>
 </section>
 
-<section class="section section-alt">
-    <div class="container">
-        <div class="text-center">
-            <h2 class="section-title">Support &amp; account services</h2>
-            <p class="section-subtitle">Everything you need to manage your connection after installation.</p>
-        </div>
-        <div class="row gy-4">
-            <div class="col-md-3">
-                <div class="card h-100 p-4 text-center">
-                    <h6>Order Tracking</h6>
-                    <p class="text-muted small">Follow your order from submission to activation.</p>
-                    <a class="btn btn-sm btn-outline-primary" asp-action="TrackOrder">Track Order</a>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card h-100 p-4 text-center">
-                    <h6>Connection Status</h6>
-                    <p class="text-muted small">Check the live status of an active account.</p>
-                    <a class="btn btn-sm btn-outline-primary" asp-action="ConnectionStatus">Check Status</a>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card h-100 p-4 text-center">
-                    <h6>Billing &amp; Payments</h6>
-                    <p class="text-muted small">View bills, payment history and outstanding dues.</p>
-                    <a class="btn btn-sm btn-outline-primary" asp-area="Identity" asp-controller="Account" asp-action="Login">Customer Login</a>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card h-100 p-4 text-center">
-                    <h6>Technical Help</h6>
-                    <p class="text-muted small">Report a fault or request a plan change.</p>
-                    <a class="btn btn-sm btn-outline-primary" asp-action="Contact">Contact Support</a>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
+
