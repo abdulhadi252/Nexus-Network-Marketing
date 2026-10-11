@@ -13,6 +13,8 @@
     --nexos-navy-700: #12294a;
     --nexos-primary: #1677ff;
     --nexos-primary-dark: #0f5fd6;
+    /* legible blue for text sitting on the navy navbar / footer / sidebar */
+    --nexos-primary-light: #4f9dff;
     --nexos-primary-soft: rgba(22, 119, 255, .1);
     --nexos-accent: #20c4ff;
     --nexos-accent-soft: rgba(32, 196, 255, .14);
@@ -179,13 +181,20 @@ h1, h2, h3, h4, h5, h6 {
 /* ============================================================
    Public navbar
    ============================================================ */
-.public-header { padding: 1rem; }
+/* Full-bleed header band: the navbar's own navy runs to the page edges so the
+   light page background is never visible around (or above) the bar. */
+.public-header { padding: 0; background: var(--nexos-navy); }
 
 .public-navbar {
+    /* Bootstrap adds .5rem of side padding to every .navbar-nav link through
+       this variable; zeroed here so the link boxes hug their labels and the
+       item spacing comes from the nav gaps instead. */
+    --bs-navbar-nav-link-padding-x: 0;
+
     position: relative;
     overflow: hidden;
     background: var(--nexos-navy);
-    border-radius: 14px;
+    border-radius: 0;
     padding: .7rem 1.25rem;
     box-shadow: 0 16px 36px -24px rgba(11, 31, 58, .7);
 }
@@ -216,33 +225,59 @@ h1, h2, h3, h4, h5, h6 {
 
 .public-navbar .navbar-brand:hover { color: #fff; }
 
+/* The link box hugs its label - item spacing comes from the nav gap below -
+   so :hover only fires over the text, never over the empty space around it. */
 .public-navbar .nav-link {
     color: #b9c6da;
     font-weight: 500;
     font-size: .95rem;
-    padding: .55rem .85rem;
+    line-height: 1.2;
+    width: fit-content;
+    padding: 0;
     position: relative;
     transition: color .15s ease;
 }
 
+/* Links keep the blue identity on hover (not white) */
 .public-navbar .nav-link:hover,
-.public-navbar .nav-link:focus,
+.public-navbar .nav-link:focus { color: var(--nexos-primary-light); }
+
 .public-navbar .navbar-brand:hover { color: #fff; }
 
 .public-navbar .nav-link.active { color: var(--nexos-primary); }
 
-.public-navbar .nav-link.active::after {
+/* Animated underline for the navbar and footer text links: 2px tall, sitting
+   tight under the text, sweeping in from the left on hover / focus / active. */
+.public-navbar .nav-link::after,
+.public-footer .footer-links a::after,
+.footer-bottom__meta a::after {
     content: "";
     position: absolute;
-    left: .85rem;
-    right: .85rem;
+    left: 0;
+    right: 0;
     bottom: -2px;
-    height: 3px;
-    border-radius: 3px;
-    background: var(--nexos-primary);
+    height: 2px;
+    border-radius: 2px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform var(--nx-anim-base) var(--nx-ease);
 }
 
-.public-navbar .nav-cta { align-items: center; }
+.public-navbar .nav-link:hover::after,
+.public-navbar .nav-link:focus-visible::after,
+.public-navbar .nav-link.active::after,
+.public-footer .footer-links a:hover::after,
+.public-footer .footer-links a:focus-visible::after,
+.footer-bottom__meta a:hover::after,
+.footer-bottom__meta a:focus-visible::after {
+    transform: scaleX(1);
+}
+
+/* Item spacing now that the links carry no padding of their own */
+.public-navbar .nav-main { gap: .3rem 1.55rem; }
+
+.public-navbar .nav-cta { gap: .5rem 1rem; align-items: center; }
 
 .public-navbar .btn-primary {
     padding: .5rem 1.45rem;
@@ -262,6 +297,16 @@ h1, h2, h3, h4, h5, h6 {
     .public-navbar .navbar-brand { justify-self: start; }
     .public-navbar .nav-main { justify-self: center; }
     .public-navbar .nav-cta { justify-self: end; }
+}
+
+/* Collapsed menu: comfortable tap targets, while the underline still hugs the
+   label instead of the bottom edge of the padded box. */
+@media (max-width: 991.98px) {
+    .public-navbar .nav-link { padding: .45rem 0; }
+
+    /* Keeps the underline tight under the label (padding + 2px thickness),
+       exactly like the desktop bar where the box carries no padding. */
+    .public-navbar .nav-link::after { bottom: calc(.45rem - 2px); }
 }
 
 .public-navbar .navbar-toggler {
@@ -565,7 +610,17 @@ h1, h2, h3, h4, h5, h6 {
     transition: color .15s ease;
 }
 
-.public-footer a:hover { color: #fff; }
+.public-footer a:hover { color: var(--nexos-primary-light); }
+
+/* Link columns: the box hugs the label (row spacing comes from the margin) so
+   hover and the animated underline stay on the text itself. */
+.public-footer .footer-links a {
+    width: fit-content;
+    line-height: 1.3;
+    padding: 0;
+    margin-bottom: .4rem;
+    position: relative;
+}
 
 .footer-bottom {
     border-top: 1px solid rgba(148, 163, 184, .2);
@@ -982,8 +1037,6 @@ h1, h2, h3, h4, h5, h6 {
     .contact-card__head { margin-bottom: 1.1rem; padding-bottom: 1rem; }
     .contact-find-us { padding: 1rem 1.1rem; }
 }
-​
-​
 /* ============================================================
    Services page (AESA-style hero + service cards)
    ============================================================ */
@@ -4679,13 +4732,14 @@ html:not(.nx-boot-skip) #nx-loader { display: flex; }
 
 .footer-bottom__meta a {
     display: inline-flex;
+    position: relative;
     padding: 0;
     font-size: .85rem;
     color: #9fb1c9;
     white-space: nowrap;
 }
 
-.footer-bottom__meta a:hover { color: #fff; }
+.footer-bottom__meta a:hover { color: var(--nexos-primary-light); }
 
 .footer-bottom__tag { color: #93a3bb; }
 
@@ -5574,4 +5628,639 @@ html:not(.nx-boot-skip) #nx-loader { display: flex; }
     .hp-plan-grid { grid-template-columns: 1fr; }
 
     .hp-help-grid { grid-template-columns: 1fr; }
+}
+
+/* ============================================================
+   Services page v2
+   Solid brand-blue hero with a live network visual on the right,
+   lightly blue-tinted content sections and a plan band that reuses
+   the home page card design. Fully responsive.
+   ============================================================ */
+
+/* ---- Hero: solid blue, two balanced columns ---- */
+.svc-hero {
+    background: linear-gradient(135deg, #1677ff 0%, #0f5fd6 58%, #0b57d0 100%);
+    border-bottom: 0;
+}
+
+.svc-hero::before {
+    background: radial-gradient(circle, rgba(255, 255, 255, .26), transparent 70%);
+}
+
+.svc-hero::after {
+    background: radial-gradient(circle, rgba(32, 196, 255, .32), transparent 70%);
+}
+
+.svc-hero__grid-pattern {
+    background-image:
+        linear-gradient(rgba(255, 255, 255, .13) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, .13) 1px, transparent 1px);
+}
+
+.svc-hero__glow {
+    background: radial-gradient(1100px 520px at 92% -12%, rgba(191, 226, 255, .42), transparent 62%);
+}
+
+.svc-hero__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1.04fr) minmax(0, .96fr);
+    gap: clamp(1.6rem, 4vw, 3.2rem);
+    align-items: center;
+}
+
+.svc-hero__copy { max-width: 620px; }
+.svc-hero__title span { color: #b9e6ff; }
+.svc-eyebrow--light { color: #d7eaff; }
+.svc-hero__lead { color: rgba(232, 243, 255, .94); }
+
+.svc-hero__badges {
+    flex-wrap: wrap;
+    gap: .75rem;
+}
+
+.svc-badge {
+    background: rgba(6, 26, 60, .34);
+    border-color: rgba(255, 255, 255, .3);
+}
+
+/* ---- Hero visual: pulsing network core + floating service chips ---- */
+.svc-hero__visual {
+    position: relative;
+    justify-self: center;
+    width: min(100%, 450px);
+    aspect-ratio: 1 / 1;
+    display: grid;
+    place-items: center;
+}
+
+.svc-visual__ring {
+    position: absolute;
+    inset: 11%;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, .34);
+    animation: svc-pulse 4.4s var(--nx-ease) infinite;
+}
+
+.svc-visual__ring--inner {
+    inset: 25%;
+    animation-duration: 3.4s;
+    animation-delay: .6s;
+}
+
+@keyframes svc-pulse {
+    0%   { transform: scale(.86); opacity: 0; }
+    30%  { opacity: .7; }
+    100% { transform: scale(1.14); opacity: 0; }
+}
+
+.svc-visual__core {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 62%;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    background: radial-gradient(circle at 32% 24%, rgba(255, 255, 255, .3), rgba(255, 255, 255, .05) 64%);
+    border: 1px solid rgba(255, 255, 255, .34);
+    box-shadow: 0 34px 70px -32px rgba(2, 18, 45, .9), inset 0 1px 0 rgba(255, 255, 255, .4);
+}
+
+.svc-visual__core-svg {
+    width: 100%;
+    height: 100%;
+    animation: svc-breathe 5s ease-in-out infinite;
+}
+
+@keyframes svc-breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.035); }
+}
+
+.svc-visual__track {
+    fill: none;
+    stroke: rgba(255, 255, 255, .24);
+    stroke-width: 2;
+}
+
+.svc-visual__spin {
+    fill: none;
+    stroke: #ffffff;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 62 228;
+    transform-origin: 60px 60px;
+    animation: svc-spin 7s linear infinite;
+}
+
+@keyframes svc-spin { to { transform: rotate(360deg); } }
+
+.svc-visual__wave {
+    fill: none;
+    stroke: #e3f3ff;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    animation: svc-signal 2.8s ease-in-out infinite;
+}
+
+.svc-visual__wave--2 {
+    opacity: .6;
+    animation-delay: .55s;
+}
+
+@keyframes svc-signal {
+    0%, 100% { opacity: .3; }
+    50% { opacity: 1; }
+}
+
+.svc-visual__dot {
+    fill: #ffffff;
+    animation: svc-blink 2.8s ease-in-out infinite;
+}
+
+@keyframes svc-blink {
+    0%, 100% { opacity: .45; }
+    50% { opacity: 1; }
+}
+
+.svc-visual__label {
+    position: absolute;
+    bottom: 7%;
+    font-size: .66rem;
+    font-weight: 700;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: #ecf6ff;
+    white-space: nowrap;
+}
+
+.svc-visual__chip {
+    position: absolute;
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .5rem .8rem;
+    border-radius: 999px;
+    background: rgba(6, 26, 60, .42);
+    border: 1px solid rgba(255, 255, 255, .3);
+    color: #ffffff;
+    font-size: .8rem;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 16px 30px -20px rgba(2, 15, 38, .95);
+    animation: svc-float 5.2s ease-in-out infinite;
+}
+
+.svc-visual__chip svg { width: 16px; height: 16px; }
+
+.svc-visual__chip--wifi { top: 5%; left: -3%; }
+.svc-visual__chip--phone { top: 45%; right: -5%; animation-delay: .9s; }
+.svc-visual__chip--signal { bottom: 3%; left: 3%; animation-delay: 1.7s; }
+
+@keyframes svc-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-9px); }
+}
+
+/* ---- Content sections: light blue tint ---- */
+.svc-services--main { background: linear-gradient(180deg, #f6faff 0%, #eaf2ff 100%); }
+
+.svc-plan-band { background: linear-gradient(180deg, #eaf2ff 0%, #f6faff 100%); }
+
+.svc-h2 span { color: var(--nexos-primary); }
+
+.svc-plan-band .svc-section-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem 1.5rem;
+}
+
+.svc-plan-band .hp-plan-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+/* ---- Responsive: tablet ---- */
+@media (max-width: 991.98px) {
+    .svc-hero { padding: 3.4rem 0 3.2rem; }
+
+    .svc-hero__inner { grid-template-columns: 1fr; }
+
+    .svc-hero__copy { max-width: 640px; }
+
+    .svc-hero__visual {
+        width: min(100%, 380px);
+        margin-top: .75rem;
+    }
+
+    .svc-visual__chip--phone { right: 0; }
+
+    .svc-plan-band .hp-plan-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* ---- Responsive: phone ---- */
+@media (max-width: 575.98px) {
+    .svc-hero { padding: 2.7rem 0 2.6rem; }
+
+    .svc-hero__title { font-size: clamp(1.75rem, 9vw, 2.3rem); }
+
+    .svc-hero__lead { font-size: .98rem; }
+
+    .svc-hero__visual { width: min(100%, 290px); }
+
+    .svc-visual__chip { padding: .4rem .66rem; font-size: .72rem; }
+
+    .svc-visual__chip--wifi { left: 0; }
+
+    .svc-visual__chip--signal { left: 0; bottom: 0; }
+
+    .svc-visual__label { font-size: .6rem; }
+
+    .svc-plan-band .hp-plan-grid { grid-template-columns: 1fr; }
+}
+
+/* ============================================================
+   Full-screen banners: the home and about heroes fill the first
+   screen on every device (navbar height taken off the top).
+   ============================================================ */
+.hp-hero,
+.ab-hero {
+    display: grid;
+    align-items: center;
+    min-height: calc(100vh - 4rem);
+    min-height: calc(100svh - 4rem);
+}
+
+/* Short landscape phones: never taller than the viewport allows */
+@media (max-height: 460px) {
+    .hp-hero,
+    .ab-hero {
+        min-height: 0;
+        padding-top: 2.5rem;
+        padding-bottom: 2.5rem;
+    }
+}
+
+/* ============================================================
+   Page open: the first block of every page eases in, so pages
+   never snap into place (public pages and every role panel).
+   ============================================================ */
+main > section:first-child,
+main > .container:first-child,
+.panel-content > :first-child {
+    animation: nx-fade-up var(--nx-anim-load) var(--nx-ease) backwards;
+}
+
+/* ============================================================
+   Panel micro-interactions: sidebar, topbar and panel footer
+   links animate smoothly like the public navigation.
+   ============================================================ */
+.panel-nav a,
+.panel-nav button {
+    transition: background-color var(--nx-anim-fast) var(--nx-ease),
+        color var(--nx-anim-fast) var(--nx-ease),
+        box-shadow var(--nx-anim-base) var(--nx-ease),
+        transform var(--nx-anim-fast) var(--nx-ease);
+}
+
+/* sliding accent bar - grows in on hover, stays on the active link */
+.panel-nav a::before,
+.panel-nav button::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 22%;
+    bottom: 22%;
+    width: 3px;
+    border-radius: 0 4px 4px 0;
+    background: var(--nexos-accent);
+    transform: scaleY(0);
+    transform-origin: center;
+    transition: transform var(--nx-anim-base) var(--nx-ease);
+}
+
+.panel-nav a:hover::before,
+.panel-nav a:focus-visible::before,
+.panel-nav button:hover::before,
+.panel-nav button:focus-visible::before,
+.panel-nav a.active::before {
+    transform: scaleY(1);
+}
+
+.panel-nav a:hover:not(.active),
+.panel-nav a:focus-visible:not(.active),
+.panel-nav button:hover,
+.panel-nav button:focus-visible {
+    color: var(--nexos-primary-light);
+    transform: translateX(2px);
+}
+
+.panel-nav .nav-icon {
+    transition: transform var(--nx-anim-base) var(--nx-ease);
+}
+
+.panel-nav a:hover .nav-icon,
+.panel-nav button:hover .nav-icon { transform: scale(1.08); }
+
+/* panel footer link: same underline sweep as the public footer */
+.panel-footer a {
+    position: relative;
+    display: inline-block;
+    color: var(--nexos-primary);
+    transition: color var(--nx-anim-fast) var(--nx-ease);
+}
+
+.panel-footer a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -2px;
+    height: 2px;
+    border-radius: 2px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform var(--nx-anim-base) var(--nx-ease);
+}
+
+.panel-footer a:hover,
+.panel-footer a:focus-visible { color: var(--nexos-primary-dark); }
+
+.panel-footer a:hover::after,
+.panel-footer a:focus-visible::after { transform: scaleX(1); }
+
+/* topbar dropdown entries slide in gently */
+.panel-topbar .dropdown-item {
+    transition: background-color var(--nx-anim-fast) var(--nx-ease),
+        color var(--nx-anim-fast) var(--nx-ease),
+        transform var(--nx-anim-fast) var(--nx-ease);
+}
+
+.panel-topbar .dropdown-item:hover,
+.panel-topbar .dropdown-item:focus {
+    background: var(--nexos-primary-soft);
+    color: var(--nexos-primary-dark);
+    transform: translateX(2px);
+}
+
+/* plain links inside panel content ease between colours */
+.panel-content a:not(.btn):not(.nav-link):not(.dropdown-item) {
+    transition: color var(--nx-anim-fast) var(--nx-ease);
+}
+
+/* ============================================================
+   Auth pages (login + register): split brand / form card
+   ============================================================ */
+.login-page { padding: clamp(1rem, 3vw, 2.4rem); }
+
+.nx-auth {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 1060px;
+    display: grid;
+    grid-template-columns: minmax(0, 1.02fr) minmax(0, .98fr);
+    background: #fff;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 40px 90px -42px rgba(2, 12, 32, .9);
+    animation: nx-fade-up var(--nx-anim-load) var(--nx-ease) backwards;
+}
+
+/* register uses the same card inside the normal page flow */
+.nx-auth--page {
+    max-width: 1120px;
+    margin: 0 auto;
+    border: 1px solid var(--nexos-line);
+    border-radius: 20px;
+    box-shadow: var(--nexos-shadow-lg);
+}
+
+.nx-auth--wide-panel { grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); }
+
+.nx-auth__brand {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: .85rem;
+    padding: clamp(1.7rem, 3.2vw, 2.9rem);
+    background: linear-gradient(150deg, #0b1f3a 0%, #12294a 58%, #14406b 100%);
+    color: #dbe4f0;
+}
+
+.nx-auth__brand .brand { color: #fff; align-self: flex-start; }
+
+.nx-auth__glow {
+    position: absolute;
+    right: -7rem;
+    top: -7rem;
+    width: 22rem;
+    height: 22rem;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(32, 196, 255, .3), transparent 68%);
+    pointer-events: none;
+}
+
+.nx-auth__ring {
+    position: absolute;
+    right: -5rem;
+    bottom: -6rem;
+    width: 15rem;
+    height: 15rem;
+    border-radius: 50%;
+    border: 1px solid rgba(126, 208, 255, .3);
+    animation: svc-pulse 6.5s var(--nx-ease) infinite;
+    pointer-events: none;
+}
+
+.nx-auth__tagline {
+    margin: .4rem 0 0;
+    color: var(--nexos-accent);
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+}
+
+.nx-auth__headline {
+    margin: 0;
+    color: #fff;
+    font-weight: 800;
+    font-size: clamp(1.45rem, 2.6vw, 2rem);
+    line-height: 1.15;
+    letter-spacing: -.02em;
+}
+
+.nx-auth__headline span { color: var(--nexos-accent); }
+
+.nx-auth__points {
+    list-style: none;
+    margin: .55rem 0 0;
+    padding: 0;
+    display: grid;
+    gap: .8rem;
+    position: relative;
+    z-index: 1;
+}
+
+.nx-auth__points li {
+    display: flex;
+    align-items: flex-start;
+    gap: .7rem;
+}
+
+.nx-auth__point-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    background: rgba(32, 196, 255, .16);
+    color: var(--nexos-accent);
+}
+
+.nx-auth__point-icon svg { width: 19px; height: 19px; }
+.nx-auth__points strong { display: block; color: #fff; font-size: .92rem; }
+.nx-auth__points span { font-size: .82rem; color: rgba(180, 201, 228, .85); }
+
+.nx-auth__foot {
+    position: relative;
+    z-index: 1;
+    margin: auto 0 0;
+    font-size: .84rem;
+    color: rgba(180, 201, 228, .82);
+}
+
+.nx-auth__foot a {
+    color: var(--nexos-accent);
+    font-weight: 700;
+}
+
+.nx-auth__foot a:hover { color: #fff; }
+
+.nx-auth__panel {
+    display: flex;
+    flex-direction: column;
+    padding: clamp(1.5rem, 3vw, 2.6rem);
+    background: #fff;
+}
+
+.nx-auth__panel-head { margin-bottom: 1.35rem; }
+
+.nx-auth__panel-head h2 {
+    margin: 0 0 .25rem;
+    font-size: clamp(1.32rem, 2.3vw, 1.65rem);
+}
+
+.nx-auth__panel-head p {
+    margin: 0;
+    color: var(--nexos-muted);
+    font-size: .92rem;
+}
+
+.nx-auth__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: .6rem 1rem;
+    margin-bottom: 1.35rem;
+}
+
+.nx-auth__submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+}
+
+.nx-auth__submit .btn-icon { width: 18px; height: 18px; }
+
+.nx-auth__alt {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: .4rem 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--nexos-line);
+    font-size: .88rem;
+    color: var(--nexos-muted);
+}
+
+.nx-auth__alt a { font-weight: 700; }
+
+.nx-auth__back {
+    margin-top: .9rem;
+    font-size: .85rem;
+    color: var(--nexos-muted);
+}
+
+.nx-auth__back:hover { color: var(--nexos-primary); }
+
+.nx-auth__note {
+    margin: 1rem 0 0;
+    font-size: .78rem;
+    color: var(--nexos-muted);
+    line-height: 1.5;
+}
+
+/* ---- register page ---- */
+.nx-register { background: linear-gradient(180deg, #f6faff 0%, #eef4ff 100%); }
+
+.nx-form-section { margin-top: 1.3rem; }
+.nx-form-section--tight { margin-top: .3rem; }
+
+.nx-form-section__head {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    padding-bottom: .6rem;
+    border-bottom: 1px solid var(--nexos-line);
+}
+
+.nx-form-section__step {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--nexos-primary-soft);
+    color: var(--nexos-primary);
+    font-size: .76rem;
+    font-weight: 800;
+}
+
+.nx-form-section__head h3 {
+    margin: 0;
+    font-size: .95rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--nexos-navy);
+}
+
+/* ---- auth responsive ---- */
+@media (max-width: 991.98px) {
+    .nx-auth,
+    .nx-auth--wide-panel {
+        max-width: 620px;
+        grid-template-columns: 1fr;
+    }
+
+    .nx-auth__brand { padding: 1.5rem 1.4rem; }
+    .nx-auth__points { display: none; }
+    .nx-auth__foot { display: none; }
+    .nx-auth__headline { font-size: 1.4rem; }
+    .nx-auth__headline br { display: none; }
+}
+
+@media (max-width: 575.98px) {
+    .nx-auth__panel { padding: 1.25rem; }
+    .nx-auth__row { justify-content: flex-start; }
+    .nx-auth__alt { font-size: .84rem; }
 }

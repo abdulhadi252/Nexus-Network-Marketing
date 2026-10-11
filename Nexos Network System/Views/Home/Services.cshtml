@@ -1,6 +1,8 @@
-@{
+﻿@{
     ViewData["Title"] = "Services";
-}<!-- ================= Hero ================= -->
+}
+
+<!-- ================= Hero: blue, two columns ================= -->
 <section class="svc-hero" aria-labelledby="page-title">
     <span class="svc-hero__grid-pattern" aria-hidden="true"></span>
     <span class="svc-hero__glow" aria-hidden="true"></span>
@@ -39,9 +41,38 @@
                 </div>
             </div>
         </div>
+
+        <!-- live network visual (decorative) -->
+        <div class="svc-hero__visual" aria-hidden="true">
+            <span class="svc-visual__ring"></span>
+            <span class="svc-visual__ring svc-visual__ring--inner"></span>
+
+            <span class="svc-visual__core">
+                <svg class="svc-visual__core-svg" viewBox="0 0 120 120" focusable="false">
+                    <circle class="svc-visual__track" cx="60" cy="60" r="46" />
+                    <circle class="svc-visual__spin" cx="60" cy="60" r="46" />
+                    <circle class="svc-visual__track" cx="60" cy="60" r="30" />
+                    <path class="svc-visual__wave" d="M42 82a18 18 0 0 1 36 0" />
+                    <path class="svc-visual__wave svc-visual__wave--2" d="M32 92a28 28 0 0 1 56 0" />
+                    <circle class="svc-visual__dot" cx="60" cy="82" r="3.4" />
+                </svg>
+                <span class="svc-visual__label">Network online</span>
+            </span>
+
+            <span class="svc-visual__chip svc-visual__chip--wifi">
+                <svg class="svg-icon"><use href="#i-wifi" /></svg> Broadband
+            </span>
+            <span class="svc-visual__chip svc-visual__chip--phone">
+                <svg class="svg-icon"><use href="#i-phone" /></svg> Telephone
+            </span>
+            <span class="svc-visual__chip svc-visual__chip--signal">
+                <svg class="svg-icon"><use href="#i-signal" /></svg> Dial-Up
+            </span>
+        </div>
     </div>
-    <span class="svc-handwritten" aria-hidden="true">Stay Connected Always</span>
-</section><!-- ================= Main services ================= -->
+</section>
+
+<!-- ================= Main services ================= -->
 <section class="section svc-services svc-services--main" aria-labelledby="main-services-title">
     <div class="container">
         <div class="svc-section-head">
@@ -134,7 +165,7 @@
                         </p>
                         <ul class="svc-main-card__feats">
                             <li><svg class="svc-check" aria-hidden="true"><use href="#i-check-circle" /></svg>Crystal Clear Voice Quality</li>
-                            <li><svg class="svc-check" aria-hidden="true"><use href="#i-check-circle" / /></svg>Local &amp; International Calls</li>
+                            <li><svg class="svc-check" aria-hidden="true"><use href="#i-check-circle" /></svg>Local &amp; International Calls</li>
                             <li><svg class="svc-check" aria-hidden="true"><use href="#i-check-circle" /></svg>Business &amp; Home Solutions</li>
                             <li><svg class="svc-check" aria-hidden="true"><use href="#i-check-circle" /></svg>Reliable &amp; Always On</li>
                         </ul>
@@ -149,4 +180,83 @@
     </div>
 </section>
 
+<!-- ================= Plans band (same card design as the home page) ================= -->
+<section class="section svc-services svc-plan-band" aria-labelledby="svc-plans-title">
+    <div class="container">
+        <div class="svc-section-head">
+            <div>
+                <p class="svc-eyebrow">-- PLANS --</p>
+                <h2 id="svc-plans-title" class="svc-h2">Pick the plan that <span>fits you</span></h2>
+                <p class="svc-section-sub">Transparent monthly pricing with no hidden charges. Switch or upgrade whenever you need.</p>
+            </div>
+            <a class="hp-pill" asp-action="Plans">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20v-9M12 20V4M19 20v-6" /></svg>
+                Compare All Plans
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+            </a>
+        </div>
 
+        <div class="hp-plan-grid">
+            <div class="hp-plan-card">
+                <span class="hp-plan-card__icon">
+                    <svg class="svg-icon"><use href="#i-broadband" /></svg>
+                </span>
+                <h3>Basic</h3>
+                <p class="hp-plan-card__desc">Perfect for browsing &amp; social media.</p>
+                <p class="hp-plan-card__speed">Up to 10 Mbps</p>
+                <ul class="hp-feats">
+                    <li>Up to 10 Mbps speed</li>
+                    <li>Unlimited data (FUP)</li>
+                    <li>Wi-Fi router (optional)</li>
+                </ul>
+                <p class="hp-svc-card__from">From</p>
+                <p class="hp-svc-card__price">Rs. 1,999 <small>/month</small></p>
+                <a class="hp-plan-card__cta" asp-action="Plans">
+                    Get Started
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+                </a>
+            </div>
+
+            <div class="hp-plan-card hp-plan-card--popular">
+                <span class="hp-plan-card__badge">★ Most Popular</span>
+                <span class="hp-plan-card__icon">
+                    <svg class="svg-icon"><use href="#i-home-network" /></svg>
+                </span>
+                <h3>Standard</h3>
+                <p class="hp-plan-card__desc">Great for work, study &amp; streaming.</p>
+                <p class="hp-plan-card__speed">Up to 25 Mbps</p>
+                <ul class="hp-feats">
+                    <li>Up to 25 Mbps speed</li>
+                    <li>Unlimited data (FUP)</li>
+                    <li>Wi-Fi router (included)</li>
+                </ul>
+                <p class="hp-svc-card__from">From</p>
+                <p class="hp-svc-card__price">Rs. 2,999 <small>/month</small></p>
+                <a class="hp-plan-card__cta" asp-action="Plans">
+                    Get Started
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+                </a>
+            </div>
+
+            <div class="hp-plan-card">
+                <span class="hp-plan-card__icon">
+                    <svg class="svg-icon"><use href="#i-bolt" /></svg>
+                </span>
+                <h3>Premium</h3>
+                <p class="hp-plan-card__desc">Ideal for multiple devices &amp; 4K streaming.</p>
+                <p class="hp-plan-card__speed">Up to 50 Mbps</p>
+                <ul class="hp-feats">
+                    <li>Up to 50 Mbps speed</li>
+                    <li>Unlimited data (FUP)</li>
+                    <li>Wi-Fi router (included)</li>
+                </ul>
+                <p class="hp-svc-card__from">From</p>
+                <p class="hp-svc-card__price">Rs. 4,999 <small>/month</small></p>
+                <a class="hp-plan-card__cta" asp-action="Plans">
+                    Get Started
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
