@@ -1,21 +1,23 @@
-﻿@{
+@{
     ViewData["Title"] = "Services";
 }
 
-<!-- ================= Hero: blue, two columns ================= -->
+<!-- ================= Hero: navy, copy on the left, network photo on the right ================= -->
 <section class="svc-hero" aria-labelledby="page-title">
+    <span class="svc-hero__photo" aria-hidden="true"></span>
     <span class="svc-hero__grid-pattern" aria-hidden="true"></span>
     <span class="svc-hero__glow" aria-hidden="true"></span>
+    <span class="svc-handwritten" aria-hidden="true">Stay Connected<br />Always</span>
 
     <div class="container svc-hero__inner">
         <div class="svc-hero__copy">
-            <p class="svc-eyebrow svc-eyebrow--light">-- OUR SERVICES --</p>
+            <p class="svc-eyebrow svc-eyebrow--light">&#8212; OUR SERVICES &#8212;</p>
             <h1 id="page-title" class="svc-hero__title">
                 Reliable Connections.<br />
                 <span>For a Better Tomorrow.</span>
             </h1>
             <p class="svc-hero__lead">
-                Choose the service that fits your needs &mdash; from high-speed internet to crystal-clear voice communication. NEXUS brings you closer to what matters most.
+                Choose the service that fits your needs &mdash; from high-speed internet to crystal-clear voice communication. <span class="svc-hero__brand">NEXUS</span> brings you closer to what matters most.
             </p>
             <div class="svc-hero__badges">
                 <div class="svc-badge">
@@ -41,34 +43,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- live network visual (decorative) -->
-        <div class="svc-hero__visual" aria-hidden="true">
-            <span class="svc-visual__ring"></span>
-            <span class="svc-visual__ring svc-visual__ring--inner"></span>
-
-            <span class="svc-visual__core">
-                <svg class="svc-visual__core-svg" viewBox="0 0 120 120" focusable="false">
-                    <circle class="svc-visual__track" cx="60" cy="60" r="46" />
-                    <circle class="svc-visual__spin" cx="60" cy="60" r="46" />
-                    <circle class="svc-visual__track" cx="60" cy="60" r="30" />
-                    <path class="svc-visual__wave" d="M42 82a18 18 0 0 1 36 0" />
-                    <path class="svc-visual__wave svc-visual__wave--2" d="M32 92a28 28 0 0 1 56 0" />
-                    <circle class="svc-visual__dot" cx="60" cy="82" r="3.4" />
-                </svg>
-                <span class="svc-visual__label">Network online</span>
-            </span>
-
-            <span class="svc-visual__chip svc-visual__chip--wifi">
-                <svg class="svg-icon"><use href="#i-wifi" /></svg> Broadband
-            </span>
-            <span class="svc-visual__chip svc-visual__chip--phone">
-                <svg class="svg-icon"><use href="#i-phone" /></svg> Telephone
-            </span>
-            <span class="svc-visual__chip svc-visual__chip--signal">
-                <svg class="svg-icon"><use href="#i-signal" /></svg> Dial-Up
-            </span>
-        </div>
     </div>
 </section>
 
@@ -77,8 +51,10 @@
     <div class="container">
         <div class="svc-section-head">
             <div>
-                <p class="svc-eyebrow">-- MAIN SERVICES --</p>
-                <h2 id="main-services-title" class="svc-h2">Our Internet &amp; Communication <span>Services</span></h2>
+                <p class="svc-eyebrow">&#8212; MAIN SERVICES &#8212;</p>
+                <h2 id="main-services-title" class="svc-h2">
+                    Our <span class="svc-h2-navy">Internet &amp; Communication</span> <span class="svc-h2-accent">Services</span>
+                </h2>
                 <p class="svc-section-sub">Reliable, affordable and high-speed services to keep you connected, always.</p>
             </div>
         </div>
@@ -180,83 +156,59 @@
     </div>
 </section>
 
-<!-- ================= Plans band (same card design as the home page) ================= -->
-<section class="section svc-services svc-plan-band" aria-labelledby="svc-plans-title">
+<!-- ================= Support & account services ================= -->
+<section class="section svc-support" aria-labelledby="svc-support-title">
     <div class="container">
         <div class="svc-section-head">
             <div>
-                <p class="svc-eyebrow">-- PLANS --</p>
-                <h2 id="svc-plans-title" class="svc-h2">Pick the plan that <span>fits you</span></h2>
-                <p class="svc-section-sub">Transparent monthly pricing with no hidden charges. Switch or upgrade whenever you need.</p>
+                <p class="svc-eyebrow">&#8212; SUPPORT &amp; ACCOUNT SERVICES &#8212;</p>
+                <h2 id="svc-support-title" class="svc-h2">
+                    Quick Help, <span class="svc-h2-accent">Anytime</span> You Need
+                </h2>
+                <p class="svc-section-sub">Manage your account, track your services and get support &mdash; all in one place.</p>
             </div>
-            <a class="hp-pill" asp-action="Plans">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20v-9M12 20V4M19 20v-6" /></svg>
-                Compare All Plans
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
-            </a>
         </div>
 
-        <div class="hp-plan-grid">
-            <div class="hp-plan-card">
-                <span class="hp-plan-card__icon">
-                    <svg class="svg-icon"><use href="#i-broadband" /></svg>
-                </span>
-                <h3>Basic</h3>
-                <p class="hp-plan-card__desc">Perfect for browsing &amp; social media.</p>
-                <p class="hp-plan-card__speed">Up to 10 Mbps</p>
-                <ul class="hp-feats">
-                    <li>Up to 10 Mbps speed</li>
-                    <li>Unlimited data (FUP)</li>
-                    <li>Wi-Fi router (optional)</li>
-                </ul>
-                <p class="hp-svc-card__from">From</p>
-                <p class="hp-svc-card__price">Rs. 1,999 <small>/month</small></p>
-                <a class="hp-plan-card__cta" asp-action="Plans">
-                    Get Started
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+        <div class="svc-support-grid">
+            <article class="svc-support-card">
+                <span class="svc-support-card__icon"><svg class="svg-icon"><use href="#i-package" /></svg></span>
+                <h3 class="svc-support-card__title">Order Tracking</h3>
+                <p class="svc-support-card__text">Track the status of your new connection or service request in real time.</p>
+                <a class="svc-support-card__link" asp-action="TrackOrder">
+                    Track Order
+                    <svg class="btn-icon" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
                 </a>
-            </div>
+            </article>
 
-            <div class="hp-plan-card hp-plan-card--popular">
-                <span class="hp-plan-card__badge">★ Most Popular</span>
-                <span class="hp-plan-card__icon">
-                    <svg class="svg-icon"><use href="#i-home-network" /></svg>
-                </span>
-                <h3>Standard</h3>
-                <p class="hp-plan-card__desc">Great for work, study &amp; streaming.</p>
-                <p class="hp-plan-card__speed">Up to 25 Mbps</p>
-                <ul class="hp-feats">
-                    <li>Up to 25 Mbps speed</li>
-                    <li>Unlimited data (FUP)</li>
-                    <li>Wi-Fi router (included)</li>
-                </ul>
-                <p class="hp-svc-card__from">From</p>
-                <p class="hp-svc-card__price">Rs. 2,999 <small>/month</small></p>
-                <a class="hp-plan-card__cta" asp-action="Plans">
-                    Get Started
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+            <article class="svc-support-card">
+                <span class="svc-support-card__icon"><svg class="svg-icon"><use href="#i-signal" /></svg></span>
+                <h3 class="svc-support-card__title">Connection Status</h3>
+                <p class="svc-support-card__text">Check your internet and telephone connection status anytime, anywhere.</p>
+                <a class="svc-support-card__link" asp-action="ConnectionStatus">
+                    Check Status
+                    <svg class="btn-icon" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
                 </a>
-            </div>
+            </article>
 
-            <div class="hp-plan-card">
-                <span class="hp-plan-card__icon">
-                    <svg class="svg-icon"><use href="#i-bolt" /></svg>
-                </span>
-                <h3>Premium</h3>
-                <p class="hp-plan-card__desc">Ideal for multiple devices &amp; 4K streaming.</p>
-                <p class="hp-plan-card__speed">Up to 50 Mbps</p>
-                <ul class="hp-feats">
-                    <li>Up to 50 Mbps speed</li>
-                    <li>Unlimited data (FUP)</li>
-                    <li>Wi-Fi router (included)</li>
-                </ul>
-                <p class="hp-svc-card__from">From</p>
-                <p class="hp-svc-card__price">Rs. 4,999 <small>/month</small></p>
-                <a class="hp-plan-card__cta" asp-action="Plans">
-                    Get Started
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+            <article class="svc-support-card">
+                <span class="svc-support-card__icon"><svg class="svg-icon"><use href="#i-credit-card" /></svg></span>
+                <h3 class="svc-support-card__title">Billing &amp; Payments</h3>
+                <p class="svc-support-card__text">View your bills, make payments and manage your account quickly and securely.</p>
+                <a class="svc-support-card__link" asp-area="Identity" asp-controller="Account" asp-action="Login">
+                    View Bills
+                    <svg class="btn-icon" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
                 </a>
-            </div>
+            </article>
+
+            <article class="svc-support-card">
+                <span class="svc-support-card__icon"><svg class="svg-icon"><use href="#i-headset" /></svg></span>
+                <h3 class="svc-support-card__title">Technical Help</h3>
+                <p class="svc-support-card__text">Facing an issue? Get instant support from our expert technical team.</p>
+                <a class="svc-support-card__link" asp-action="Contact">
+                    Get Support
+                    <svg class="btn-icon" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+                </a>
+            </article>
         </div>
     </div>
 </section>

@@ -1,24 +1,66 @@
 @model IReadOnlyList<Plan>
 @{
     ViewData["Title"] = "Plans";
-    var groups = Model.GroupBy(p => p.ConnectionType).OrderBy(g => g.Key).ToList();
+
+    var plans = Model.ToList();
+    var dialUp = plans.Where(p => p.ConnectionType == ConnectionType.DialUp).OrderBy(p => p.RecurringCharge).FirstOrDefault();
+    var landline = plans.Where(p => p.ConnectionType == ConnectionType.Telephone).OrderBy(p => p.RecurringCharge).FirstOrDefault();
+    var broadband = plans.Where(p => p.ConnectionType == ConnectionType.Broadband)
+                         .OrderBy(p => p.SpeedMbps ?? int.MaxValue)
+                         .ToList();
 }
 
-<section class="page-hero" aria-labelledby="page-title">
-    <span class="page-hero__glow" aria-hidden="true"></span>
-    <div class="container page-hero__inner">
-        <nav class="page-hero__crumbs" aria-label="Breadcrumb">
-            <a asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-            <span class="page-hero__sep" aria-hidden="true">/</span>
-            <span aria-current="page">@ViewData["Title"]</span>
-        </nav>
-        <h1 id="page-title" class="page-hero__title">Plans &amp; Pricing</h1>
-        <p class="page-hero__lead">Simple monthly pricing with no hidden charges. All prices are in PKR.</p>
-        <span class="page-hero__bar" aria-hidden="true"></span>
+<!-- ================= Hero: navy, copy left, photo right ================= -->
+<section class="pl-hero" aria-labelledby="page-title">
+    <span class="pl-hero__photo" aria-hidden="true"></span>
+    <span class="pl-hero__glow" aria-hidden="true"></span>
+    <span class="pl-handwritten" aria-hidden="true">Faster.<br />Smarter.<br />Together.</span>
+
+    <div class="container pl-hero__inner">
+        <div class="pl-hero__copy">
+            <p class="pl-eyebrow pl-eyebrow--light">&#8212; OUR PLANS &#8212;</p>
+            <h1 id="page-title" class="pl-hero__title">
+                Internet &amp; Communication<br />
+                Plans for <span>Everyone</span>
+            </h1>
+            <p class="pl-hero__lead">
+                Choose from our flexible and affordable plans designed to keep you connected at home and in business.
+            </p>
+            <div class="pl-hero__badges">
+                <div class="pl-badge">
+                    <span class="pl-badge__icon"><svg class="svg-icon"><use href="#i-wifi" /></svg></span>
+                    <div>
+                        <div class="pl-badge__title">High Speed</div>
+                        <div class="pl-badge__sub">Internet</div>
+                    </div>
+                </div>
+                <div class="pl-badge">
+                    <span class="pl-badge__icon"><svg class="svg-icon"><use href="#i-connections" /></svg></span>
+                    <div>
+                        <div class="pl-badge__title">Reliable</div>
+                        <div class="pl-badge__sub">Connection</div>
+                    </div>
+                </div>
+                <div class="pl-badge">
+                    <span class="pl-badge__icon"><svg class="svg-icon"><use href="#i-headset" /></svg></span>
+                    <div>
+                        <div class="pl-badge__title">24/7</div>
+                        <div class="pl-badge__sub">Support</div>
+                    </div>
+                </div>
+                <div class="pl-badge">
+                    <span class="pl-badge__icon"><svg class="svg-icon"><use href="#i-plan" /></svg></span>
+                    <div>
+                        <div class="pl-badge__title">No Hidden</div>
+                        <div class="pl-badge__sub">Charges</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </section>
 
-@if (groups.Count == 0)
+@if (plans.Count == 0)
 {
     <section class="section">
         <div class="container">
@@ -33,78 +75,242 @@
 }
 else
 {
-    foreach (var group in groups)
+    <!-- ================= Dial-up ================= -->
+    @if (dialUp is not null)
     {
-        <section class="section @(group.Key == ConnectionType.Broadband ? "" : "section-alt")">
-            <div class="container">
-                <h2 class="section-title">@group.Key services</h2>
-                <p class="section-subtitle">
-                    @switch (group.Key)
-                    {
-                        case ConnectionType.Broadband:
-                            <text>Unlimited high speed internet for homes and businesses.</text>
-                            break;
-                        case ConnectionType.DialUp:
-                            <text>Affordable backup internet with a fixed monthly usage allowance.</text>
-                            break;
-                        default:
-                            <text>Reliable landline telephone service with free local calls.</text>
-                            break;
-                    }
-                </p>
-                <div class="row gy-4">
-                    @foreach (var plan in group.OrderBy(p => p.RecurringCharge))
-                    {
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card card-hover price-card h-100">
-                                <div class="card-body d-flex flex-column">
-                                    <h5 class="card-title mb-1">@plan.Name</h5>
-                                    <span class="badge bg-secondary mb-2" style="width: fit-content;">@plan.BillingCycle</span>
-                                    <p class="text-muted small flex-grow-1">@plan.Description</p>
-                                    <div class="plan-price">
-                                        PKR @plan.RecurringCharge.ToString("N0") <small>/ @plan.BillingCycle.ToString().ToLowerInvariant()</small>
-                                    </div>
-                                    <hr />
-                                    <dl class="row small mb-3">
-                                        @if (plan.SpeedMbps.HasValue)
-                                        {
-                                            <dt class="col-6 text-muted">Speed</dt>
-                                            <dd class="col-6 text-end">@plan.SpeedMbps Mbps</dd>
-                                        }
-                                        @if (plan.IncludedUsageHours.HasValue)
-                                        {
-                                            <dt class="col-6 text-muted">Free hours</dt>
-                                            <dd class="col-6 text-end">@plan.IncludedUsageHours / month</dd>
-                                        }
-                                        @if (plan.ValidityDays.HasValue)
-                                        {
-                                            <dt class="col-6 text-muted">Validity</dt>
-                                            <dd class="col-6 text-end">@plan.ValidityDays days</dd>
-                                        }
-                                        <dt class="col-6 text-muted">Security deposit</dt>
-                                        <dd class="col-6 text-end text-price">PKR @plan.SecurityDeposit.ToString("N0")</dd>
-                                        <dt class="col-6 text-muted">Installation</dt>
-                                        <dd class="col-6 text-end text-price">PKR @plan.InstallationCharge.ToString("N0")</dd>
-                                    </dl>
-                                    <a class="btn btn-primary mt-auto" asp-action="Contact">Order This Plan</a>
-                                </div>
-                            </div>
+        <section class="pl-service pl-service--dialup" aria-labelledby="pl-dialup-title">
+            <div class="container pl-service__grid">
+                <div class="pl-service__copy">
+                    <p class="pl-eyebrow">&#8212; DIAL-UP SERVICES &#8212;</p>
+                    <h2 id="pl-dialup-title" class="pl-h2">Stay Connected<br />Even at Lower Speeds</h2>
+                    <p class="pl-service__text">
+                        Our dial-up internet is a reliable and affordable option for basic browsing, email and essential online tasks.
+                    </p>
+                    <ul class="pl-checks">
+                        <li><svg class="svg-icon" aria-hidden="true"><use href="#i-check-circle" /></svg>Easy to set up</li>
+                        <li><svg class="svg-icon" aria-hidden="true"><use href="#i-check-circle" /></svg>Stable connection</li>
+                        <li><svg class="svg-icon" aria-hidden="true"><use href="#i-check-circle" /></svg>Affordable packages</li>
+                    </ul>
+                </div>
+
+                <article class="pl-plan pl-plan--dialup">
+                    <header class="pl-plan__head">
+                        <div class="pl-plan__headrow">
+                            <h3 class="pl-plan__name">@dialUp.Name</h3>
+                            <span class="pl-plan__pill pl-plan__pill--popular">Popular</span>
                         </div>
+                        <p class="pl-plan__desc">@dialUp.Description</p>
+                        <p class="pl-plan__price">
+                            PKR <strong>@dialUp.RecurringCharge.ToString("N0")</strong>
+                            <small>/ @dialUp.BillingCycle.ToString().ToLowerInvariant()</small>
+                        </p>
+                    </header>
+                    <ul class="pl-plan__rows">
+                        @if (dialUp.IncludedUsageHours.HasValue)
+                        {
+                            <li>
+                                <svg class="svg-icon" aria-hidden="true"><use href="#i-clock" /></svg>
+                                <span>Free hours</span>
+                                <b>@dialUp.IncludedUsageHours / month</b>
+                            </li>
+                        }
+                        @if (dialUp.ValidityDays.HasValue)
+                        {
+                            <li>
+                                <svg class="svg-icon" aria-hidden="true"><use href="#i-clock" /></svg>
+                                <span>Validity</span>
+                                <b>@dialUp.ValidityDays days</b>
+                            </li>
+                        }
+                        <li>
+                            <svg class="svg-icon" aria-hidden="true"><use href="#i-shield" /></svg>
+                            <span>Security deposit</span>
+                            <b>PKR @dialUp.SecurityDeposit.ToString("N0")</b>
+                        </li>
+                        <li>
+                            <svg class="svg-icon" aria-hidden="true"><use href="#i-package" /></svg>
+                            <span>Installation</span>
+                            <b>PKR @dialUp.InstallationCharge.ToString("N0")</b>
+                        </li>
+                    </ul>
+                    <a class="btn btn-primary pl-plan__cta" asp-action="Contact">
+                        Order This Plan
+                        <svg class="btn-icon" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+                    </a>
+                </article>
+            </div>
+        </section>
+    }
+
+    <!-- ================= Broadband ================= -->
+    @if (broadband.Count > 0)
+    {
+        <section class="pl-service pl-service--broadband" aria-labelledby="pl-broadband-title">
+            <div class="container">
+                <div class="pl-section-head">
+                    <div>
+                        <p class="pl-eyebrow">&#8212; BROADBAND SERVICES &#8212;</p>
+                        <h2 id="pl-broadband-title" class="pl-h2">High Speed Internet for Homes &amp; Businesses</h2>
+                        <p class="pl-service__text">
+                            Experience seamless streaming, gaming and productivity with our high-speed broadband plans.
+                        </p>
+                    </div>
+                    <ul class="pl-chips">
+                        <li>
+                            <span class="pl-chip__icon"><svg class="svg-icon"><use href="#i-bolt" /></svg></span>
+                            Fast &amp; Stable Speed
+                        </li>
+                        <li>
+                            <span class="pl-chip__icon"><svg class="svg-icon"><use href="#i-trending-up" /></svg></span>
+                            Unlimited Browsing
+                        </li>
+                        <li>
+                            <span class="pl-chip__icon"><svg class="svg-icon"><use href="#i-headset" /></svg></span>
+                            Smart Support
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="pl-grid">
+                    @for (var i = 0; i < broadband.Count; i++)
+                    {
+                        var plan = broadband[i];
+                        var accent = (i % 3) == 1 ? "pl-plan--violet" : (i % 3) == 2 ? "pl-plan--green" : "pl-plan--blue";
+
+                        <article class="pl-plan @accent">
+                            <header class="pl-plan__head">
+                                <h3 class="pl-plan__name">@plan.Name</h3>
+                                <span class="pl-plan__pill">@plan.BillingCycle</span>
+                                <p class="pl-plan__desc">@plan.Description</p>
+                            </header>
+                            @if (plan.SpeedMbps.HasValue)
+                            {
+                                <div class="pl-plan__speed">
+                                    <svg class="svg-icon" aria-hidden="true"><use href="#i-broadband" /></svg>
+                                    <span>@plan.SpeedMbps Mbps</span>
+                                </div>
+                            }
+                            <ul class="pl-plan__rows">
+                                @if (plan.SpeedMbps.HasValue)
+                                {
+                                    <li>
+                                        <svg class="svg-icon" aria-hidden="true"><use href="#i-bolt" /></svg>
+                                        <span>Speed</span>
+                                        <b>@plan.SpeedMbps Mbps</b>
+                                    </li>
+                                }
+                                @if (plan.ValidityDays.HasValue)
+                                {
+                                    <li>
+                                        <svg class="svg-icon" aria-hidden="true"><use href="#i-clock" /></svg>
+                                        <span>Validity</span>
+                                        <b>@plan.ValidityDays days</b>
+                                    </li>
+                                }
+                                <li>
+                                    <svg class="svg-icon" aria-hidden="true"><use href="#i-shield" /></svg>
+                                    <span>Security deposit</span>
+                                    <b>PKR @plan.SecurityDeposit.ToString("N0")</b>
+                                </li>
+                                <li>
+                                    <svg class="svg-icon" aria-hidden="true"><use href="#i-package" /></svg>
+                                    <span>Installation</span>
+                                    <b>PKR @plan.InstallationCharge.ToString("N0")</b>
+                                </li>
+                            </ul>
+                            <a class="btn btn-primary pl-plan__cta" asp-action="Contact">
+                                Order This Plan
+                                <svg class="btn-icon" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+                            </a>
+                        </article>
                     }
                 </div>
             </div>
         </section>
     }
+
+    <!-- ================= Telephone ================= -->
+    @if (landline is not null)
+    {
+        <section class="pl-service pl-service--phone" aria-labelledby="pl-phone-title">
+            <div class="container pl-service__grid pl-service__grid--media">
+                <div class="pl-service__media">
+                    <img src="~/img/home/svc-landline.jpg" width="600" height="420"
+                         loading="lazy" decoding="async" alt="Landline desk telephone on an office desk" />
+                </div>
+                <div class="pl-service__copy">
+                    <p class="pl-eyebrow">&#8212; TELEPHONE SERVICES &#8212;</p>
+                    <h2 id="pl-phone-title" class="pl-h2">Reliable Landline Services</h2>
+                    <p class="pl-service__text">
+                        Stay in touch with your family, friends and business partners with our clear and reliable landline service.
+                    </p>
+                    <ul class="pl-checks">
+                        <li><svg class="svg-icon" aria-hidden="true"><use href="#i-check-circle" /></svg>Crystal clear voice quality</li>
+                        <li><svg class="svg-icon" aria-hidden="true"><use href="#i-check-circle" /></svg>Local &amp; national calls</li>
+                        <li><svg class="svg-icon" aria-hidden="true"><use href="#i-check-circle" /></svg>Business &amp; residential plans</li>
+                    </ul>
+                </div>
+
+                <article class="pl-plan pl-plan--landline">
+                    <header class="pl-plan__head">
+                        <h3 class="pl-plan__name">@landline.Name</h3>
+                        <span class="pl-plan__pill">@landline.BillingCycle</span>
+                        <p class="pl-plan__desc">@landline.Description</p>
+                        <p class="pl-plan__price">
+                            PKR <strong>@landline.RecurringCharge.ToString("N0")</strong>
+                            <small>/ @landline.BillingCycle.ToString().ToLowerInvariant()</small>
+                        </p>
+                    </header>
+                    <ul class="pl-plan__rows">
+                        @if (landline.ValidityDays.HasValue)
+                        {
+                            <li>
+                                <svg class="svg-icon" aria-hidden="true"><use href="#i-clock" /></svg>
+                                <span>Validity</span>
+                                <b>@landline.ValidityDays days</b>
+                            </li>
+                        }
+                        <li>
+                            <svg class="svg-icon" aria-hidden="true"><use href="#i-shield" /></svg>
+                            <span>Security deposit</span>
+                            <b>PKR @landline.SecurityDeposit.ToString("N0")</b>
+                        </li>
+                        <li>
+                            <svg class="svg-icon" aria-hidden="true"><use href="#i-package" /></svg>
+                            <span>Installation</span>
+                            <b>PKR @landline.InstallationCharge.ToString("N0")</b>
+                        </li>
+                    </ul>
+                    <a class="btn btn-primary pl-plan__cta" asp-action="Contact">
+                        Order This Plan
+                        <svg class="btn-icon" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+                    </a>
+                </article>
+            </div>
+        </section>
+    }
 }
 
-<section class="section">
+<!-- ================= CTA ================= -->
+<section class="pl-cta-wrap">
     <div class="container">
-        <div class="card p-4 text-center">
-            <h5>Ready to get connected?</h5>
-            <p class="text-muted mb-3">Visit your nearest NEXUS branch or send us a message and our retail team will register your order.</p>
-            <div class="d-flex justify-content-center gap-2">
-                <a class="btn btn-primary" asp-action="Contact">Contact Us</a>
-                <a class="btn btn-outline-secondary" asp-action="TrackOrder">Track Existing Order</a>
+        <div class="pl-cta">
+            <span class="pl-cta__icon" aria-hidden="true">
+                <svg class="svg-icon"><use href="#i-speech" /></svg>
+            </span>
+            <div class="pl-cta__copy">
+                <h2>Ready to get connected?</h2>
+                <p>Visit your nearest NEXUS branch or send us a message and our retail team will register your order.</p>
+            </div>
+            <div class="pl-cta__actions">
+                <a class="btn btn-primary" asp-action="Contact">
+                    Contact Us
+                    <svg class="btn-icon" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+                </a>
+                <a class="btn btn-outline-light" asp-action="TrackOrder">
+                    Track Existing Order
+                    <svg class="btn-icon" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+                </a>
             </div>
         </div>
     </div>

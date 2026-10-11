@@ -5,6 +5,7 @@
 
 <!-- ================= Hero ================= -->
 <section class="contact-hero" aria-labelledby="contact-title">
+    <span class="contact-hero__photo" aria-hidden="true"></span>
     <span class="contact-hero__grid" aria-hidden="true"></span>
     <span class="contact-hero__glow" aria-hidden="true"></span>
     <div class="container contact-hero__inner">
@@ -34,7 +35,7 @@
                     </span>
                     <div>
                         <div class="contact-badge__title">24/7 Support</div>
-                        <div class="contact-badge__sub">We're Always Here</div>
+                        <div class="contact-badge__sub">We're always here</div>
                     </div>
                 </div>
                 <div class="contact-badge">
@@ -46,7 +47,7 @@
                     </span>
                     <div>
                         <div class="contact-badge__title">Quick Response</div>
-                        <div class="contact-badge__sub">Within a Few Hours</div>
+                        <div class="contact-badge__sub">Within a few hours</div>
                     </div>
                 </div>
                 <div class="contact-badge">
@@ -59,7 +60,7 @@
                     </span>
                     <div>
                         <div class="contact-badge__title">Trusted Service</div>
-                        <div class="contact-badge__sub">Secure &amp; 100% Customers</div>
+                        <div class="contact-badge__sub">For over 10K+ customers</div>
                     </div>
                 </div>
             </div>
@@ -117,7 +118,7 @@
                             <div class="col-12">
                                 <label asp-for="Subject" class="form-label">Subject *</label>
                                 <div class="input-with-icon input-with-icon--select">
-                                    <svg class="input-icon input-icon--left" aria-hidden="true"><use href="#i-tag" /></svg>
+                                    <svg class="input-icon input-icon--left" aria-hidden="true"><use href="#i-plan" /></svg>
                                     <select asp-for="Subject" class="form-select">
                                         <option value="">Select a subject</option>
                                         <option value="General Enquiry">General Enquiry</option>
@@ -249,7 +250,7 @@
                     <div class="contact-find-us">
                         <h3 class="contact-find-us__title">Find Us</h3>
                         <p class="contact-find-us__text">Visit our head office for any inquiries or support.</p>
-                        <a class="btn btn-primary btn-contact-sm" asp-action="Contact">
+                        <a class="btn btn-outline-primary btn-contact-sm" asp-action="Contact">
                             Get Directions
                             <svg class="btn-icon" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
                         </a>
