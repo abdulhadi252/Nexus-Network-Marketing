@@ -1,0 +1,50 @@
+@model Plan
+@{
+    ViewData["Title"] = "Delete Plan";
+
+    var inUse = Model.Connections.Count > 0 || Model.ConnectionPlanHistories.Count > 0;
+}
+
+<h1 class="h4 mb-1">Delete Plan</h1>
+<p class="text-muted">
+    Plans that are still used by connections are deactivated instead of deleted; otherwise the plan is removed.
+</p>
+
+<div class="card">
+    <div class="card-body">
+        <dl class="row detail-list">
+            <dt class="col-sm-4">Plan</dt>
+            <dd class="col-sm-8">@Model.Name</dd>
+            <dt class="col-sm-4">Connection type</dt>
+            <dd class="col-sm-8">@Model.ConnectionType</dd>
+            <dt class="col-sm-4">Billing cycle</dt>
+            <dd class="col-sm-8">@Model.BillingCycle</dd>
+            <dt class="col-sm-4">Recurring charge</dt>
+            <dd class="col-sm-8 text-price">PKR @Model.RecurringCharge.ToString("N2")</dd>
+            <dt class="col-sm-4">Status</dt>
+            <dd class="col-sm-8"><partial name="_Badge" model="@((object?)(Model.IsActive ? "Active" : "Inactive"))" /></dd>
+            <dt class="col-sm-4">Connections using it</dt>
+            <dd class="col-sm-8">@Model.Connections.Count</dd>
+            <dt class="col-sm-4">Orders referencing it</dt>
+            <dd class="col-sm-8">@Model.Orders.Count</dd>
+        </dl>
+
+        @if (inUse)
+        {
+            <div class="alert alert-warning py-2 mb-3">
+                This plan is in use, so it will be <strong>deactivated</strong> and hidden from the public website instead of deleted.
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-danger py-2 mb-3">
+                This plan will be permanently removed. This cannot be undone.
+            </div>
+        }
+
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-flex gap-2">
+            <button type="submit" class="btn btn-danger">@(inUse ? "Deactivate Plan" : "Delete Plan")</button>
+            <a class="btn btn-outline-secondary" asp-action="Index">Cancel</a>
+        </form>
+    </div>
+</div>

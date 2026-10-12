@@ -69,9 +69,11 @@ public class OrdersController(ApplicationDbContext db, IOrderService orderServic
             .Include(o => o.RetailShop).ThenInclude(s => s!.City)
             .Include(o => o.Plan)
             .Include(o => o.ProcessedByEmployee)
+            .Include(o => o.VerifiedByEmployee)
             .Include(o => o.Items).ThenInclude(i => i.Product)
             .Include(o => o.FeasibilityReport).ThenInclude(f => f!.TechnicalEmployee)
             .Include(o => o.Connection)
+            .Include(o => o.StatusHistory).ThenInclude(h => h.ChangedByEmployee)
             .AsNoTracking()
             .FirstOrDefaultAsync(o => o.Id == id);
 
@@ -107,7 +109,8 @@ public class OrdersController(ApplicationDbContext db, IOrderService orderServic
 
         try
         {
-            await orderService.UpdateStatusAsync(id, status);
+            var employee = await User.GetEmployeeAsync(db);
+            await orderService.UpdateStatusAsync(id, status, employee?.Id, remarks);
             if (!string.IsNullOrWhiteSpace(remarks))
             {
                 var tracked = await db.Orders.FirstAsync(o => o.Id == id);

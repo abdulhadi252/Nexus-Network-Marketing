@@ -15,6 +15,13 @@ public class Order
     public RetailShop? RetailShop { get; set; }
     public int? ProcessedByEmployeeId { get; set; }
     public Employee? ProcessedByEmployee { get; set; }
+
+    // Retail verification: the branch confirms the customer's contact details and address,
+    // then forwards the order to the technical team for a feasibility check and installation.
+    public int? VerifiedByEmployeeId { get; set; }
+    public Employee? VerifiedByEmployee { get; set; }
+    public DateTimeOffset? VerifiedAt { get; set; }
+    public string? VerificationNotes { get; set; }
     public int? PlanId { get; set; }
     public Plan? Plan { get; set; }
     public DateTimeOffset SubmittedAt { get; set; } = DateTimeOffset.UtcNow;
@@ -23,4 +30,5 @@ public class Order
     public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
     public FeasibilityReport? FeasibilityReport { get; set; }
     public Connection? Connection { get; set; }
+    public ICollection<OrderStatusHistory> StatusHistory { get; set; } = new List<OrderStatusHistory>();
 }

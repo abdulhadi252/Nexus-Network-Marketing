@@ -20,6 +20,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<FeasibilityReport> FeasibilityReports => Set<FeasibilityReport>();
     public DbSet<Feedback> FeedbackEntries => Set<Feedback>();
     public DbSet<Order> Orders => Set<Order>();
+    public DbSet<OrderStatusHistory> OrderStatusHistories => Set<OrderStatusHistory>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<Plan> Plans => Set<Plan>();
@@ -164,12 +165,25 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         {
             entity.Property(x => x.OrderNumber).HasMaxLength(11).IsRequired();
             entity.Property(x => x.Remarks).HasMaxLength(2000);
+            entity.Property(x => x.VerificationNotes).HasMaxLength(2000);
             entity.HasIndex(x => x.OrderNumber).IsUnique();
             entity.HasIndex(x => new { x.ConnectionType, x.SequenceNumber }).IsUnique();
             entity.HasOne(x => x.Customer).WithMany(x => x.Orders).HasForeignKey(x => x.CustomerId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(x => x.RetailShop).WithMany(x => x.Orders).HasForeignKey(x => x.RetailShopId).OnDelete(DeleteBehavior.SetNull);
             entity.HasOne(x => x.ProcessedByEmployee).WithMany(x => x.ProcessedOrders).HasForeignKey(x => x.ProcessedByEmployeeId).OnDelete(DeleteBehavior.SetNull);
+            // NoAction (not SetNull): SQL Server forbids a second cascading path from Employee to Order
+            // because ProcessedByEmployee already cascades. Employee accounts are deactivated, not deleted.
+            entity.HasOne(x => x.VerifiedByEmployee).WithMany().HasForeignKey(x => x.VerifiedByEmployeeId).OnDelete(DeleteBehavior.NoAction);
             entity.HasOne(x => x.Plan).WithMany(x => x.Orders).HasForeignKey(x => x.PlanId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<OrderStatusHistory>(entity =>
+        {
+            entity.Property(x => x.Notes).HasMaxLength(2000);
+            entity.HasIndex(x => x.OrderId);
+            entity.HasIndex(x => x.ChangedAt);
+            entity.HasOne(x => x.Order).WithMany(x => x.StatusHistory).HasForeignKey(x => x.OrderId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(x => x.ChangedByEmployee).WithMany().HasForeignKey(x => x.ChangedByEmployeeId).OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<OrderItem>(entity =>

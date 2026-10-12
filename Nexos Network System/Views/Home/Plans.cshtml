@@ -96,7 +96,9 @@ else
                 <article class="pl-plan pl-plan--dialup">
                     <header class="pl-plan__head">
                         <div class="pl-plan__headrow">
-                            <h3 class="pl-plan__name">@dialUp.Name</h3>
+                            <h3 class="pl-plan__name">
+                                <a class="pl-plan__link" asp-action="PlanDetails" asp-route-id="@dialUp.Id">@dialUp.Name</a>
+                            </h3>
                             <span class="pl-plan__pill pl-plan__pill--popular">Popular</span>
                         </div>
                         <p class="pl-plan__desc">@dialUp.Description</p>
@@ -133,8 +135,8 @@ else
                             <b>PKR @dialUp.InstallationCharge.ToString("N0")</b>
                         </li>
                     </ul>
-                    <a class="btn btn-primary pl-plan__cta" asp-action="Contact">
-                        Order This Plan
+                    <a class="btn btn-primary pl-plan__cta" asp-action="PlanDetails" asp-route-id="@dialUp.Id">
+                        View Details &amp; Order
                         <svg class="btn-icon" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
                     </a>
                 </article>
@@ -179,7 +181,9 @@ else
 
                         <article class="pl-plan @accent">
                             <header class="pl-plan__head">
-                                <h3 class="pl-plan__name">@plan.Name</h3>
+                                <h3 class="pl-plan__name">
+                                    <a class="pl-plan__link" asp-action="PlanDetails" asp-route-id="@plan.Id">@plan.Name</a>
+                                </h3>
                                 <span class="pl-plan__pill">@plan.BillingCycle</span>
                                 <p class="pl-plan__desc">@plan.Description</p>
                             </header>
@@ -218,8 +222,8 @@ else
                                     <b>PKR @plan.InstallationCharge.ToString("N0")</b>
                                 </li>
                             </ul>
-                            <a class="btn btn-primary pl-plan__cta" asp-action="Contact">
-                                Order This Plan
+                            <a class="btn btn-primary pl-plan__cta" asp-action="PlanDetails" asp-route-id="@plan.Id">
+                                View Details &amp; Order
                                 <svg class="btn-icon" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
                             </a>
                         </article>
@@ -253,7 +257,9 @@ else
 
                 <article class="pl-plan pl-plan--landline">
                     <header class="pl-plan__head">
-                        <h3 class="pl-plan__name">@landline.Name</h3>
+                        <h3 class="pl-plan__name">
+                            <a class="pl-plan__link" asp-action="PlanDetails" asp-route-id="@landline.Id">@landline.Name</a>
+                        </h3>
                         <span class="pl-plan__pill">@landline.BillingCycle</span>
                         <p class="pl-plan__desc">@landline.Description</p>
                         <p class="pl-plan__price">
@@ -281,8 +287,8 @@ else
                             <b>PKR @landline.InstallationCharge.ToString("N0")</b>
                         </li>
                     </ul>
-                    <a class="btn btn-primary pl-plan__cta" asp-action="Contact">
-                        Order This Plan
+                    <a class="btn btn-primary pl-plan__cta" asp-action="PlanDetails" asp-route-id="@landline.Id">
+                        View Details &amp; Order
                         <svg class="btn-icon" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
                     </a>
                 </article>

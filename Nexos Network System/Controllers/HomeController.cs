@@ -12,17 +12,36 @@ public class HomeController(ApplicationDbContext db, ILogger<HomeController> log
 {
     public async Task<IActionResult> Index()
     {
+        // All active broadband plans are loaded so the marketing cards on the home
+        // page can deep-link to the matching public plan detail page.
         var plans = await db.Plans
             .AsNoTracking()
             .Where(p => p.IsActive && p.ConnectionType == ConnectionType.Broadband)
-            .OrderBy(p => p.RecurringCharge)
-            .Take(3)
+            .OrderBy(p => p.SpeedMbps ?? int.MaxValue)
+            .ThenBy(p => p.RecurringCharge)
             .ToListAsync();
 
         return View(plans);
     }
 
     public IActionResult About() => View();
+
+    // Public plan detail page. Every plan card on the website links here first so visitors
+    // can review what a plan includes before they are asked to sign in and order.
+    [HttpGet]
+    public async Task<IActionResult> PlanDetails(int id)
+    {
+        var plan = await db.Plans
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == id && p.IsActive);
+
+        if (plan is null)
+        {
+            return NotFound();
+        }
+
+        return View(plan);
+    }
 
     public IActionResult Services() => View();
 

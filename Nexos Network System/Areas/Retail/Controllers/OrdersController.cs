@@ -70,9 +70,11 @@ public class OrdersController(ApplicationDbContext db, IOrderService orderServic
             .Include(o => o.RetailShop)
             .Include(o => o.Plan)
             .Include(o => o.ProcessedByEmployee)
+            .Include(o => o.VerifiedByEmployee)
             .Include(o => o.Items).ThenInclude(i => i.Product)
             .Include(o => o.FeasibilityReport)
             .Include(o => o.Connection)
+            .Include(o => o.StatusHistory).ThenInclude(h => h.ChangedByEmployee)
             .AsNoTracking()
             .FirstOrDefaultAsync(o => o.Id == id && o.RetailShopId == retailShopId.Value);
 
@@ -82,6 +84,147 @@ public class OrdersController(ApplicationDbContext db, IOrderService orderServic
         }
 
         return View(order);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Verify(int id, string? notes)
+    {
+        ViewData["PanelName"] = "Retail Panel";
+
+        var retailShopId = await User.GetRetailShopIdAsync(db);
+        if (retailShopId is null)
+        {
+            return Forbid();
+        }
+
+        var order = await db.Orders.AsNoTracking()
+            .FirstOrDefaultAsync(o => o.Id == id && o.RetailShopId == retailShopId.Value);
+        if (order is null)
+        {
+            return NotFound();
+        }
+
+        if (notes?.Length > 2000)
+        {
+            TempData["Error"] = "Verification notes cannot exceed 2,000 characters.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        var employee = await User.GetEmployeeAsync(db);
+        if (employee is null)
+        {
+            TempData["Error"] = "Your retail employee profile could not be resolved.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        try
+        {
+            await orderService.VerifyByRetailAsync(id, employee.Id, notes);
+            TempData["Success"] = $"Order {order.OrderNumber} was verified and forwarded to the technical team.";
+        }
+        catch (InvalidOperationException ex)
+        {
+            TempData["Error"] = ex.Message;
+        }
+
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Reject(int id, string? reason)
+    {
+        ViewData["PanelName"] = "Retail Panel";
+
+        var retailShopId = await User.GetRetailShopIdAsync(db);
+        if (retailShopId is null)
+        {
+            return Forbid();
+        }
+
+        var order = await db.Orders.AsNoTracking()
+            .FirstOrDefaultAsync(o => o.Id == id && o.RetailShopId == retailShopId.Value);
+        if (order is null)
+        {
+            return NotFound();
+        }
+
+        if (string.IsNullOrWhiteSpace(reason))
+        {
+            TempData["Error"] = "A rejection reason is required.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        if (reason.Length > 2000)
+        {
+            TempData["Error"] = "The rejection reason cannot exceed 2,000 characters.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        var employee = await User.GetEmployeeAsync(db);
+        if (employee is null)
+        {
+            TempData["Error"] = "Your retail employee profile could not be resolved.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        try
+        {
+            await orderService.RejectByRetailAsync(id, employee.Id, reason);
+            TempData["Success"] = $"Order {order.OrderNumber} was rejected.";
+        }
+        catch (InvalidOperationException ex)
+        {
+            TempData["Error"] = ex.Message;
+        }
+
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RequestInfo(int id, string? notes)
+    {
+        ViewData["PanelName"] = "Retail Panel";
+
+        var retailShopId = await User.GetRetailShopIdAsync(db);
+        if (retailShopId is null)
+        {
+            return Forbid();
+        }
+
+        var order = await db.Orders.AsNoTracking()
+            .FirstOrDefaultAsync(o => o.Id == id && o.RetailShopId == retailShopId.Value);
+        if (order is null)
+        {
+            return NotFound();
+        }
+
+        if (notes?.Length > 2000)
+        {
+            TempData["Error"] = "Notes cannot exceed 2,000 characters.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        var employee = await User.GetEmployeeAsync(db);
+        if (employee is null)
+        {
+            TempData["Error"] = "Your retail employee profile could not be resolved.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        try
+        {
+            await orderService.RequestCustomerInformationAsync(id, employee.Id, notes);
+            TempData["Success"] = $"Corrections were requested for order {order.OrderNumber}.";
+        }
+        catch (InvalidOperationException ex)
+        {
+            TempData["Error"] = ex.Message;
+        }
+
+        return RedirectToAction(nameof(Details), new { id });
     }
 
     [HttpGet]

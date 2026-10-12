@@ -26,8 +26,10 @@ public class FeasibilityController(ApplicationDbContext db) : Controller
             page);
 
         var pendingOrders = await db.Orders
-            .Where(o => (o.Status == OrderStatus.Pending || o.Status == OrderStatus.FeasibilityPending) && o.FeasibilityReport == null)
+            .Where(o => (o.Status == OrderStatus.Pending || o.Status == OrderStatus.FeasibilityPending || o.Status == OrderStatus.VerifiedByRetail) && o.FeasibilityReport == null)
             .Include(o => o.Customer)
+            .Include(o => o.RetailShop)
+            .Include(o => o.VerifiedByEmployee)
             .OrderBy(o => o.SubmittedAt)
             .ToListAsync();
 
@@ -82,7 +84,7 @@ public class FeasibilityController(ApplicationDbContext db) : Controller
         {
             ModelState.AddModelError(nameof(model.OrderId), "The selected order is not available.");
         }
-        else if (order.Status is not (OrderStatus.Pending or OrderStatus.FeasibilityPending) ||
+        else if (order.Status is not (OrderStatus.Pending or OrderStatus.FeasibilityPending or OrderStatus.VerifiedByRetail) ||
                  await db.FeasibilityReports.AnyAsync(f => f.OrderId == model.OrderId))
         {
             ModelState.AddModelError(string.Empty, "A feasibility report can only be created for an order awaiting feasibility review.");
@@ -114,6 +116,8 @@ public class FeasibilityController(ApplicationDbContext db) : Controller
         };
 
         db.FeasibilityReports.Add(report);
+
+        var previousStatus = order.Status;
         order.Status = model.Status switch
         {
             FeasibilityStatus.Feasible => OrderStatus.Feasible,
@@ -121,6 +125,7 @@ public class FeasibilityController(ApplicationDbContext db) : Controller
             _ => OrderStatus.FeasibilityPending
         };
         order.UpdatedAt = DateTimeOffset.UtcNow;
+        order.StatusHistory.Add(OrderWorkflow.CreateEntry(previousStatus, order.Status, employee?.Id, model.Remarks));
 
         await db.SaveChangesAsync();
 
@@ -196,6 +201,7 @@ public class FeasibilityController(ApplicationDbContext db) : Controller
         var employee = await User.GetEmployeeAsync(db);
         report.TechnicalEmployeeId = employee?.Id;
 
+        var previousStatus = report.Order.Status;
         report.Order.Status = model.Status switch
         {
             FeasibilityStatus.Feasible => OrderStatus.Feasible,
@@ -203,6 +209,7 @@ public class FeasibilityController(ApplicationDbContext db) : Controller
             _ => OrderStatus.FeasibilityPending
         };
         report.Order.UpdatedAt = DateTimeOffset.UtcNow;
+        report.Order.StatusHistory.Add(OrderWorkflow.CreateEntry(previousStatus, report.Order.Status, employee?.Id, model.Remarks));
 
         await db.SaveChangesAsync();
 
@@ -213,9 +220,9 @@ public class FeasibilityController(ApplicationDbContext db) : Controller
     private async Task LoadPendingOrdersAsync()
     {
         var orders = await db.Orders
-            .Where(o => (o.Status == OrderStatus.Pending || o.Status == OrderStatus.FeasibilityPending) && o.FeasibilityReport == null)
+            .Where(o => (o.Status == OrderStatus.Pending || o.Status == OrderStatus.FeasibilityPending || o.Status == OrderStatus.VerifiedByRetail) && o.FeasibilityReport == null)
             .OrderBy(o => o.SubmittedAt)
-            .Select(o => new { o.Id, Label = o.OrderNumber + " - " + o.Customer.FirstName + " " + o.Customer.LastName })
+            .Select(o => new { o.Id, Label = o.OrderNumber + " - " + o.Customer.FirstName + " " + o.Customer.LastName + (o.RetailShop != null ? " [" + o.RetailShop.Name + "]" : "") })
             .ToListAsync();
 
         ViewBag.OrderOptions = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(orders, "Id", "Label");

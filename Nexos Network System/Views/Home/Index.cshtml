@@ -4,53 +4,9 @@
     var isAuthenticated = User.Identity?.IsAuthenticated == true;
     var panelArea = User.GetPanelAreaName();
 
-    // The plan cards on this page are presentational: these four tiers are the approved
-    // marketing design and are deliberately not bound to the catalogue. The controller
-    // still loads active broadband plans, and /Home/Plans plus every role panel remain
-    // fully catalogue driven.
-    var planCards = new[]
-    {
-        new
-        {
-            Name = "Basic",
-            Speed = "Up to 10 Mbps",
-            Price = 1999m,
-            Desc = "Perfect for browsing & social media.",
-            Features = new[] { "Up to 10 Mbps speed", "Unlimited data (FUP)", "Wi-Fi router (optional)" },
-            Icon = "i-broadband",
-            Popular = false
-        },
-        new
-        {
-            Name = "Standard",
-            Speed = "Up to 25 Mbps",
-            Price = 2999m,
-            Desc = "Great for work, study & streaming.",
-            Features = new[] { "Up to 25 Mbps speed", "Unlimited data (FUP)", "Wi-Fi router (included)" },
-            Icon = "i-home-network",
-            Popular = true
-        },
-        new
-        {
-            Name = "Premium",
-            Speed = "Up to 50 Mbps",
-            Price = 4999m,
-            Desc = "Ideal for multiple devices & 4K streaming.",
-            Features = new[] { "Up to 50 Mbps speed", "Unlimited data (FUP)", "Wi-Fi router (included)" },
-            Icon = "i-bolt",
-            Popular = false
-        },
-        new
-        {
-            Name = "Business",
-            Speed = "Up to 100 Mbps",
-            Price = 8999m,
-            Desc = "For offices & high-demand users.",
-            Features = new[] { "Up to 100 Mbps speed", "Priority Support", "Static IP (optional)", "Dedicated Account Manager", "SLA & Faster Resolution" },
-            Icon = "i-shops",
-            Popular = false
-        }
-    };
+    // The home page plan cards are fully catalogue driven: every active broadband plan
+    // managed in Admin > Plans is rendered here automatically, so adding, editing or
+    // removing a plan there updates this section with no code changes.
 }
 
 <!-- ================= Hero ================= -->
@@ -303,35 +259,59 @@
             </div>
         </div>
 
-        <div class="hp-plan-grid">
-            @foreach (var card in planCards)
-            {
-                <div class="hp-plan-card @(card.Popular ? "hp-plan-card--popular" : string.Empty)">
-                    @if (card.Popular)
-                    {
-                        <span class="hp-plan-card__badge">★ Most Popular</span>
-                    }
-                    <span class="hp-plan-card__icon">
-                        <svg class="svg-icon"><use href="#@card.Icon" /></svg>
-                    </span>
-                    <h3>@card.Name</h3>
-                    <p class="hp-plan-card__desc">@card.Desc</p>
-                    <p class="hp-plan-card__speed">@card.Speed</p>
-                    <ul class="hp-feats">
-                        @foreach (var feature in card.Features)
+        @if (Model.Count == 0)
+        {
+            <div class="empty-state">
+                <p class="mb-3">No broadband plans are published yet. Please check back soon or contact us for current pricing.</p>
+                <a class="btn btn-primary" asp-action="Contact">Contact Us</a>
+            </div>
+        }
+        else
+        {
+            <div class="hp-plan-grid">
+                @for (var i = 0; i < Model.Count; i++)
+                {
+                    var plan = Model[i];
+                    var popular = Model.Count > 1 && i == Model.Count / 2;
+                    var icon = plan.SpeedMbps >= 50 ? "i-bolt" : "i-broadband";
+                    <div class="hp-plan-card @(popular ? "hp-plan-card--popular" : string.Empty)">
+                        @if (popular)
                         {
-                            <li>@feature</li>
+                            <span class="hp-plan-card__badge">★ Most Popular</span>
                         }
-                    </ul>
-                    <p class="hp-svc-card__from">From</p>
-                    <p class="hp-svc-card__price">Rs. @card.Price.ToString("N0") <small>/month</small></p>
-                    <a class="hp-plan-card__cta" asp-action="Plans">
-                        Get Started
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
-                    </a>
-                </div>
-            }
-        </div>
+                        <span class="hp-plan-card__icon">
+                            <svg class="svg-icon"><use href="#@icon" /></svg>
+                        </span>
+                        <h3>
+                            <a class="hp-plan-card__link" asp-action="PlanDetails" asp-route-id="@plan.Id">@plan.Name</a>
+                        </h3>
+                        <p class="hp-plan-card__desc">@(string.IsNullOrWhiteSpace(plan.Description) ? "Reliable broadband for your home and business." : plan.Description)</p>
+                        @if (plan.SpeedMbps.HasValue)
+                        {
+                            <p class="hp-plan-card__speed">Up to @plan.SpeedMbps Mbps</p>
+                        }
+                        <ul class="hp-feats">
+                            @if (plan.SpeedMbps.HasValue)
+                            {
+                                <li>Up to @plan.SpeedMbps Mbps speed</li>
+                            }
+                            @if (plan.ValidityDays.HasValue)
+                            {
+                                <li>@plan.ValidityDays days validity</li>
+                            }
+                            <li>Unlimited data (FUP applies)</li>
+                            <li>24/7 technical support</li>
+                        </ul>
+                        <p class="hp-svc-card__from">From</p>
+                        <p class="hp-svc-card__price">Rs. @plan.RecurringCharge.ToString("N0") <small>/ @plan.BillingCycle.ToString().ToLowerInvariant()</small></p>
+                        <a class="hp-plan-card__cta" asp-action="PlanDetails" asp-route-id="@plan.Id">
+                            View Details &amp; Order
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+                        </a>
+                    </div>
+                }
+            </div>
+        }
     </div>
 </section>
 

@@ -1,6 +1,7 @@
 using System.Data;
 using Microsoft.EntityFrameworkCore;
 using Nexos_Network_System.Data;
+using Nexos_Network_System.Helpers;
 using Nexos_Network_System.Interfaces;
 using Nexos_Network_System.Models;
 using Nexos_Network_System.Models.Enums;
@@ -18,11 +19,36 @@ public class OrderService(ApplicationDbContext db, IOrderIdService orderIdServic
             throw new InvalidOperationException("The selected customer is not available.");
         }
 
-        if (retailShopId.HasValue)
+        var assignedShopId = retailShopId ?? model.RetailShopId;
+
+        // Customer self-placed orders arrive without a branch. Route them automatically to the
+        // retail shop that serves the customer's primary address city, so the correct branch
+        // can verify the customer and process the order.
+        if (assignedShopId is null)
+        {
+            var addressCityId = await db.CustomerAddresses
+                .AsNoTracking()
+                .Where(a => a.CustomerId == model.CustomerId)
+                .OrderByDescending(a => a.IsPrimary)
+                .Select(a => (int?)a.CityId)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (addressCityId.HasValue)
+            {
+                assignedShopId = await db.RetailShops
+                    .AsNoTracking()
+                    .Where(s => s.IsActive && s.CityId == addressCityId.Value)
+                    .OrderBy(s => s.Id)
+                    .Select(s => (int?)s.Id)
+                    .FirstOrDefaultAsync(cancellationToken);
+            }
+        }
+
+        if (assignedShopId.HasValue)
         {
             var shopCityId = await db.RetailShops
                 .AsNoTracking()
-                .Where(s => s.Id == retailShopId.Value && s.IsActive)
+                .Where(s => s.Id == assignedShopId.Value && s.IsActive)
                 .Select(s => (int?)s.CityId)
                 .FirstOrDefaultAsync(cancellationToken)
                 ?? throw new InvalidOperationException("The assigned retail shop is not available.");
@@ -76,7 +102,7 @@ public class OrderService(ApplicationDbContext db, IOrderIdService orderIdServic
             ConnectionType = model.ConnectionType,
             Status = OrderStatus.Pending,
             CustomerId = model.CustomerId,
-            RetailShopId = retailShopId ?? model.RetailShopId,
+            RetailShopId = assignedShopId,
             ProcessedByEmployeeId = processedByEmployeeId,
             PlanId = model.PlanId,
             SubmittedAt = DateTimeOffset.UtcNow,
@@ -95,6 +121,8 @@ public class OrderService(ApplicationDbContext db, IOrderIdService orderIdServic
             });
         }
 
+        order.StatusHistory.Add(OrderWorkflow.CreateEntry(null, OrderStatus.Pending, processedByEmployeeId, "Order created."));
+
         db.Orders.Add(order);
         await db.SaveChangesAsync(cancellationToken);
 
@@ -107,7 +135,7 @@ public class OrderService(ApplicationDbContext db, IOrderIdService orderIdServic
         return order.Id;
     }
 
-    public async Task UpdateStatusAsync(int orderId, OrderStatus status, CancellationToken cancellationToken = default)
+    public async Task UpdateStatusAsync(int orderId, OrderStatus status, int? changedByEmployeeId = null, string? notes = null, CancellationToken cancellationToken = default)
     {
         if (!Enum.IsDefined(status))
         {
@@ -128,6 +156,11 @@ public class OrderService(ApplicationDbContext db, IOrderIdService orderIdServic
             .Where(report => report.OrderId == orderId)
             .Select(report => (FeasibilityStatus?)report.Status)
             .FirstOrDefaultAsync(cancellationToken);
+
+        if (status == OrderStatus.VerifiedByRetail && reportStatus.HasValue)
+        {
+            throw new InvalidOperationException("This order already has a feasibility report, so it cannot be returned to retail verification.");
+        }
 
         if (status is OrderStatus.Pending or OrderStatus.Feasible or OrderStatus.NotFeasible or OrderStatus.FeasibilityPending)
         {
@@ -153,7 +186,14 @@ public class OrderService(ApplicationDbContext db, IOrderIdService orderIdServic
             throw new InvalidOperationException("Order status must remain connected once its connection has been created.");
         }
 
-        if (status == OrderStatus.Cancelled && order.Status != OrderStatus.Cancelled)
+        var previousStatus = order.Status;
+
+        if (previousStatus != status && !OrderWorkflow.CanTransition(previousStatus, status))
+        {
+            throw new InvalidOperationException($"Order {order.OrderNumber} cannot move from {previousStatus} to {status}.");
+        }
+
+        if (status == OrderStatus.Cancelled && previousStatus != OrderStatus.Cancelled)
         {
             foreach (var item in order.Items)
             {
@@ -163,6 +203,93 @@ public class OrderService(ApplicationDbContext db, IOrderIdService orderIdServic
 
         order.Status = status;
         order.UpdatedAt = DateTimeOffset.UtcNow;
+
+        if (previousStatus != status)
+        {
+            order.StatusHistory.Add(OrderWorkflow.CreateEntry(previousStatus, status, changedByEmployeeId, notes));
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+    }
+
+    public async Task VerifyByRetailAsync(int orderId, int employeeId, string? notes, CancellationToken cancellationToken = default)
+    {
+        await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
+
+        var order = await db.Orders.FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken)
+            ?? throw new InvalidOperationException("Order not found.");
+
+        if (order.Status == OrderStatus.Cancelled)
+        {
+            throw new InvalidOperationException("A cancelled order cannot be verified.");
+        }
+
+        if (order.Status is OrderStatus.Feasible or OrderStatus.NotFeasible or OrderStatus.ConnectionProvided)
+        {
+            throw new InvalidOperationException("This order has already moved past retail verification.");
+        }
+
+        if (await db.Connections.AnyAsync(connection => connection.OrderId == orderId, cancellationToken))
+        {
+            throw new InvalidOperationException("This order already has a connection and cannot be re-verified.");
+        }
+
+        if (!OrderWorkflow.CanTransition(order.Status, OrderStatus.VerifiedByRetail))
+        {
+            throw new InvalidOperationException($"Order {order.OrderNumber} cannot be verified from its current status.");
+        }
+
+        var previousStatus = order.Status;
+        order.Status = OrderStatus.VerifiedByRetail;
+        order.VerifiedByEmployeeId = employeeId;
+        order.VerifiedAt = DateTimeOffset.UtcNow;
+        order.VerificationNotes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim();
+        order.UpdatedAt = DateTimeOffset.UtcNow;
+        order.StatusHistory.Add(OrderWorkflow.CreateEntry(previousStatus, OrderStatus.VerifiedByRetail, employeeId, notes));
+
+        await db.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+    }
+
+    public Task RejectByRetailAsync(int orderId, int employeeId, string reason, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(reason))
+        {
+            throw new InvalidOperationException("A rejection reason is required.");
+        }
+
+        return ApplyRetailDecisionAsync(orderId, OrderStatus.RetailRejected, employeeId, reason, cancellationToken);
+    }
+
+    public Task RequestCustomerInformationAsync(int orderId, int employeeId, string? notes, CancellationToken cancellationToken = default) =>
+        ApplyRetailDecisionAsync(orderId, OrderStatus.AwaitingCustomerInformation, employeeId, notes, cancellationToken);
+
+    private async Task ApplyRetailDecisionAsync(int orderId, OrderStatus decision, int employeeId, string? notes, CancellationToken cancellationToken)
+    {
+        await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
+
+        var order = await db.Orders.FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken)
+            ?? throw new InvalidOperationException("Order not found.");
+
+        if (order.Status is OrderStatus.Feasible or OrderStatus.NotFeasible or OrderStatus.ConnectionProvided or OrderStatus.Cancelled)
+        {
+            throw new InvalidOperationException("This order has already moved past retail review.");
+        }
+
+        if (!OrderWorkflow.CanTransition(order.Status, decision))
+        {
+            throw new InvalidOperationException($"Order {order.OrderNumber} cannot move from {order.Status} to {decision}.");
+        }
+
+        var previousStatus = order.Status;
+        order.Status = decision;
+        order.VerifiedByEmployeeId = employeeId;
+        order.VerifiedAt = DateTimeOffset.UtcNow;
+        order.VerificationNotes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim();
+        order.UpdatedAt = DateTimeOffset.UtcNow;
+        order.StatusHistory.Add(OrderWorkflow.CreateEntry(previousStatus, decision, employeeId, notes));
+
         await db.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
     }

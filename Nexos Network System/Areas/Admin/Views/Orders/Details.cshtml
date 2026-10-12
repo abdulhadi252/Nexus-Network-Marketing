@@ -32,6 +32,12 @@
                 <dd class="col-8">@(Model.RetailShop?.Name ?? "-")</dd>
                 <dt class="col-4">Processed by</dt>
                 <dd class="col-8">@(Model.ProcessedByEmployee is null ? "-" : $"{Model.ProcessedByEmployee.FirstName} {Model.ProcessedByEmployee.LastName}")</dd>
+                <dt class="col-4">Retail verified by</dt>
+                <dd class="col-8">@(Model.VerifiedByEmployee is null ? "-" : $"{Model.VerifiedByEmployee.FirstName} {Model.VerifiedByEmployee.LastName}")</dd>
+                <dt class="col-4">Retail verified at</dt>
+                <dd class="col-8">@(Model.VerifiedAt.HasValue ? Model.VerifiedAt.Value.ToLocalTime().ToString("dd MMM yyyy HH:mm") : "-")</dd>
+                <dt class="col-4">Verification notes</dt>
+                <dd class="col-8">@(Model.VerificationNotes ?? "-")</dd>
             </dl>
         </div>
 
@@ -117,6 +123,36 @@
         <div class="card p-4 mb-3">
             <h6 class="mb-3">Remarks</h6>
             <p class="text-muted mb-0">@(Model.Remarks ?? "No remarks recorded.")</p>
+        </div>
+
+        <div class="card p-4 mb-3">
+            <h6 class="mb-3">Workflow History</h6>
+            @if (Model.StatusHistory.Count == 0)
+            {
+                <p class="text-muted mb-0">No status changes recorded yet.</p>
+            }
+            else
+            {
+                <ul class="list-unstyled mb-0 small">
+                    @foreach (var entry in Model.StatusHistory.OrderByDescending(h => h.ChangedAt))
+                    {
+                        <li class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center gap-2">
+                                <partial name="_Badge" model="@((object?)entry.ToStatus)" />
+                                <span class="text-muted">@entry.ChangedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</span>
+                            </div>
+                            <div class="text-muted">
+                                @(entry.FromStatus is null ? "Order created" : $"From {entry.FromStatus}")
+                                @(entry.ChangedByEmployee is null ? string.Empty : $" · {entry.ChangedByEmployee.FirstName} {entry.ChangedByEmployee.LastName}")
+                            </div>
+                            @if (!string.IsNullOrWhiteSpace(entry.Notes))
+                            {
+                                <div>@entry.Notes</div>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
         </div>
 
         <div class="card p-4">

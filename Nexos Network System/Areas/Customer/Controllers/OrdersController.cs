@@ -37,7 +37,7 @@ public class OrdersController(ApplicationDbContext db, IOrderService orderServic
     }
 
     [HttpGet]
-    public async Task<IActionResult> Create()
+    public async Task<IActionResult> Create(int? planId = null)
     {
         ViewData["PanelName"] = "Customer Panel";
 
@@ -47,7 +47,16 @@ public class OrdersController(ApplicationDbContext db, IOrderService orderServic
         }
 
         await LoadPlansAsync();
-        return View(new CustomerOrderViewModel());
+
+        // When the visitor arrived from a plan detail page, preselect that plan so the
+        // order can be submitted without choosing it again.
+        var model = new CustomerOrderViewModel();
+        if (planId is > 0 && await db.Plans.AnyAsync(p => p.Id == planId && p.IsActive))
+        {
+            model.PlanId = planId.Value;
+        }
+
+        return View(model);
     }
 
     [HttpPost]

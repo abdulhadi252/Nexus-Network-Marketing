@@ -173,4 +173,56 @@ public class PlansController(ApplicationDbContext db) : Controller
         TempData["Success"] = $"Plan '{plan.Name}' is now {(plan.IsActive ? "active" : "inactive")}.";
         return RedirectToAction(nameof(Index));
     }
+
+    [HttpGet]
+    public async Task<IActionResult> Delete(int id)
+    {
+        ViewData["PanelName"] = "Admin Panel";
+
+        var plan = await db.Plans
+            .Include(p => p.Connections)
+            .Include(p => p.Orders)
+            .Include(p => p.ConnectionPlanHistories)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == id);
+
+        if (plan is null)
+        {
+            return NotFound();
+        }
+
+        return View(plan);
+    }
+
+    [HttpPost, ActionName("Delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteConfirmed(int id)
+    {
+        ViewData["PanelName"] = "Admin Panel";
+
+        var plan = await db.Plans.FirstOrDefaultAsync(p => p.Id == id);
+        if (plan is null)
+        {
+            return NotFound();
+        }
+
+        // Connections and plan history reference a plan with a restrict foreign key, so a plan
+        // that is still in use is deactivated instead of deleted. Orders simply lose the link.
+        var isInUse = await db.Connections.AnyAsync(c => c.PlanId == id)
+            || await db.ConnectionPlanHistories.AnyAsync(h => h.PlanId == id);
+
+        if (isInUse)
+        {
+            plan.IsActive = false;
+            await db.SaveChangesAsync();
+            TempData["Success"] = $"Plan '{plan.Name}' is used by existing connections, so it was deactivated instead of deleted.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        db.Plans.Remove(plan);
+        await db.SaveChangesAsync();
+
+        TempData["Success"] = $"Plan '{plan.Name}' was deleted.";
+        return RedirectToAction(nameof(Index));
+    }
 }

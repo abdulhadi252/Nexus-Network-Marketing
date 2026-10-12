@@ -71,6 +71,27 @@
 
     <div class="col-lg-6">
         <div class="card p-4 mb-3">
+            <h6 class="mb-3">Retail Verification</h6>
+            @if (Model.VerifiedAt.HasValue)
+            {
+                <dl class="row detail-list mb-0">
+                    <dt class="col-5">Status</dt>
+                    <dd class="col-7"><partial name="_Badge" model="@((object?)Model.Status)" /></dd>
+                    <dt class="col-5">Verified by</dt>
+                    <dd class="col-7">@(Model.VerifiedByEmployee is null ? "-" : $"{Model.VerifiedByEmployee.FirstName} {Model.VerifiedByEmployee.LastName}")</dd>
+                    <dt class="col-5">Verified at</dt>
+                    <dd class="col-7">@Model.VerifiedAt.Value.ToLocalTime().ToString("dd MMM yyyy HH:mm")</dd>
+                    <dt class="col-5">Notes</dt>
+                    <dd class="col-7">@(Model.VerificationNotes ?? "-")</dd>
+                </dl>
+            }
+            else
+            {
+                <p class="text-muted mb-0">Retail has not verified this order yet.</p>
+            }
+        </div>
+
+        <div class="card p-4 mb-3">
             <h6 class="mb-3">Feasibility</h6>
             @if (Model.FeasibilityReport is null)
             {

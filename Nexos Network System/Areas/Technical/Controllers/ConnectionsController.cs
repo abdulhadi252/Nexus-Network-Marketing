@@ -87,7 +87,8 @@ public class ConnectionsController(ApplicationDbContext db, IConnectionService c
 
         try
         {
-            var connectionId = await connectionService.CreateFromOrderAsync(model);
+            var employee = await User.GetEmployeeAsync(db);
+            var connectionId = await connectionService.CreateFromOrderAsync(model, employee?.Id);
             var connection = await db.Connections.AsNoTracking().FirstAsync(c => c.Id == connectionId);
             TempData["Success"] = $"Connection {connection.AccountNumber} was created for the order.";
             return RedirectToAction(nameof(Details), new { id = connectionId });

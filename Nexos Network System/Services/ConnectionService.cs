@@ -1,6 +1,7 @@
 using System.Data;
 using Microsoft.EntityFrameworkCore;
 using Nexos_Network_System.Data;
+using Nexos_Network_System.Helpers;
 using Nexos_Network_System.Interfaces;
 using Nexos_Network_System.Models;
 using Nexos_Network_System.Models.Enums;
@@ -10,7 +11,7 @@ namespace Nexos_Network_System.Services;
 
 public class ConnectionService(ApplicationDbContext db, IOrderIdService orderIdService) : IConnectionService
 {
-    public async Task<int> CreateFromOrderAsync(ConnectionCreateViewModel model, CancellationToken cancellationToken = default)
+    public async Task<int> CreateFromOrderAsync(ConnectionCreateViewModel model, int? performedByEmployeeId = null, CancellationToken cancellationToken = default)
     {
         await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
 
@@ -79,8 +80,10 @@ public class ConnectionService(ApplicationDbContext db, IOrderIdService orderIdS
 
         db.Connections.Add(connection);
 
+        var previousStatus = order.Status;
         order.Status = OrderStatus.ConnectionProvided;
         order.UpdatedAt = DateTimeOffset.UtcNow;
+        order.StatusHistory.Add(OrderWorkflow.CreateEntry(previousStatus, OrderStatus.ConnectionProvided, performedByEmployeeId, $"Connection {connection.AccountNumber} created."));
 
         db.ConnectionPlanHistories.Add(new ConnectionPlanHistory
         {
