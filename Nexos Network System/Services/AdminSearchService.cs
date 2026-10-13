@@ -27,6 +27,29 @@ public class AdminSearchService(ApplicationDbContext db) : IAdminSearchService
 
         var customerQuery = db.Customers.AsNoTracking().AsQueryable();
 
+        // Free-text term from the panel topbar search: one box that covers identifiers and
+        // people in a single pass, combined with (never overriding) the explicit filters below.
+        if (!string.IsNullOrWhiteSpace(model.Query))
+        {
+            var term = model.Query.Trim();
+
+            orderQuery = orderQuery.Where(o =>
+                o.OrderNumber.Contains(term) ||
+                (o.Customer.FirstName + " " + o.Customer.LastName).Contains(term) ||
+                o.Customer.PrimaryContactNumber.Contains(term) ||
+                (o.Connection != null && o.Connection.AccountNumber.Contains(term)));
+
+            connectionQuery = connectionQuery.Where(c =>
+                c.AccountNumber.Contains(term) ||
+                (c.Customer.FirstName + " " + c.Customer.LastName).Contains(term) ||
+                c.Customer.PrimaryContactNumber.Contains(term));
+
+            customerQuery = customerQuery.Where(c =>
+                (c.FirstName + " " + c.LastName).Contains(term) ||
+                c.PrimaryContactNumber.Contains(term) ||
+                c.Email.Contains(term));
+        }
+
         if (!string.IsNullOrWhiteSpace(model.OrderNumber))
         {
             var term = model.OrderNumber.Trim();

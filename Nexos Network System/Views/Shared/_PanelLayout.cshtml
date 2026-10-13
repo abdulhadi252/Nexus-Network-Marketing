@@ -1,12 +1,10 @@
 @{
-    var currentUser = User.Identity?.Name ?? "Account";
-    var userInitial = string.IsNullOrWhiteSpace(currentUser) ? "?" : currentUser.Trim()[..1].ToUpperInvariant();
-    var userRole = User.IsInRole("Admin") ? "Administrator"
-        : User.IsInRole("Retail") ? "Retail Agent"
-        : User.IsInRole("Technical") ? "Technical Team"
-        : User.IsInRole("Accounts") ? "Accounts"
-        : User.IsInRole("Customer") ? "Customer"
-        : "User";
+    var areaName = ViewContext.RouteData.Values["area"]?.ToString() ?? string.Empty;
+    var panelName = ViewData["PanelName"] ?? "Panel";
+
+    // The free-text search box only appears where the panel has a search page able to run it.
+    var hasSearch = string.Equals(areaName, "Admin", StringComparison.OrdinalIgnoreCase);
+    var currentSearch = Context.Request.Query["Query"].ToString();
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -45,54 +43,39 @@
         </div>
     </div>
     <partial name="_Icons" />
-    <div class="panel-wrapper">
-        <aside class="panel-sidebar">
+    <div class="panel-wrapper" id="panelWrapper">
+        <aside class="panel-sidebar" id="panelSidebar">
             <div class="panel-sidebar-head">
                 <a class="panel-brand text-decoration-none" asp-area="" asp-controller="Home" asp-action="Index">
                     <partial name="_Brand" />
                 </a>
-                <span class="panel-area-name">@(ViewData["PanelName"] ?? "Panel")</span>
+                <span class="panel-area-name">@panelName</span>
             </div>
 
             <div class="panel-sidebar-scroll">
                 <partial name="_PanelSidebar" />
             </div>
-
-            <div class="panel-user">
-                <span class="panel-user-avatar">@userInitial</span>
-                <span class="panel-user-meta">
-                    <span class="panel-user-name">@currentUser</span>
-                    <span class="panel-user-role">@userRole</span>
-                </span>
-                <form asp-area="Identity" asp-controller="Account" asp-action="Logout" method="post">
-                    <button type="submit" class="panel-user-logout" title="Logout" aria-label="Logout">
-                        <svg class="nav-icon"><use href="#i-logout" /></svg>
-                    </button>
-                </form>
-            </div>
         </aside>
 
         <div class="panel-main">
             <header class="panel-topbar">
-                <h5>@ViewData["Title"]</h5>
-                <div class="d-flex align-items-center gap-2">
-                    <a class="btn btn-sm btn-outline-secondary" asp-area="" asp-controller="Home" asp-action="Index">Public Site</a>
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            @(User.Identity?.Name ?? "Account")
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li>
-                                <a class="dropdown-item" asp-area="Identity" asp-controller="Account" asp-action="Profile">My Profile</a>
-                            </li>
-                            <li><hr class="dropdown-divider" /></li>
-                            <li>
-                                <form asp-area="Identity" asp-controller="Account" asp-action="Logout" method="post">
-                                    <button type="submit" class="dropdown-item">Logout</button>
-                                </form>
-                            </li>
-                        </ul>
-                    </div>
+                <button class="panel-topbar__toggle" type="button" id="panelSidebarToggle"
+                        aria-controls="panelSidebar" aria-expanded="true" aria-label="Toggle navigation">
+                    <svg class="svg-icon"><use href="#i-menu" /></svg>
+                </button>
+
+                @if (hasSearch)
+                {
+                    <form class="panel-search" asp-area="@areaName" asp-controller="Search" asp-action="Index" method="get" role="search">
+                        <svg class="svg-icon panel-search__icon"><use href="#i-search" /></svg>
+                        <input type="search" name="Query" value="@currentSearch" aria-label="Search"
+                               placeholder="Search customers, orders, plans..." />
+                    </form>
+                }
+
+                <div class="panel-topbar__actions">
+                    @await Component.InvokeAsync("PanelNotifications")
+                    @await Component.InvokeAsync("PanelUser")
                 </div>
             </header>
 
@@ -115,8 +98,12 @@
             </main>
 
             <footer class="panel-footer">
-                &copy; 2026 NEXUS &middot; @(ViewData["PanelName"] ?? "Panel") &middot;
-                <a asp-area="" asp-controller="Home" asp-action="Index">Back to public website</a>
+                <span>&copy; 2026 NEXUS. All rights reserved.</span>
+                <span class="panel-footer__links">
+                    <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy Policy</a>
+                    <span class="panel-footer__sep" aria-hidden="true">|</span>
+                    <a asp-area="" asp-controller="Home" asp-action="Terms">Terms &amp; Conditions</a>
+                </span>
             </footer>
         </div>
     </div>

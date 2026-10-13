@@ -9,6 +9,10 @@
 <div class="card mb-3">
     <div class="card-body">
         <form asp-action="Index" method="get" class="row g-2">
+            <div class="col-12">
+                <input type="search" name="Query" value="@Model.Query" class="form-control"
+                       placeholder="Search anything - order number, account number, customer name or phone" />
+            </div>
             <div class="col-md-3">
                 <input type="text" name="OrderNumber" value="@Model.OrderNumber" class="form-control" placeholder="Order number (D0000000001)" />
             </div>

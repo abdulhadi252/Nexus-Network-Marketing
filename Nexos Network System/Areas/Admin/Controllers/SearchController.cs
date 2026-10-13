@@ -14,6 +14,7 @@ public class SearchController(IAdminSearchService searchService) : Controller
         ViewData["PanelName"] = "Admin Panel";
 
         var hasAnyFilter =
+            !string.IsNullOrWhiteSpace(model.Query) ||
             !string.IsNullOrWhiteSpace(model.OrderNumber) ||
             !string.IsNullOrWhiteSpace(model.AccountNumber) ||
             !string.IsNullOrWhiteSpace(model.CustomerName) ||

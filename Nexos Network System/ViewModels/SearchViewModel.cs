@@ -5,6 +5,12 @@ namespace Nexos_Network_System.ViewModels;
 
 public class SearchViewModel
 {
+    /// <summary>
+    /// Free-text term used by the panel topbar search: matched against order numbers, account
+    /// numbers, customer names and contact numbers at once.
+    /// </summary>
+    public string? Query { get; set; }
+
     public string? OrderNumber { get; set; }
     public string? AccountNumber { get; set; }
     public string? CustomerName { get; set; }
