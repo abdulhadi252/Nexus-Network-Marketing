@@ -2434,6 +2434,11 @@ h1, h2, h3, h4, h5, h6 {
     height: 18px;
     flex-shrink: 0;
     color: var(--nexos-primary);
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
 .svc-check .svg-icon { width: 18px; height: 18px; }
@@ -2953,7 +2958,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .nav-icon,
-.svg-icon {
+.svg-icon,
+.btn-icon {
     fill: none;
     stroke: currentColor;
     stroke-width: 2;

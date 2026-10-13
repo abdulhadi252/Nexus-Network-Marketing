@@ -3,8 +3,13 @@
     ViewData["Title"] = "My Orders";
 }
 
-<h1 class="h4 mb-1">My Orders</h1>
-<p class="text-muted">Track the status of every order you have placed.</p>
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div>
+        <h1 class="h4 mb-1">My Orders</h1>
+        <p class="text-muted mb-0">Track the status of every order you have placed.</p>
+    </div>
+    <a class="btn btn-primary" asp-action="Create">+ Place Order</a>
+</div>
 
 <div class="card">
     <div class="card-body">
@@ -12,7 +17,8 @@
         {
             <div class="empty-state">
                 <div class="empty-icon">&#128221;</div>
-                <p class="mb-0">You have not placed any orders yet. Visit a NEXUS branch to get started.</p>
+                <p class="mb-2">You have not placed any orders yet.</p>
+                <a class="btn btn-primary" asp-action="Create">Place an order</a>
             </div>
         }
         else
