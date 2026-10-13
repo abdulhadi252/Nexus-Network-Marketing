@@ -1,0 +1,157 @@
+@model Connection
+@{
+    ViewData["Title"] = "Connection Details";
+    var outstanding = Model.Bills.SumLatestOutstanding();
+}
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div>
+        <h1 class="h4 mb-1">@Model.AccountNumber</h1>
+        <p class="text-muted mb-0">
+            @Model.ConnectionType &middot; @Model.Customer.FirstName @Model.Customer.LastName &middot;
+            <partial name="_Badge" model="@((object?)Model.Status)" />
+        </p>
+    </div>
+    <a class="btn btn-outline-secondary" asp-action="Index">Back to connections</a>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-5">
+        <div class="card p-4 mb-3">
+            <h6 class="mb-3">Connection</h6>
+            <dl class="row detail-list mb-0">
+                <dt class="col-6">Plan</dt>
+                <dd class="col-6">@Model.Plan?.Name</dd>
+                <dt class="col-6">City</dt>
+                <dd class="col-6">@Model.City?.Name</dd>
+                <dt class="col-6">Order</dt>
+                <dd class="col-6">
+                    @if (Model.Order is not null)
+                    {
+                        <a asp-controller="Orders" asp-action="Details" asp-route-id="@Model.Order.Id">@Model.Order.OrderNumber</a>
+                    }
+                    else
+                    {
+                        @("Not linked")
+                    }
+                </dd>
+                <dt class="col-6">Installed</dt>
+                <dd class="col-6">@(Model.InstalledAt?.ToLocalTime().ToString("dd MMM yyyy") ?? "-")</dd>
+                <dt class="col-6">Activated</dt>
+                <dd class="col-6">@(Model.ActivatedAt?.ToLocalTime().ToString("dd MMM yyyy") ?? "-")</dd>
+                <dt class="col-6">Outstanding</dt>
+                <dd class="col-6 text-price">PKR @outstanding.ToString("N2")</dd>
+                <dt class="col-6">Installation notes</dt>
+                <dd class="col-6">@(Model.InstallationNotes ?? "-")</dd>
+            </dl>
+        </div>
+
+        <div class="card p-4">
+            <h6 class="mb-3">Update Status</h6>
+            <form asp-action="UpdateStatus" asp-route-id="@Model.Id" method="post" class="row g-2">
+                <div class="col-12">
+                    <select name="status" class="form-select" asp-items="Html.GetEnumSelectList<ConnectionStatus>()"></select>
+                </div>
+                <div class="col-12">
+                    <textarea name="notes" class="form-control" rows="2" placeholder="Installation / status notes (optional)"></textarea>
+                </div>
+                <div class="col-12 d-grid">
+                    <button type="submit" class="btn btn-primary">Update Status</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card mb-3">
+            <div class="card-header">Equipment (@Model.EquipmentItems.Count)</div>
+            <div class="card-body p-0">
+                @if (Model.EquipmentItems.Count == 0)
+                {
+                    <div class="empty-state"><p class="mb-0">No equipment assigned to this connection.</p></div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead><tr><th>Asset tag</th><th>Product</th><th>Assigned</th><th>Status</th></tr></thead>
+                            <tbody>
+                                @foreach (var equipment in Model.EquipmentItems)
+                                {
+                                    <tr>
+                                        <td class="fw-semibold">@equipment.AssetTag</td>
+                                        <td>@(equipment.Product?.Name ?? "-")</td>
+                                        <td>@(equipment.AssignedAt?.ToLocalTime().ToString("dd MMM yyyy") ?? "-")</td>
+                                        <td><partial name="_Badge" model="@((object?)equipment.Status)" /></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header">Bills (@Model.Bills.Count)</div>
+            <div class="card-body p-0">
+                @if (Model.Bills.Count == 0)
+                {
+                    <div class="empty-state"><p class="mb-0">No bills generated for this connection.</p></div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead><tr><th>Bill</th><th>Period</th><th>Total</th><th>Due</th><th>Status</th><th></th></tr></thead>
+                            <tbody>
+                                @foreach (var bill in Model.Bills.OrderByDescending(b => b.GeneratedAt))
+                                {
+                                    <tr>
+                                        <td>@bill.BillNumber</td>
+                                        <td>@bill.BillingPeriodStart.ToString("MMM yyyy")</td>
+                                        <td class="text-price">PKR @bill.TotalAmount.ToString("N2")</td>
+                                        <td class="text-price">PKR @bill.DueAmount.ToString("N2")</td>
+                                        <td><partial name="_Badge" model="@((object?)bill.Status)" /></td>
+                                        <td class="table-actions">
+                                            <a class="btn btn-outline-secondary" asp-controller="Bills" asp-action="Details" asp-route-id="@bill.Id">View</a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Plan History (@Model.PlanHistory.Count)</div>
+            <div class="card-body p-0">
+                @if (Model.PlanHistory.Count == 0)
+                {
+                    <div class="empty-state"><p class="mb-0">No plan changes recorded.</p></div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead><tr><th>Plan</th><th>From</th><th>To</th><th>Reason</th></tr></thead>
+                            <tbody>
+                                @foreach (var history in Model.PlanHistory.OrderByDescending(h => h.EffectiveFrom))
+                                {
+                                    <tr>
+                                        <td>@history.Plan.Name</td>
+                                        <td>@history.EffectiveFrom.ToLocalTime().ToString("dd MMM yyyy")</td>
+                                        <td>@(history.EffectiveTo?.ToLocalTime().ToString("dd MMM yyyy") ?? "Current")</td>
+                                        <td>@(history.Reason ?? "-")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

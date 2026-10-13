@@ -1,0 +1,57 @@
+@model Payment
+@{
+    ViewData["Title"] = "Payment Details";
+}
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div>
+        <h1 class="h4 mb-1">Receipt @Model.ReceiptNumber</h1>
+        <p class="text-muted mb-0"><partial name="_Badge" model="@((object?)Model.Status)" /></p>
+    </div>
+    <a class="btn btn-outline-secondary" asp-action="Index">Back to payments</a>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-5">
+        <div class="card p-4">
+            <h6 class="mb-3">Payment</h6>
+            <dl class="row detail-list mb-0">
+                <dt class="col-6">Receipt number</dt>
+                <dd class="col-6">@Model.ReceiptNumber</dd>
+                <dt class="col-6">Amount</dt>
+                <dd class="col-6 text-price">PKR @Model.Amount.ToString("N2")</dd>
+                <dt class="col-6">Paid at</dt>
+                <dd class="col-6">@Model.PaidAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</dd>
+                <dt class="col-6">Method</dt>
+                <dd class="col-6">@Model.Method</dd>
+                <dt class="col-6">Reference</dt>
+                <dd class="col-6">@(Model.PaymentReference ?? "-")</dd>
+                <dt class="col-6">Recorded by</dt>
+                <dd class="col-6">@(Model.RecordedByEmployee is null ? "-" : $"{Model.RecordedByEmployee.FirstName} {Model.RecordedByEmployee.LastName}")</dd>
+                <dt class="col-6">Notes</dt>
+                <dd class="col-6">@(Model.Notes ?? "-")</dd>
+            </dl>
+        </div>
+    </div>
+    <div class="col-lg-7">
+        <div class="card p-4 mb-3">
+            <h6 class="mb-3">Related Records</h6>
+            <dl class="row detail-list mb-0">
+                <dt class="col-5">Customer</dt>
+                <dd class="col-7">@Model.Customer.FirstName @Model.Customer.LastName (@Model.Customer.Email)</dd>
+                <dt class="col-5">Connection</dt>
+                <dd class="col-7">
+                    <a asp-controller="Connections" asp-action="Details" asp-route-id="@Model.ConnectionId">@Model.Connection.AccountNumber</a>
+                </dd>
+                <dt class="col-5">Bill</dt>
+                <dd class="col-7">
+                    <a asp-controller="Bills" asp-action="Details" asp-route-id="@Model.BillId">@Model.Bill.BillNumber</a>
+                </dd>
+                <dt class="col-5">Bill status</dt>
+                <dd class="col-7"><partial name="_Badge" model="@((object?)Model.Bill.Status)" /></dd>
+                <dt class="col-5">Bill due after payment</dt>
+                <dd class="col-7 text-price">PKR @Model.Bill.DueAmount.ToString("N2")</dd>
+            </dl>
+        </div>
+    </div>
+</div>

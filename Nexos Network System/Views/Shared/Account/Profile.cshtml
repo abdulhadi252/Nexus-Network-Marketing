@@ -1,0 +1,231 @@
+@model ProfileViewModel
+@{
+    Layout = "~/Views/Shared/_PanelLayout.cshtml";
+    ViewData["Title"] = "My Profile";
+
+    var employee = Model.Employee;
+    var customer = Model.Customer;
+
+    var displayName = employee is not null
+        ? $"{employee.FirstName} {employee.LastName}"
+        : customer is not null
+            ? $"{customer.FirstName} {customer.LastName}"
+            : Model.UserName ?? "Account";
+
+    var roleLabel = string.IsNullOrWhiteSpace(Model.Roles) ? "User" : Model.Roles;
+    var isActive = employee?.IsActive ?? customer?.IsActive ?? true;
+    var isEmployee = employee is not null;
+
+    // The Identity fallback (accounts without a panel role) renders this view read-only,
+    // so the panel breadcrumb and self-service actions are hidden there.
+    var area = ViewContext.RouteData.Values["area"]?.ToString();
+    var inPanelArea = !string.IsNullOrEmpty(area) && !string.Equals(area, "Identity", StringComparison.OrdinalIgnoreCase);
+}
+
+@if (inPanelArea)
+{
+    <nav class="profile-crumbs" aria-label="Breadcrumb">
+        <a asp-controller="Dashboard" asp-action="Index">
+            <svg class="svg-icon profile-crumbs__home"><use href="#i-dashboard" /></svg>Dashboard
+        </a>
+        <span class="profile-crumbs__sep" aria-hidden="true">&rsaquo;</span>
+        <span class="profile-crumbs__current">My Profile</span>
+    </nav>
+}
+
+<div class="profile-head">
+    <h1>My Profile</h1>
+    <p>@(isEmployee
+        ? "Manage your account information and employment details."
+        : "Manage your account information and contact details.")</p>
+</div>
+
+<section class="profile-hero">
+    <span class="profile-hero__avatar" aria-hidden="true">
+        <svg class="svg-icon"><use href="#i-user" /></svg>
+    </span>
+
+    <div class="profile-hero__body">
+        <h2 class="profile-hero__name">@displayName</h2>
+        <div class="profile-hero__tags">
+            <span class="profile-role-badge">@roleLabel</span>
+            <partial name="_Badge" model="@((object?)(isActive ? "Active" : "Inactive"))" />
+        </div>
+    </div>
+
+    @if (inPanelArea)
+    {
+        <div class="profile-hero__actions">
+            <a class="btn btn-primary" asp-action="Edit">
+                <svg class="svg-icon"><use href="#i-edit" /></svg>Edit Profile
+            </a>
+            <a class="btn btn-outline-primary" asp-action="ChangePassword">
+                <svg class="svg-icon"><use href="#i-lock" /></svg>Change Password
+            </a>
+        </div>
+    }
+</section>
+
+<section class="profile-card">
+    <header class="profile-card__head">
+        <span class="profile-card__icon"><svg class="svg-icon"><use href="#i-user" /></svg></span>
+        <h3 class="profile-card__title">Account Information</h3>
+    </header>
+
+    <div class="profile-card__body">
+        <dl class="profile-rows mb-0">
+            <div class="profile-row">
+                <dt class="profile-row__label"><svg class="svg-icon"><use href="#i-user" /></svg><span>Name</span></dt>
+                <dd class="profile-row__value">@displayName</dd>
+            </div>
+            <div class="profile-row">
+                <dt class="profile-row__label"><svg class="svg-icon"><use href="#i-envelope" /></svg><span>Email</span></dt>
+                <dd class="profile-row__value">@Model.Email</dd>
+            </div>
+            <div class="profile-row">
+                <dt class="profile-row__label"><svg class="svg-icon"><use href="#i-profile" /></svg><span>Username</span></dt>
+                <dd class="profile-row__value">@Model.UserName</dd>
+            </div>
+            <div class="profile-row">
+                <dt class="profile-row__label"><svg class="svg-icon"><use href="#i-shield" /></svg><span>Role(s)</span></dt>
+                <dd class="profile-row__value"><span class="profile-role-badge">@roleLabel</span></dd>
+            </div>
+            <div class="profile-row">
+                <dt class="profile-row__label"><svg class="svg-icon"><use href="#i-phone" /></svg><span>Phone</span></dt>
+                <dd class="profile-row__value">@(string.IsNullOrWhiteSpace(Model.PhoneNumber) ? "Not provided" : Model.PhoneNumber)</dd>
+            </div>
+        </dl>
+
+        <p class="profile-note mb-0">
+            <svg class="svg-icon"><use href="#i-info" /></svg>
+            <span>Roles and permissions can only be managed by an administrator.</span>
+        </p>
+    </div>
+</section>
+
+@if (isEmployee)
+{
+    <section class="profile-card">
+        <header class="profile-card__head">
+            <span class="profile-card__icon"><svg class="svg-icon"><use href="#i-employees" /></svg></span>
+            <h3 class="profile-card__title">Employee Details</h3>
+        </header>
+
+        <div class="profile-card__body">
+            <dl class="profile-rows mb-0">
+                <div class="profile-row">
+                    <dt class="profile-row__label"><svg class="svg-icon"><use href="#i-badge" /></svg><span>Employee number</span></dt>
+                    <dd class="profile-row__value">@employee!.EmployeeNumber</dd>
+                </div>
+                <div class="profile-row">
+                    <dt class="profile-row__label"><svg class="svg-icon"><use href="#i-user" /></svg><span>Role</span></dt>
+                    <dd class="profile-row__value">@employee.Role</dd>
+                </div>
+                <div class="profile-row">
+                    <dt class="profile-row__label"><svg class="svg-icon"><use href="#i-shops" /></svg><span>Retail shop</span></dt>
+                    <dd class="profile-row__value">@(employee.RetailShop?.Name ?? "Head office")</dd>
+                </div>
+                <div class="profile-row">
+                    <dt class="profile-row__label"><svg class="svg-icon"><use href="#i-calendar" /></svg><span>Hire date</span></dt>
+                    <dd class="profile-row__value">@employee.HireDate.ToLocalTime().ToString("dd MMM yyyy")</dd>
+                </div>
+                <div class="profile-row">
+                    <dt class="profile-row__label"><svg class="svg-icon"><use href="#i-clock" /></svg><span>Status</span></dt>
+                    <dd class="profile-row__value">
+                        <partial name="_Badge" model="@((object?)(employee.IsActive ? "Active" : "Inactive"))" />
+                    </dd>
+                </div>
+            </dl>
+        </div>
+    </section>
+}
+
+@if (customer is not null)
+{
+    <section class="profile-card">
+        <header class="profile-card__head">
+            <span class="profile-card__icon"><svg class="svg-icon"><use href="#i-customers" /></svg></span>
+            <h3 class="profile-card__title">Customer Details</h3>
+        </header>
+
+        <div class="profile-card__body">
+            @{ var primaryAddress = customer.Addresses.OrderByDescending(a => a.IsPrimary).FirstOrDefault(); }
+            <dl class="profile-rows mb-0">
+                <div class="profile-row">
+                    <dt class="profile-row__label"><svg class="svg-icon"><use href="#i-phone" /></svg><span>Contact number</span></dt>
+                    <dd class="profile-row__value">@customer.PrimaryContactNumber</dd>
+                </div>
+                <div class="profile-row">
+                    <dt class="profile-row__label"><svg class="svg-icon"><use href="#i-phone" /></svg><span>Alternate contact</span></dt>
+                    <dd class="profile-row__value">@(string.IsNullOrWhiteSpace(customer.AlternateContactNumber) ? "-" : customer.AlternateContactNumber)</dd>
+                </div>
+                <div class="profile-row">
+                    <dt class="profile-row__label"><svg class="svg-icon"><use href="#i-shield" /></svg><span>National ID</span></dt>
+                    <dd class="profile-row__value">@(customer.NationalId ?? "-")</dd>
+                </div>
+                <div class="profile-row">
+                    <dt class="profile-row__label"><svg class="svg-icon"><use href="#i-map-pin" /></svg><span>Address</span></dt>
+                    <dd class="profile-row__value">
+                        @if (primaryAddress is not null)
+                        {
+                            @($"{primaryAddress.AddressLine1}{(string.IsNullOrWhiteSpace(primaryAddress.AddressLine2) ? "" : $", {primaryAddress.AddressLine2}")}, {primaryAddress.City?.Name}")
+                        }
+                        else
+                        {
+                            @("Not provided")
+                        }
+                    </dd>
+                </div>
+                <div class="profile-row">
+                    <dt class="profile-row__label"><svg class="svg-icon"><use href="#i-calendar" /></svg><span>Member since</span></dt>
+                    <dd class="profile-row__value">@customer.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")</dd>
+                </div>
+            </dl>
+        </div>
+    </section>
+
+    <section class="profile-card">
+        <header class="profile-card__head">
+            <span class="profile-card__icon"><svg class="svg-icon"><use href="#i-connections" /></svg></span>
+            <h3 class="profile-card__title">My Connections</h3>
+        </header>
+
+        <div class="profile-card__body">
+            @if (Model.CustomerConnections.Count == 0)
+            {
+                <p class="text-muted mb-0">No connections are registered on this account yet.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Account Number</th>
+                                <th>Type</th>
+                                <th>Plan</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var connection in Model.CustomerConnections)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">@connection.AccountNumber</td>
+                                    <td>@connection.ConnectionType</td>
+                                    <td>@connection.Plan?.Name</td>
+                                    <td><partial name="_Badge" model="@((object?)connection.Status)" /></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+
+            <p class="profile-note mb-0">
+                <svg class="svg-icon"><use href="#i-info" /></svg>
+                <span>Connection, billing and payment records are managed by the company &mdash; they are read-only here.</span>
+            </p>
+        </div>
+    </section>
+}

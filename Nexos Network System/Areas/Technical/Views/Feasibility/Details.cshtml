@@ -1,0 +1,60 @@
+@model FeasibilityReport
+@{
+    ViewData["Title"] = "Feasibility Details";
+    var address = Model.Order.Customer.Addresses.OrderByDescending(a => a.IsPrimary).FirstOrDefault();
+}
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div>
+        <h1 class="h4 mb-1">Feasibility - Order @Model.Order.OrderNumber</h1>
+        <p class="text-muted mb-0">
+            Checked @Model.CheckedAt?.ToLocalTime().ToString("dd MMM yyyy HH:mm") &middot;
+            <partial name="_Badge" model="@((object?)Model.Status)" />
+        </p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-primary" asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
+        <a class="btn btn-outline-secondary" asp-action="Index">Back to list</a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card p-4 h-100">
+            <h6 class="mb-3">Order Summary</h6>
+            <dl class="row detail-list mb-0">
+                <dt class="col-5">Customer</dt>
+                <dd class="col-7">@Model.Order.Customer.FirstName @Model.Order.Customer.LastName</dd>
+                <dt class="col-5">Contact</dt>
+                <dd class="col-7">@Model.Order.Customer.PrimaryContactNumber</dd>
+                <dt class="col-5">Address</dt>
+                <dd class="col-7">@(address is null ? "-" : $"{address.AddressLine1}, {address.City?.Name}")</dd>
+                <dt class="col-5">Connection type</dt>
+                <dd class="col-7">@Model.Order.ConnectionType</dd>
+                <dt class="col-5">Plan</dt>
+                <dd class="col-7">@(Model.Order.Plan?.Name ?? "-")</dd>
+                <dt class="col-5">Order status</dt>
+                <dd class="col-7"><partial name="_Badge" model="@((object?)Model.Order.Status)" /></dd>
+            </dl>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card p-4 h-100">
+            <h6 class="mb-3">Check Results</h6>
+            <dl class="row detail-list mb-0">
+                <dt class="col-5">Distance from server</dt>
+                <dd class="col-7">@(Model.DistanceMeters.HasValue ? $"{Model.DistanceMeters} m" : "-")</dd>
+                <dt class="col-5">Server / network available</dt>
+                <dd class="col-7">@(Model.ServerAvailable.HasValue ? (Model.ServerAvailable.Value ? "Yes" : "No") : "-")</dd>
+                <dt class="col-5">Remarks</dt>
+                <dd class="col-7">@(Model.Remarks ?? "-")</dd>
+                <dt class="col-5">Checked by</dt>
+                <dd class="col-7">@(Model.TechnicalEmployee is null ? "-" : $"{Model.TechnicalEmployee.FirstName} {Model.TechnicalEmployee.LastName}")</dd>
+            </dl>
+            @if (Model.Order.Status == OrderStatus.Feasible && Model.Order.Connection is null)
+            {
+                <a class="btn btn-primary mt-3" asp-controller="Connections" asp-action="Create" asp-route-orderId="@Model.OrderId">+ Create Connection</a>
+            }
+        </div>
+    </div>
+</div>

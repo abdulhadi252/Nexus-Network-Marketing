@@ -1,0 +1,209 @@
+@model RegisterViewModel
+@{
+    ViewData["Title"] = "Register";
+}
+
+<section class="reg-page">
+    <div class="container reg-grid">
+
+        <!-- ================= Intro / marketing column ================= -->
+        <aside class="reg-intro">
+            <p class="reg-eyebrow">&#8212; JOIN NEXUS TODAY &#8212;</p>
+            <h1 class="reg-title">Create Your <span>NEXUS</span> Account</h1>
+            <p class="reg-lead">
+                Get started with high-speed internet, reliable services and seamless connectivity. Register now and enjoy a better online experience.
+            </p>
+
+            <div class="reg-art">
+                <img src="~/img/home/svc-broadband.jpg" width="760" height="300"
+                     loading="lazy" decoding="async" alt="Wi-Fi router powering a NEXUS home connection" />
+            </div>
+
+            <ul class="reg-features">
+                <li>
+                    <span class="reg-features__icon"><svg class="svg-icon"><use href="#i-bolt" /></svg></span>
+                    <div>
+                        <strong>High Speed Internet</strong>
+                        <span>Experience blazing fast internet for work, study and entertainment.</span>
+                    </div>
+                </li>
+                <li>
+                    <span class="reg-features__icon"><svg class="svg-icon"><use href="#i-shield" /></svg></span>
+                    <div>
+                        <strong>Reliable Connection</strong>
+                        <span>Stay connected with minimal downtime and maximum stability.</span>
+                    </div>
+                </li>
+                <li>
+                    <span class="reg-features__icon"><svg class="svg-icon"><use href="#i-headset" /></svg></span>
+                    <div>
+                        <strong>24/7 Support</strong>
+                        <span>Our support team is always here to help you.</span>
+                    </div>
+                </li>
+                <li>
+                    <span class="reg-features__icon"><svg class="svg-icon"><use href="#i-people" /></svg></span>
+                    <div>
+                        <strong>Trusted by Thousands</strong>
+                        <span>Join our growing community of happy customers.</span>
+                    </div>
+                </li>
+            </ul>
+
+            <p class="reg-hand">Better Connection<br /><span>Brighter Future</span></p>
+        </aside>
+
+        <!-- ================= Form card ================= -->
+        <div class="reg-card">
+            <header class="reg-card__head">
+                <p class="reg-card__eyebrow">Register</p>
+                <h2 class="reg-card__title">Create <span>Account</span></h2>
+                <p class="reg-card__sub">Fill in the details below to get started with NEXUS.</p>
+            </header>
+
+            <form asp-area="Identity" asp-controller="Account" asp-action="Register" method="post" novalidate>
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <label asp-for="FirstName" class="form-label reg-req"></label>
+                        <div class="input-with-icon">
+                            <svg class="svg-icon input-icon input-icon--left" aria-hidden="true"><use href="#i-user" /></svg>
+                            <input asp-for="FirstName" class="form-control" placeholder="Enter your full name" autocomplete="given-name" />
+                        </div>
+                        <span asp-validation-for="FirstName" class="field-validation-error"></span>
+                    </div>
+                    <div class="col-sm-6">
+                        <label asp-for="LastName" class="form-label reg-req"></label>
+                        <div class="input-with-icon">
+                            <svg class="svg-icon input-icon input-icon--left" aria-hidden="true"><use href="#i-user" /></svg>
+                            <input asp-for="LastName" class="form-control" placeholder="Enter your last name" autocomplete="family-name" />
+                        </div>
+                        <span asp-validation-for="LastName" class="field-validation-error"></span>
+                    </div>
+
+                    <div class="col-12">
+                        <label asp-for="Email" class="form-label reg-req"></label>
+                        <div class="input-with-icon">
+                            <svg class="svg-icon input-icon input-icon--left" aria-hidden="true"><use href="#i-envelope" /></svg>
+                            <input asp-for="Email" class="form-control" placeholder="Enter your email address" autocomplete="email" />
+                        </div>
+                        <span asp-validation-for="Email" class="field-validation-error"></span>
+                    </div>
+
+                    <div class="col-12">
+                        <label asp-for="ContactNumber" class="form-label reg-req"></label>
+                        <div class="input-with-icon">
+                            <svg class="svg-icon input-icon input-icon--left" aria-hidden="true"><use href="#i-phone" /></svg>
+                            <input asp-for="ContactNumber" class="form-control" placeholder="0300 1234567" autocomplete="tel" />
+                        </div>
+                        <span asp-validation-for="ContactNumber" class="field-validation-error"></span>
+                    </div>
+
+                    <div class="col-12">
+                        <label asp-for="AddressLine1" class="form-label reg-req"></label>
+                        <div class="input-with-icon">
+                            <svg class="svg-icon input-icon input-icon--left" aria-hidden="true"><use href="#i-map-pin" /></svg>
+                            <input asp-for="AddressLine1" class="form-control" placeholder="Enter your complete address" autocomplete="address-line1" />
+                        </div>
+                        <span asp-validation-for="AddressLine1" class="field-validation-error"></span>
+                    </div>
+
+                    <div class="col-12">
+                        <label asp-for="AddressLine2" class="form-label"></label>
+                        <div class="input-with-icon">
+                            <svg class="svg-icon input-icon input-icon--left" aria-hidden="true"><use href="#i-map-pin" /></svg>
+                            <input asp-for="AddressLine2" class="form-control" placeholder="Apartment, area, landmark (optional)" autocomplete="address-line2" />
+                        </div>
+                    </div>
+
+                    <div class="col-sm-7">
+                        <label asp-for="CityId" class="form-label reg-req"></label>
+                        <div class="input-with-icon input-with-icon--select">
+                            <svg class="svg-icon input-icon input-icon--left" aria-hidden="true"><use href="#i-storefront" /></svg>
+                            <select asp-for="CityId" class="form-select" asp-items="ViewBag.Cities">
+                                <option value="">Select your city</option>
+                            </select>
+                            <svg class="svg-icon input-icon input-icon--right" aria-hidden="true"><use href="#i-chevron-down" /></svg>
+                        </div>
+                        <span asp-validation-for="CityId" class="field-validation-error"></span>
+                    </div>
+                    <div class="col-sm-5">
+                        <label asp-for="PostalCode" class="form-label"></label>
+                        <div class="input-with-icon">
+                            <svg class="svg-icon input-icon input-icon--left" aria-hidden="true"><use href="#i-location-pin" /></svg>
+                            <input asp-for="PostalCode" class="form-control" placeholder="75500" autocomplete="postal-code" />
+                        </div>
+                        <span asp-validation-for="PostalCode" class="field-validation-error"></span>
+                    </div>
+
+                    <div class="col-12">
+                        <label asp-for="Password" class="form-label reg-req"></label>
+                        <div class="input-with-icon reg-pass">
+                            <svg class="svg-icon input-icon input-icon--left" aria-hidden="true"><use href="#i-shield-check" /></svg>
+                            <input asp-for="Password" class="form-control" placeholder="Create a strong password" autocomplete="new-password" />
+                            <button type="button" class="reg-pass__toggle" data-pass-toggle="Password" aria-label="Show password" aria-pressed="false">
+                                <svg class="svg-icon pass-icon-on" aria-hidden="true"><use href="#i-eye" /></svg>
+                                <svg class="svg-icon pass-icon-off" aria-hidden="true" style="display:none"><use href="#i-eye-off" /></svg>
+                            </button>
+                        </div>
+                        <span asp-validation-for="Password" class="field-validation-error"></span>
+                        <p class="form-text small mb-0">Minimum 8 characters with uppercase, lowercase and a digit.</p>
+                    </div>
+
+                    <div class="col-12">
+                        <label asp-for="ConfirmPassword" class="form-label reg-req"></label>
+                        <div class="input-with-icon reg-pass">
+                            <svg class="svg-icon input-icon input-icon--left" aria-hidden="true"><use href="#i-shield-check" /></svg>
+                            <input asp-for="ConfirmPassword" class="form-control" placeholder="Confirm your password" autocomplete="new-password" />
+                            <button type="button" class="reg-pass__toggle" data-pass-toggle="ConfirmPassword" aria-label="Show password" aria-pressed="false">
+                                <svg class="svg-icon pass-icon-on" aria-hidden="true"><use href="#i-eye" /></svg>
+                                <svg class="svg-icon pass-icon-off" aria-hidden="true" style="display:none"><use href="#i-eye-off" /></svg>
+                            </button>
+                        </div>
+                        <span asp-validation-for="ConfirmPassword" class="field-validation-error"></span>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary reg-submit">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="7" r="4" /><path d="M4 21v-1a8 8 0 0 1 16 0v1" />
+                    </svg>
+                    Create Account
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14" /><path d="m13 6 6 6-6 6" />
+                    </svg>
+                </button>
+            </form>
+
+            <div class="reg-alt">
+                <span>Already have an account?</span>
+                <a asp-area="Identity" asp-controller="Account" asp-action="Login">Login</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            document.querySelectorAll("[data-pass-toggle]").forEach(function (btn) {
+                var input = document.getElementById(btn.getAttribute("data-pass-toggle"));
+                if (!input) { return; }
+
+                btn.addEventListener("click", function () {
+                    var show = input.type === "password";
+                    input.type = show ? "text" : "password";
+                    btn.setAttribute("aria-pressed", show ? "true" : "false");
+                    btn.setAttribute("aria-label", show ? "Hide password" : "Show password");
+
+                    var on = btn.querySelector(".pass-icon-on");
+                    var off = btn.querySelector(".pass-icon-off");
+                    if (on) { on.style.display = show ? "none" : ""; }
+                    if (off) { off.style.display = show ? "" : "none"; }
+                });
+            });
+        })();
+    </script>
+}

@@ -1,0 +1,91 @@
+@model PagedResult<FeasibilityReport>
+@{
+    ViewData["Title"] = "Feasibility";
+    var pendingOrders = ViewBag.PendingOrders as List<Order> ?? new List<Order>();
+}
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div>
+        <h1 class="h4 mb-1">Feasibility Reports</h1>
+        <p class="text-muted mb-0">Site checks recorded by the technical team.</p>
+    </div>
+    <a class="btn btn-primary" asp-action="Create">+ New Feasibility Check</a>
+</div>
+
+@if (pendingOrders.Count > 0)
+{
+    <div class="alert alert-info">
+        <strong>@pendingOrders.Count order(s) waiting for a feasibility check.</strong>
+    </div>
+}
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h6 class="mb-3">Pending Orders</h6>
+        @if (pendingOrders.Count == 0)
+        {
+            <p class="text-muted mb-0">No orders are waiting for a feasibility check right now.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead><tr><th>Order</th><th>Customer</th><th>Type</th><th>Submitted</th><th></th></tr></thead>
+                    <tbody>
+                        @foreach (var order in pendingOrders)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@order.OrderNumber</td>
+                                <td>@order.Customer.FirstName @order.Customer.LastName</td>
+                                <td>@order.ConnectionType</td>
+                                <td>@order.SubmittedAt.ToLocalTime().ToString("dd MMM yyyy")</td>
+                                <td class="table-actions">
+                                    <a class="btn btn-outline-primary" asp-action="Create" asp-route-orderId="@order.Id">Check</a>
+                                    <a class="btn btn-outline-secondary" asp-controller="Orders" asp-action="Details" asp-route-id="@order.Id">Order</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">Recorded Reports</div>
+    <div class="card-body">
+        @if (Model.Items.Count == 0)
+        {
+            <div class="empty-state"><p class="mb-0">No feasibility reports recorded yet.</p></div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr><th>Order</th><th>Customer</th><th>Result</th><th>Distance</th><th>Checked by</th><th>Date</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var report in Model.Items)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@report.Order.OrderNumber</td>
+                                <td>@report.Order.Customer.FirstName @report.Order.Customer.LastName</td>
+                                <td><partial name="_Badge" model="@((object?)report.Status)" /></td>
+                                <td>@(report.DistanceMeters.HasValue ? $"{report.DistanceMeters} m" : "-")</td>
+                                <td>@(report.TechnicalEmployee is null ? "-" : $"{report.TechnicalEmployee.FirstName} {report.TechnicalEmployee.LastName}")</td>
+                                <td>@(report.CheckedAt?.ToLocalTime().ToString("dd MMM yyyy") ?? "-")</td>
+                                <td class="table-actions">
+                                    <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@report.Id">View</a>
+                                    <a class="btn btn-outline-primary" asp-action="Edit" asp-route-id="@report.Id">Edit</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <partial name="_Pagination" model="Model" />
+        }
+    </div>
+</div>

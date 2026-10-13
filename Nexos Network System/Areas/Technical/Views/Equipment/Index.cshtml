@@ -1,0 +1,106 @@
+@model PagedResult<Equipment>
+@{
+    ViewData["Title"] = "Equipment";
+}
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div>
+        <h1 class="h4 mb-1">Equipment</h1>
+        <p class="text-muted mb-0">Individual equipment units, their assignment and repair state.</p>
+    </div>
+    <a class="btn btn-primary" asp-action="Assign">Assign Equipment</a>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2">
+            <div class="col-md-4">
+                <input type="text" name="q" value="@ViewData["q"]" class="form-control" placeholder="Asset tag or serial number..." />
+            </div>
+            <div class="col-md-3">
+                <select name="status" class="form-select">
+                    <option value="">All statuses</option>
+                    @foreach (var equipmentStatus in Enum.GetValues<EquipmentStatus>())
+                    {
+                        <option value="@equipmentStatus" selected="@(ViewData["status"]?.ToString() == equipmentStatus.ToString())">@equipmentStatus</option>
+                    }
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-outline-primary">Filter</button>
+                <a class="btn btn-outline-secondary" asp-action="Index">Reset</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        @if (Model.Items.Count == 0)
+        {
+            <div class="empty-state"><p class="mb-0">No equipment found.</p></div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr><th>Asset tag</th><th>Product</th><th>Serial</th><th>Assigned to</th><th>Status</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var equipment in Model.Items)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@equipment.AssetTag</td>
+                                <td>@(equipment.Product?.Name ?? "-")</td>
+                                <td>@(equipment.SerialNumber ?? "-")</td>
+                                <td>
+                                    @if (equipment.Connection is null)
+                                    {
+                                        <span class="text-muted">Not assigned</span>
+                                    }
+                                    else
+                                    {
+                                        <a asp-controller="Connections" asp-action="Details" asp-route-id="@equipment.ConnectionId">
+                                            @equipment.Connection.AccountNumber
+                                        </a>
+                                        @if (equipment.Connection.Customer is not null)
+                                        {
+                                            <div class="text-muted small">@equipment.Connection.Customer.FirstName @equipment.Connection.Customer.LastName</div>
+                                        }
+                                    }
+                                </td>
+                                <td><partial name="_Badge" model="@((object?)equipment.Status)" /></td>
+                                <td class="table-actions">
+                                    @if (equipment.Status == EquipmentStatus.Available)
+                                    {
+                                        <a class="btn btn-outline-primary" asp-action="Assign" asp-route-equipmentId="@equipment.Id">Assign</a>
+                                    }
+                                    @if (equipment.Status == EquipmentStatus.Assigned)
+                                    {
+                                        <form asp-action="Return" method="post" asp-route-id="@equipment.Id" class="d-inline">
+                                            <button type="submit" class="btn btn-outline-warning">Return</button>
+                                        </form>
+                                    }
+                                    @if (equipment.Status == EquipmentStatus.UnderRepair)
+                                    {
+                                        <form asp-action="CompleteRepair" method="post" asp-route-id="@equipment.Id" class="d-inline">
+                                            <button type="submit" class="btn btn-outline-success">Mark available</button>
+                                        </form>
+                                    }
+                                    @if (equipment.Status != EquipmentStatus.UnderRepair && equipment.Status != EquipmentStatus.Retired)
+                                    {
+                                        <form asp-action="SetRepair" method="post" asp-route-id="@equipment.Id" class="d-inline">
+                                            <button type="submit" class="btn btn-outline-danger">Repair</button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <partial name="_Pagination" model="Model" />
+        }
+    </div>
+</div>

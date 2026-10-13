@@ -1,0 +1,77 @@
+@model PagedResult<Connection>
+@{
+    ViewData["Title"] = "Connections";
+}
+
+<h1 class="h4 mb-1">Connections</h1>
+<p class="text-muted">Billing reference for customer connections.</p>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2">
+            <div class="col-md-4">
+                <input type="text" name="q" value="@ViewData["q"]" class="form-control" placeholder="Account number or customer..." />
+            </div>
+            <div class="col-md-3">
+                <select name="status" class="form-select">
+                    <option value="">All statuses</option>
+                    @foreach (var connectionStatus in Enum.GetValues<ConnectionStatus>())
+                    {
+                        <option value="@connectionStatus" selected="@(ViewData["status"]?.ToString() == connectionStatus.ToString())">@connectionStatus</option>
+                    }
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-outline-primary">Search</button>
+                <a class="btn btn-outline-secondary" asp-action="Index">Reset</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        @if (Model.Items.Count == 0)
+        {
+            <div class="empty-state"><p class="mb-0">No connections found.</p></div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr><th>Account Number</th><th>Customer</th><th>Plan</th><th>Monthly Charge</th><th>Outstanding</th><th>Status</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var connection in Model.Items)
+                        {
+                            var outstanding = connection.Bills.SumLatestOutstanding();
+                            <tr>
+                                <td class="fw-semibold">@connection.AccountNumber</td>
+                                <td>@connection.Customer.FirstName @connection.Customer.LastName</td>
+                                <td>@connection.Plan?.Name</td>
+                                <td class="text-price">PKR @connection.Plan?.RecurringCharge.ToString("N2")</td>
+                                <td class="text-price">
+                                    @if (outstanding > 0)
+                                    {
+                                        <span class="text-danger fw-semibold">PKR @outstanding.ToString("N2")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-success">Clear</span>
+                                    }
+                                </td>
+                                <td><partial name="_Badge" model="@((object?)connection.Status)" /></td>
+                                <td class="table-actions">
+                                    <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@connection.Id">View</a>
+                                    <a class="btn btn-outline-primary" asp-controller="Bills" asp-action="Generate" asp-route-connectionId="@connection.Id">Bill</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <partial name="_Pagination" model="Model" />
+        }
+    </div>
+</div>

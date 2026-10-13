@@ -1,0 +1,62 @@
+@model BillGenerateViewModel
+@{
+    ViewData["Title"] = "Generate Bill";
+}
+
+<h1 class="h4 mb-1">Generate Bill</h1>
+<p class="text-muted">
+    The bill is calculated centrally: plan charge + equipment charges + replacement charges - discounts,
+    plus 12.24% service tax and any previous outstanding balance.
+</p>
+
+<div class="card">
+    <div class="card-body">
+        <form asp-action="Generate" method="post" class="row g-3">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+            <div class="col-md-6">
+                <label asp-for="ConnectionId" class="form-label"></label>
+                <select asp-for="ConnectionId" class="form-select" asp-items="ViewBag.Connections">
+                    <option value="">-- Select active connection --</option>
+                </select>
+                <span asp-validation-for="ConnectionId" class="field-validation-error"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="BillingPeriodStart" class="form-label"></label>
+                <input asp-for="BillingPeriodStart" type="date" class="form-control" />
+                <span asp-validation-for="BillingPeriodStart" class="field-validation-error"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="BillingPeriodEnd" class="form-label"></label>
+                <input asp-for="BillingPeriodEnd" type="date" class="form-control" />
+                <span asp-validation-for="BillingPeriodEnd" class="field-validation-error"></span>
+            </div>
+
+            <div class="col-md-3">
+                <label asp-for="DiscountAmount" class="form-label"></label>
+                <input asp-for="DiscountAmount" type="number" step="0.01" class="form-control" />
+            </div>
+            <div class="col-md-3">
+                <label asp-for="SchemeDiscountAmount" class="form-label"></label>
+                <input asp-for="SchemeDiscountAmount" type="number" step="0.01" class="form-control" />
+            </div>
+            <div class="col-md-3">
+                <label asp-for="EquipmentCharges" class="form-label"></label>
+                <input asp-for="EquipmentCharges" type="number" step="0.01" class="form-control" />
+            </div>
+            <div class="col-md-3">
+                <label asp-for="ReplacementCharges" class="form-label"></label>
+                <input asp-for="ReplacementCharges" type="number" step="0.01" class="form-control" />
+            </div>
+
+            <div class="col-12 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Generate Bill</button>
+                <a class="btn btn-outline-secondary" asp-action="Index">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

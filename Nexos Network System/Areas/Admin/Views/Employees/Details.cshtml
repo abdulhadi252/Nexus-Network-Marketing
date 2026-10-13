@@ -1,0 +1,66 @@
+@model Employee
+@{
+    ViewData["Title"] = "Employee Details";
+}
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div>
+        <h1 class="h4 mb-1">@Model.FirstName @Model.LastName</h1>
+        <p class="text-muted mb-0">@Model.EmployeeNumber &middot; <span class="badge bg-primary">@Model.Role</span></p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-primary" asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
+        <a class="btn btn-outline-secondary" asp-action="Index">Back to list</a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-5">
+        <div class="card p-4 h-100">
+            <h6 class="mb-3">Employment</h6>
+            <dl class="row detail-list mb-0">
+                <dt class="col-6">Employee number</dt>
+                <dd class="col-6">@Model.EmployeeNumber</dd>
+                <dt class="col-6">Role</dt>
+                <dd class="col-6">@Model.Role</dd>
+                <dt class="col-6">Retail shop</dt>
+                <dd class="col-6">@(Model.RetailShop?.Name ?? "Head office")</dd>
+                <dt class="col-6">Hire date</dt>
+                <dd class="col-6">@Model.HireDate.ToLocalTime().ToString("dd MMM yyyy")</dd>
+                <dt class="col-6">Status</dt>
+                <dd class="col-6"><partial name="_Badge" model="@((object?)(Model.IsActive ? "Active" : "Inactive"))" /></dd>
+            </dl>
+        </div>
+    </div>
+    <div class="col-lg-7">
+        <div class="card p-4 mb-3">
+            <h6 class="mb-3">Contact</h6>
+            <dl class="row detail-list mb-0">
+                <dt class="col-4">Email</dt>
+                <dd class="col-8">@Model.Email</dd>
+                <dt class="col-4">Contact number</dt>
+                <dd class="col-8">@Model.ContactNumber</dd>
+            </dl>
+        </div>
+        <div class="row g-3">
+            <div class="col-4">
+                <div class="card p-3 text-center">
+                    <div class="stat-value">@Model.ProcessedOrders.Count</div>
+                    <div class="stat-label">Orders processed</div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="card p-3 text-center">
+                    <div class="stat-value">@Model.FeasibilityReports.Count</div>
+                    <div class="stat-label">Feasibility reports</div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="card p-3 text-center">
+                    <div class="stat-value">@Model.RecordedPayments.Count</div>
+                    <div class="stat-label">Payments recorded</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

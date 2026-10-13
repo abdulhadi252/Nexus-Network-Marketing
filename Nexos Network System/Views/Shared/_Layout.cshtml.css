@@ -1,0 +1,33 @@
+/* Scoped styles for the public layout - keep brand content only.
+   All visual identity lives in wwwroot/css/site.css (NEXUS design system). */
+
+a.navbar-brand {
+  white-space: normal;
+  text-align: center;
+  word-break: break-all;
+}
+
+a {
+  color: #1677ff;
+}
+
+.btn-primary {
+  color: #fff;
+  background-color: #1677ff;
+  border-color: #1677ff;
+}
+
+.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+  color: #fff;
+  background-color: #1677ff;
+  border-color: #1677ff;
+}
+
+.box-shadow {
+  box-shadow: 0 .25rem .75rem rgba(11, 31, 58, .06);
+}
+
+button.accept-policy {
+  font-size: 1rem;
+  line-height: inherit;
+}

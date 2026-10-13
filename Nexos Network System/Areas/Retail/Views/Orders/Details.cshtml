@@ -1,0 +1,229 @@
+@model Order
+@{
+    ViewData["Title"] = "Order Details";
+    var address = Model.Customer.Addresses.OrderByDescending(a => a.IsPrimary).FirstOrDefault();
+}
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div>
+        <h1 class="h4 mb-1">Order @Model.OrderNumber</h1>
+        <p class="text-muted mb-0">
+            @Model.ConnectionType &middot; @Model.SubmittedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm") &middot;
+            <partial name="_Badge" model="@((object?)Model.Status)" />
+        </p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-primary" asp-action="Create" asp-route-customerId="@Model.CustomerId">+ New Order</a>
+        <a class="btn btn-outline-secondary" asp-action="Index">Back to orders</a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card p-4 mb-3">
+            <h6 class="mb-3">Customer</h6>
+            <dl class="row detail-list mb-0">
+                <dt class="col-5">Name</dt>
+                <dd class="col-7">@Model.Customer.FirstName @Model.Customer.LastName</dd>
+                <dt class="col-5">Contact</dt>
+                <dd class="col-7">@Model.Customer.PrimaryContactNumber</dd>
+                <dt class="col-5">Email</dt>
+                <dd class="col-7">@Model.Customer.Email</dd>
+                <dt class="col-5">Address</dt>
+                <dd class="col-7">@(address is null ? "-" : $"{address.AddressLine1}, {address.City?.Name}")</dd>
+            </dl>
+        </div>
+
+        <div class="card p-4">
+            <h6 class="mb-3">Order Items</h6>
+            @if (Model.Items.Count == 0)
+            {
+                <p class="text-muted mb-0">No products were added to this order.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead><tr><th>Product</th><th>Qty</th><th class="text-end">Unit price</th></tr></thead>
+                        <tbody>
+                            @foreach (var item in Model.Items)
+                            {
+                                <tr>
+                                    <td>@item.Product.Name</td>
+                                    <td>@item.Quantity</td>
+                                    <td class="text-end text-price">PKR @item.UnitPrice.ToString("N2")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card p-4 mb-3">
+            <h6 class="mb-3">Order Progress</h6>
+            <dl class="row detail-list mb-0">
+                <dt class="col-5">Plan</dt>
+                <dd class="col-7">@(Model.Plan?.Name ?? "-")</dd>
+                <dt class="col-5">Retail shop</dt>
+                <dd class="col-7">@(Model.RetailShop?.Name ?? "-")</dd>
+                <dt class="col-5">Processed by</dt>
+                <dd class="col-7">@(Model.ProcessedByEmployee is null ? "-" : $"{Model.ProcessedByEmployee.FirstName} {Model.ProcessedByEmployee.LastName}")</dd>
+                <dt class="col-5">Last updated</dt>
+                <dd class="col-7">@Model.UpdatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</dd>
+                <dt class="col-5">Feasibility</dt>
+                <dd class="col-7">
+                    @if (Model.FeasibilityReport is null)
+                    {
+                        @("Not checked yet")
+                    }
+                    else
+                    {
+                        <partial name="_Badge" model="@((object?)Model.FeasibilityReport.Status)" />
+                    }
+                </dd>
+                <dt class="col-5">Connection</dt>
+                <dd class="col-7">
+                    @if (Model.Connection is null)
+                    {
+                        @("Not created yet")
+                    }
+                    else
+                    {
+                        <a asp-controller="Connections" asp-action="Details" asp-route-id="@Model.Connection.Id">@Model.Connection.AccountNumber</a>
+                    }
+                </dd>
+                <dt class="col-5">Remarks</dt>
+                <dd class="col-7">@(Model.Remarks ?? "-")</dd>
+            </dl>
+        </div>
+
+        <div class="card p-4 mb-3">
+            <h6 class="mb-3">Customer Verification</h6>
+            @if (Model.Status == OrderStatus.RetailRejected)
+            {
+                <div class="alert alert-danger py-2 small mb-2">This order was rejected by retail.</div>
+                <dl class="row detail-list mb-0">
+                    <dt class="col-5">Reason</dt>
+                    <dd class="col-7">@(Model.VerificationNotes ?? "-")</dd>
+                    <dt class="col-5">Rejected by</dt>
+                    <dd class="col-7">@(Model.VerifiedByEmployee is null ? "-" : $"{Model.VerifiedByEmployee.FirstName} {Model.VerifiedByEmployee.LastName}")</dd>
+                    <dt class="col-5">Rejected at</dt>
+                    <dd class="col-7">@Model.VerifiedAt?.ToLocalTime().ToString("dd MMM yyyy HH:mm")</dd>
+                </dl>
+            }
+            else if (Model.Status == OrderStatus.AwaitingCustomerInformation)
+            {
+                <div class="alert alert-warning py-2 small mb-2">Corrections requested from the customer.</div>
+                <dl class="row detail-list mb-3">
+                    <dt class="col-5">Requested</dt>
+                    <dd class="col-7">@(Model.VerificationNotes ?? "-")</dd>
+                    <dt class="col-5">Requested at</dt>
+                    <dd class="col-7">@Model.VerifiedAt?.ToLocalTime().ToString("dd MMM yyyy HH:mm")</dd>
+                </dl>
+                <form asp-action="Verify" asp-route-id="@Model.Id" method="post" class="row g-2">
+                    <div class="col-12">
+                        <textarea name="notes" class="form-control" rows="2" maxlength="2000" placeholder="Notes once the customer provides the missing details"></textarea>
+                    </div>
+                    <div class="col-12 d-grid">
+                        <button type="submit" class="btn btn-primary">Verify &amp; Forward to Technical</button>
+                    </div>
+                </form>
+            }
+            else if (Model.Status == OrderStatus.VerifiedByRetail && Model.VerifiedAt.HasValue)
+            {
+                <dl class="row detail-list mb-0">
+                    <dt class="col-5">Verified</dt>
+                    <dd class="col-7"><partial name="_Badge" model="@((object?)Model.Status)" /></dd>
+                    <dt class="col-5">Verified by</dt>
+                    <dd class="col-7">@(Model.VerifiedByEmployee is null ? "-" : $"{Model.VerifiedByEmployee.FirstName} {Model.VerifiedByEmployee.LastName}")</dd>
+                    <dt class="col-5">Verified at</dt>
+                    <dd class="col-7">@Model.VerifiedAt.Value.ToLocalTime().ToString("dd MMM yyyy HH:mm")</dd>
+                    <dt class="col-5">Notes</dt>
+                    <dd class="col-7">@(Model.VerificationNotes ?? "-")</dd>
+                </dl>
+                <p class="text-muted small mb-0 mt-3">This order has been forwarded to the technical team for a feasibility check and installation.</p>
+            }
+            else if (Model.Status is OrderStatus.Cancelled or OrderStatus.Feasible or OrderStatus.NotFeasible or OrderStatus.ConnectionProvided || Model.Connection is not null)
+            {
+                <p class="text-muted mb-0">This order has already moved past retail verification.</p>
+            }
+            else
+            {
+                <p class="text-muted small">Confirm the customer's details before forwarding the order to the technical team.</p>
+                <ul class="list-unstyled small mb-3">
+                    <li><svg class="svg-icon me-1" aria-hidden="true"><use href="#i-check-circle" /></svg>Mobile number: <strong>@Model.Customer.PrimaryContactNumber</strong></li>
+                    <li><svg class="svg-icon me-1" aria-hidden="true"><use href="#i-check-circle" /></svg>Email: <strong>@Model.Customer.Email</strong></li>
+                    <li><svg class="svg-icon me-1" aria-hidden="true"><use href="#i-check-circle" /></svg>Address: <strong>@(address is null ? "-" : $"{address.AddressLine1}, {address.City?.Name}")</strong></li>
+                </ul>
+                <form asp-action="Verify" asp-route-id="@Model.Id" method="post" class="row g-2">
+                    <div class="col-12">
+                        <textarea name="notes" class="form-control" rows="2" maxlength="2000" placeholder="Verification notes (optional) - what was confirmed with the customer"></textarea>
+                    </div>
+                    <div class="col-12 d-grid">
+                        <button type="submit" class="btn btn-primary">Verify &amp; Forward to Technical</button>
+                    </div>
+                </form>
+                <hr class="my-3" />
+                <form asp-action="RequestInfo" asp-route-id="@Model.Id" method="post" class="row g-2 mb-2">
+                    <div class="col-12">
+                        <textarea name="notes" class="form-control" rows="2" maxlength="2000" placeholder="Missing or incorrect details to request from the customer"></textarea>
+                    </div>
+                    <div class="col-12 d-grid">
+                        <button type="submit" class="btn btn-outline-warning">Request Corrections</button>
+                    </div>
+                </form>
+                <form asp-action="Reject" asp-route-id="@Model.Id" method="post" class="row g-2">
+                    <div class="col-12">
+                        <textarea name="reason" class="form-control" rows="2" maxlength="2000" required placeholder="Reason for rejection (required)"></textarea>
+                    </div>
+                    <div class="col-12 d-grid">
+                        <button type="submit" class="btn btn-outline-danger">Reject Order</button>
+                    </div>
+                </form>
+            }
+        </div>
+
+        <div class="card p-4 mb-3">
+            <h6 class="mb-3">Workflow History</h6>
+            @if (Model.StatusHistory.Count == 0)
+            {
+                <p class="text-muted mb-0">No status changes recorded yet.</p>
+            }
+            else
+            {
+                <ul class="list-unstyled mb-0 small">
+                    @foreach (var entry in Model.StatusHistory.OrderByDescending(h => h.ChangedAt))
+                    {
+                        <li class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center gap-2">
+                                <partial name="_Badge" model="@((object?)entry.ToStatus)" />
+                                <span class="text-muted">@entry.ChangedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</span>
+                            </div>
+                            <div class="text-muted">
+                                @(entry.FromStatus is null ? "Order created" : $"From {entry.FromStatus}")
+                                @(entry.ChangedByEmployee is null ? string.Empty : $" · {entry.ChangedByEmployee.FirstName} {entry.ChangedByEmployee.LastName}")
+                            </div>
+                            @if (!string.IsNullOrWhiteSpace(entry.Notes))
+                            {
+                                <div>@entry.Notes</div>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+
+        <div class="card p-4">
+            <h6 class="mb-3">What happens next?</h6>
+            <ul class="text-muted small mb-0">
+                <li>Technical staff perform a feasibility check at the customer address.</li>
+                <li>Once feasible, the connection is created and an account number is issued.</li>
+                <li>Installation and activation are recorded by the technical team.</li>
+                <li>Accounts staff generate the monthly bill with 12.24% service tax.</li>
+            </ul>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,280 @@
+@model Plan
+@{
+    ViewData["Title"] = $"{Model.Name} - Plan Details";
+
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+    var isCustomer = User.IsInRole("Customer");
+    var panelArea = User.GetPanelAreaName();
+
+    // After a successful login the visitor is returned straight to the customer order form
+    // with this plan already selected.
+    var orderUrl = Url.Action("Create", "Orders", new { area = "Customer", planId = Model.Id });
+    var loginUrl = Url.Action("Login", "Account", new { area = "Identity", returnUrl = orderUrl });
+    var isBroadband = Model.ConnectionType == ConnectionType.Broadband;
+    var isDialUp = Model.ConnectionType == ConnectionType.DialUp;
+}
+
+<!-- ================= Hero ================= -->
+<section class="pl-hero pd-hero" aria-labelledby="plan-title">
+    <span class="pl-hero__photo" aria-hidden="true"></span>
+    <span class="pl-hero__glow" aria-hidden="true"></span>
+
+    <div class="container pl-hero__inner">
+        <div class="pl-hero__copy">
+            <nav class="pd-breadcrumb" aria-label="Breadcrumb">
+                <a asp-action="Plans">Plans</a>
+                <span aria-hidden="true">/</span>
+                <span>@Model.Name</span>
+            </nav>
+
+            <p class="pl-eyebrow pl-eyebrow--light">&#8212; PLAN DETAILS &#8212;</p>
+            <h1 id="plan-title" class="pl-hero__title">@Model.Name</h1>
+            <p class="pl-hero__lead">
+                @(string.IsNullOrWhiteSpace(Model.Description)
+                    ? "Everything this plan provides is listed below. Sign in to your customer account to order it from your panel."
+                    : Model.Description)
+            </p>
+
+            <div class="pl-hero__badges">
+                <div class="pl-badge">
+                    <span class="pl-badge__icon"><svg class="svg-icon"><use href="#i-plan" /></svg></span>
+                    <div>
+                        <div class="pl-badge__title">@Model.ConnectionType</div>
+                        <div class="pl-badge__sub">Service type</div>
+                    </div>
+                </div>
+                <div class="pl-badge">
+                    <span class="pl-badge__icon"><svg class="svg-icon"><use href="#i-bills" /></svg></span>
+                    <div>
+                        <div class="pl-badge__title">@Model.BillingCycle</div>
+                        <div class="pl-badge__sub">Billing cycle</div>
+                    </div>
+                </div>
+                @if (Model.SpeedMbps.HasValue)
+                {
+                    <div class="pl-badge">
+                        <span class="pl-badge__icon"><svg class="svg-icon"><use href="#i-bolt" /></svg></span>
+                        <div>
+                            <div class="pl-badge__title">@Model.SpeedMbps Mbps</div>
+                            <div class="pl-badge__sub">Speed</div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ================= Plan body ================= -->
+<section class="section pd-body">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <div class="pd-card">
+                    <div class="pd-card__head">
+                        <span class="pd-card__icon"><svg class="svg-icon"><use href="#i-check-circle" /></svg></span>
+                        <div>
+                            <h2 class="pd-card__title">What this plan provides</h2>
+                            <p class="pd-card__sub">Everything that is included with @Model.Name.</p>
+                        </div>
+                    </div>
+
+                    <ul class="pd-features">
+                        @if (Model.SpeedMbps.HasValue)
+                        {
+                            <li>
+                                <svg class="svg-icon" aria-hidden="true"><use href="#i-bolt" /></svg>
+                                <span>Download speed up to <strong>@Model.SpeedMbps Mbps</strong>@(isBroadband ? " with unlimited browsing (FUP applies)" : "")</span>
+                            </li>
+                        }
+                        @if (Model.IncludedUsageHours.HasValue)
+                        {
+                            <li>
+                                <svg class="svg-icon" aria-hidden="true"><use href="#i-clock" /></svg>
+                                <span><strong>@Model.IncludedUsageHours free usage hours</strong> included with every billing cycle</span>
+                            </li>
+                        }
+                        @if (isDialUp)
+                        {
+                            <li>
+                                <svg class="svg-icon" aria-hidden="true"><use href="#i-router" /></svg>
+                                <span>Reliable low-speed connection for browsing, email and light tasks</span>
+                            </li>
+                        }
+                        @if (Model.ConnectionType == ConnectionType.Telephone)
+                        {
+                            <li>
+                                <svg class="svg-icon" aria-hidden="true"><use href="#i-phone" /></svg>
+                                <span>Crystal clear local landline voice calling</span>
+                            </li>
+                        }
+                        <li>
+                            <svg class="svg-icon" aria-hidden="true"><use href="#i-bills" /></svg>
+                            <span>Recurring charge of <strong>PKR @Model.RecurringCharge.ToString("N0")</strong> per @Model.BillingCycle.ToString().ToLowerInvariant()</span>
+                        </li>
+                        @if (Model.ValidityDays.HasValue)
+                        {
+                            <li>
+                                <svg class="svg-icon" aria-hidden="true"><use href="#i-clock" /></svg>
+                                <span>Validity of <strong>@Model.ValidityDays days</strong> per billing cycle</span>
+                            </li>
+                        }
+                        <li>
+                            <svg class="svg-icon" aria-hidden="true"><use href="#i-headset" /></svg>
+                            <span>24/7 customer and technical support</span>
+                        </li>
+                    </ul>
+
+                    <p class="pd-note">
+                        <svg class="svg-icon" aria-hidden="true"><use href="#i-info" /></svg>
+                        A one-time security deposit and installation charge apply when your connection is created.
+                    </p>
+                </div>
+
+                <div class="pd-card">
+                    <div class="pd-card__head">
+                        <span class="pd-card__icon"><svg class="svg-icon"><use href="#i-plan" /></svg></span>
+                        <div>
+                            <h2 class="pd-card__title">Plan summary</h2>
+                            <p class="pd-card__sub">Full breakdown of the plan specification.</p>
+                        </div>
+                    </div>
+
+                    <dl class="pd-specs">
+                        <div class="pd-specs__row">
+                            <dt>Plan name</dt>
+                            <dd>@Model.Name</dd>
+                        </div>
+                        <div class="pd-specs__row">
+                            <dt>Service type</dt>
+                            <dd>@Model.ConnectionType</dd>
+                        </div>
+                        <div class="pd-specs__row">
+                            <dt>Billing cycle</dt>
+                            <dd>@Model.BillingCycle</dd>
+                        </div>
+                        <div class="pd-specs__row">
+                            <dt>Recurring charge</dt>
+                            <dd class="text-price">PKR @Model.RecurringCharge.ToString("N2")</dd>
+                        </div>
+                        <div class="pd-specs__row">
+                            <dt>Security deposit</dt>
+                            <dd class="text-price">PKR @Model.SecurityDeposit.ToString("N2")</dd>
+                        </div>
+                        <div class="pd-specs__row">
+                            <dt>Installation charge</dt>
+                            <dd class="text-price">PKR @Model.InstallationCharge.ToString("N2")</dd>
+                        </div>
+                        <div class="pd-specs__row">
+                            <dt>Validity</dt>
+                            <dd>@(Model.ValidityDays.HasValue ? $"{Model.ValidityDays} days" : "—")</dd>
+                        </div>
+                        <div class="pd-specs__row">
+                            <dt>Speed</dt>
+                            <dd>@(Model.SpeedMbps.HasValue ? $"{Model.SpeedMbps} Mbps" : "—")</dd>
+                        </div>
+                        <div class="pd-specs__row">
+                            <dt>Included usage</dt>
+                            <dd>@(Model.IncludedUsageHours.HasValue ? $"{Model.IncludedUsageHours} hours" : "—")</dd>
+                        </div>
+                    </dl>
+                </div>
+            </div>
+
+            <!-- ================= Order / login panel ================= -->
+            <div class="col-lg-5">
+                <aside class="pd-order">
+                    <span class="pd-order__pill">@Model.ConnectionType</span>
+                    <h2 class="pd-order__name">@Model.Name</h2>
+                    <p class="pd-order__price">
+                        PKR <strong>@Model.RecurringCharge.ToString("N0")</strong>
+                        <small>/ @Model.BillingCycle.ToString().ToLowerInvariant()</small>
+                    </p>
+
+                    <ul class="pd-order__meta">
+                        @if (Model.SpeedMbps.HasValue)
+                        {
+                            <li><svg class="svg-icon" aria-hidden="true"><use href="#i-bolt" /></svg>@Model.SpeedMbps Mbps speed</li>
+                        }
+                        @if (Model.ValidityDays.HasValue)
+                        {
+                            <li><svg class="svg-icon" aria-hidden="true"><use href="#i-clock" /></svg>@Model.ValidityDays days validity</li>
+                        }
+                        <li><svg class="svg-icon" aria-hidden="true"><use href="#i-shield" /></svg>PKR @Model.SecurityDeposit.ToString("N0") security deposit</li>
+                    </ul>
+
+                    @if (isCustomer)
+                    {
+                        <a class="btn btn-primary pd-order__cta" href="@orderUrl">
+                            Order This Plan
+                            <svg class="btn-icon" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+                        </a>
+                        <p class="pd-order__hint">
+                            You are signed in. Place the order from your customer panel and track its status there.
+                        </p>
+                    }
+                    else if (isAuthenticated && panelArea is not null)
+                    {
+                        <a class="btn btn-primary pd-order__cta" asp-area="@panelArea" asp-controller="Dashboard" asp-action="Index">
+                            Open My Panel
+                            <svg class="btn-icon" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+                        </a>
+                        <p class="pd-order__hint">
+                            Only customer accounts can order plans online. Sign in with your customer account to place this order.
+                        </p>
+                    }
+                    else
+                    {
+                        <a class="btn btn-primary pd-order__cta" href="@loginUrl">
+                            <svg class="btn-icon" aria-hidden="true"><use href="#i-user" /></svg>
+                            Customer Login to Order
+                        </a>
+
+                        <div class="pd-order__divider" aria-hidden="true"><span>OR</span></div>
+
+                        <a class="btn btn-outline-primary pd-order__cta pd-order__cta--outline"
+                           asp-area="Identity" asp-controller="Account" asp-action="Register">
+                            <svg class="btn-icon" aria-hidden="true"><use href="#i-user" /></svg>
+                            Register as a Customer
+                        </a>
+
+                        <p class="pd-order__hint">
+                            New here? Create your free customer account, then sign in and place this order from your panel.
+                        </p>
+                    }
+
+                    <ul class="pd-order__trust">
+                        <li><svg class="svg-icon" aria-hidden="true"><use href="#i-shield" /></svg>Secure customer account</li>
+                        <li><svg class="svg-icon" aria-hidden="true"><use href="#i-orders" /></svg>Track your order from your panel</li>
+                        <li><svg class="svg-icon" aria-hidden="true"><use href="#i-headset" /></svg>24/7 support</li>
+                    </ul>
+                </aside>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ================= CTA ================= -->
+<section class="pl-cta-wrap">
+    <div class="container">
+        <div class="pl-cta">
+            <span class="pl-cta__icon" aria-hidden="true">
+                <svg class="svg-icon"><use href="#i-speech" /></svg>
+            </span>
+            <div class="pl-cta__copy">
+                <h2>Still deciding?</h2>
+                <p>Compare every plan or talk to our team &mdash; we will help you pick the right fit.</p>
+            </div>
+            <div class="pl-cta__actions">
+                <a class="btn btn-primary" asp-action="Plans">
+                    Compare All Plans
+                    <svg class="btn-icon" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+                </a>
+                <a class="btn btn-outline-light" asp-action="Contact">
+                    Contact Us
+                    <svg class="btn-icon" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>

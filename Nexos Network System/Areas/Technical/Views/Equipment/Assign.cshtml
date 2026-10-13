@@ -1,0 +1,38 @@
+@model EquipmentAssignViewModel
+@{
+    ViewData["Title"] = "Assign Equipment";
+}
+
+<h1 class="h4 mb-1">Assign Equipment</h1>
+<p class="text-muted">Assign an available equipment unit to an active or pending connection.</p>
+
+<div class="card">
+    <div class="card-body">
+        <form asp-action="Assign" method="post" class="row g-3">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+            <div class="col-md-6">
+                <label asp-for="EquipmentId" class="form-label"></label>
+                <select asp-for="EquipmentId" class="form-select" asp-items="ViewBag.AvailableEquipment">
+                    <option value="">-- Select available equipment --</option>
+                </select>
+                <span asp-validation-for="EquipmentId" class="field-validation-error"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="ConnectionId" class="form-label"></label>
+                <select asp-for="ConnectionId" class="form-select" asp-items="ViewBag.Connections">
+                    <option value="">-- Select connection --</option>
+                </select>
+                <span asp-validation-for="ConnectionId" class="field-validation-error"></span>
+            </div>
+            <div class="col-12 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Assign Equipment</button>
+                <a class="btn btn-outline-secondary" asp-action="Index">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

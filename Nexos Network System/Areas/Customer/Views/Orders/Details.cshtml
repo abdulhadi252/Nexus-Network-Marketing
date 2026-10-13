@@ -1,0 +1,100 @@
+@model Order
+@{
+    ViewData["Title"] = "Order Details";
+}
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div>
+        <h1 class="h4 mb-1">Order @Model.OrderNumber</h1>
+        <p class="text-muted mb-0">
+            @Model.ConnectionType &middot; submitted @Model.SubmittedAt.ToLocalTime().ToString("dd MMM yyyy") &middot;
+            <partial name="_Badge" model="@((object?)Model.Status)" />
+        </p>
+    </div>
+    <a class="btn btn-outline-secondary" asp-action="Index">Back to orders</a>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card p-4 mb-3">
+            <h6 class="mb-3">Order Summary</h6>
+            <dl class="row detail-list mb-0">
+                <dt class="col-5">Plan</dt>
+                <dd class="col-7">@(Model.Plan?.Name ?? "-")</dd>
+                <dt class="col-5">Recurring charge</dt>
+                <dd class="col-7 text-price">@(Model.Plan is null ? "-" : $"PKR {Model.Plan.RecurringCharge:N2}")</dd>
+                <dt class="col-5">Security deposit</dt>
+                <dd class="col-7 text-price">@(Model.Plan is null ? "-" : $"PKR {Model.Plan.SecurityDeposit:N2}")</dd>
+                <dt class="col-5">Installation charge</dt>
+                <dd class="col-7 text-price">@(Model.Plan is null ? "-" : $"PKR {Model.Plan.InstallationCharge:N2}")</dd>
+                <dt class="col-5">Last updated</dt>
+                <dd class="col-7">@Model.UpdatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</dd>
+                <dt class="col-5">Remarks</dt>
+                <dd class="col-7">@(Model.Remarks ?? "-")</dd>
+            </dl>
+        </div>
+
+        <div class="card p-4">
+            <h6 class="mb-3">Requested Products</h6>
+            @if (Model.Items.Count == 0)
+            {
+                <p class="text-muted mb-0">No products were requested with this order.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead><tr><th>Product</th><th>Qty</th></tr></thead>
+                        <tbody>
+                            @foreach (var item in Model.Items)
+                            {
+                                <tr><td>@item.Product.Name</td><td>@item.Quantity</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card p-4 mb-3">
+            <h6 class="mb-3">Feasibility</h6>
+            @if (Model.FeasibilityReport is null)
+            {
+                <p class="text-muted mb-0">Our technical team has not checked your site yet.</p>
+            }
+            else
+            {
+                <dl class="row detail-list mb-0">
+                    <dt class="col-5">Result</dt>
+                    <dd class="col-7"><partial name="_Badge" model="@((object?)Model.FeasibilityReport.Status)" /></dd>
+                    <dt class="col-5">Checked at</dt>
+                    <dd class="col-7">@(Model.FeasibilityReport.CheckedAt?.ToLocalTime().ToString("dd MMM yyyy HH:mm") ?? "-")</dd>
+                    <dt class="col-5">Remarks</dt>
+                    <dd class="col-7">@(Model.FeasibilityReport.Remarks ?? "-")</dd>
+                </dl>
+            }
+        </div>
+
+        <div class="card p-4">
+            <h6 class="mb-3">Connection</h6>
+            @if (Model.Connection is null)
+            {
+                <p class="text-muted mb-0">A connection account number will be issued once your order is approved.</p>
+            }
+            else
+            {
+                <dl class="row detail-list mb-0">
+                    <dt class="col-5">Account number</dt>
+                    <dd class="col-7 fw-semibold">@Model.Connection.AccountNumber</dd>
+                    <dt class="col-5">Status</dt>
+                    <dd class="col-7"><partial name="_Badge" model="@((object?)Model.Connection.Status)" /></dd>
+                    <dt class="col-5">Activated</dt>
+                    <dd class="col-7">@(Model.Connection.ActivatedAt?.ToLocalTime().ToString("dd MMM yyyy") ?? "-")</dd>
+                </dl>
+                <a class="btn btn-sm btn-outline-primary mt-3" asp-controller="Connection" asp-action="Index">My Connections</a>
+            }
+        </div>
+    </div>
+</div>

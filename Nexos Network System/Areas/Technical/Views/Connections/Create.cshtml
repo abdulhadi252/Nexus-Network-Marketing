@@ -1,0 +1,46 @@
+@model ConnectionCreateViewModel
+@{
+    ViewData["Title"] = "Create Connection";
+}
+
+<h1 class="h4 mb-1">Create Connection</h1>
+<p class="text-muted">
+    The account number is generated automatically (type + 3 digit city code + 12 digit serial,
+    for example B001000000000001). The order is marked as Connection Provided.
+</p>
+
+<div class="card">
+    <div class="card-body">
+        <form asp-action="Create" method="post" class="row g-3">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+            <div class="col-md-6">
+                <label asp-for="OrderId" class="form-label"></label>
+                <select asp-for="OrderId" class="form-select" asp-items="ViewBag.FeasibleOrders">
+                    <option value="">-- Select feasible order --</option>
+                </select>
+                <span asp-validation-for="OrderId" class="field-validation-error"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="ActivateImmediately" class="form-label d-block">Activation</label>
+                <div class="form-check form-switch mt-2">
+                    <input asp-for="ActivateImmediately" class="form-check-input" />
+                    <label class="form-check-label" asp-for="ActivateImmediately"></label>
+                </div>
+                <div class="form-text">Activate now if the installation is complete on site.</div>
+            </div>
+            <div class="col-12">
+                <label asp-for="InstallationNotes" class="form-label"></label>
+                <textarea asp-for="InstallationNotes" class="form-control" rows="3" placeholder="Installation details, cabling, equipment used..."></textarea>
+            </div>
+            <div class="col-12 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Create Connection</button>
+                <a class="btn btn-outline-secondary" asp-action="Index">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

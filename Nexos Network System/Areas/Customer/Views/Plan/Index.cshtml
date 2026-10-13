@@ -1,0 +1,53 @@
+@model IReadOnlyList<Plan>
+@{
+    ViewData["Title"] = "Current Plan";
+}
+
+<h1 class="h4 mb-1">Current Plan</h1>
+<p class="text-muted">Plan details for your active services. To change a plan, please contact your branch.</p>
+
+@if (Model.Count == 0)
+{
+    <div class="card">
+        <div class="empty-state">
+            <div class="empty-icon">&#128203;</div>
+            <p class="mb-0">You do not have a plan assigned yet.</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var plan in Model)
+        {
+            <div class="col-md-6">
+                <div class="card p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="mb-0">@plan.Name</h5>
+                        <span class="badge bg-primary">@plan.ConnectionType</span>
+                    </div>
+                    <p class="text-muted small">@plan.Description</p>
+                    <div class="plan-price mb-3">
+                        PKR @plan.RecurringCharge.ToString("N0") <small>/ @plan.BillingCycle.ToString().ToLowerInvariant()</small>
+                    </div>
+                    <dl class="row detail-list mb-0">
+                        @if (plan.SpeedMbps.HasValue)
+                        {
+                            <dt class="col-6">Speed</dt>
+                            <dd class="col-6">@plan.SpeedMbps Mbps</dd>
+                        }
+                        @if (plan.IncludedUsageHours.HasValue)
+                        {
+                            <dt class="col-6">Included usage</dt>
+                            <dd class="col-6">@plan.IncludedUsageHours hours</dd>
+                        }
+                        <dt class="col-6">Security deposit</dt>
+                        <dd class="col-6 text-price">PKR @plan.SecurityDeposit.ToString("N2")</dd>
+                        <dt class="col-6">Installation charge</dt>
+                        <dd class="col-6 text-price">PKR @plan.InstallationCharge.ToString("N2")</dd>
+                    </dl>
+                </div>
+            </div>
+        }
+    </div>
+}

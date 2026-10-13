@@ -1,0 +1,311 @@
+@using System.Globalization
+@model DashboardStatsViewModel
+@{
+    ViewData["Title"] = "Admin Dashboard";
+
+    // ---------------------------------------------------------------
+    // Chart geometry. Charts are drawn server-side from live data;
+    // ChartGeometry formats every coordinate with the invariant culture so
+    // the SVG markup stays valid whatever culture the request runs under.
+    // Axis labels are HTML overlays positioned from the same numbers, so
+    // they use the app fonts and never need SVG <text> (which Razor blocks).
+    // ---------------------------------------------------------------
+    var growth = Model.ConnectionGrowth;
+    var newSeries = growth.Select(point => (double)point.NewConnections).ToList();
+    var totalSeries = growth.Select(point => (double)point.TotalConnections).ToList();
+    var (axisMin, axisMax, axisTicks) = ChartGeometry.NiceAxis(totalSeries.Concat(newSeries));
+
+    const double canvasWidth = 720d;
+    const double canvasHeight = 260d;
+    const double plotLeft = 48d;
+    const double plotTop = 14d;
+    const double plotRight = 16d;
+    const double plotBottom = 30d;
+    var plotWidth = canvasWidth - plotLeft - plotRight;
+    var plotHeight = canvasHeight - plotTop - plotBottom;
+    var labelStep = growth.Count > 1 ? plotWidth / (growth.Count - 1) : 0d;
+
+    var totalArea = ChartGeometry.AreaPath(totalSeries, plotWidth, plotHeight, axisMin, axisMax, 0);
+    var totalLine = ChartGeometry.LinePoints(totalSeries, plotWidth, plotHeight, axisMin, axisMax, 0);
+    var newArea = ChartGeometry.AreaPath(newSeries, plotWidth, plotHeight, axisMin, axisMax, 0);
+    var newLine = ChartGeometry.LinePoints(newSeries, plotWidth, plotHeight, axisMin, axisMax, 0);
+
+    const double sparkWidth = 120d;
+    const double sparkHeight = 44d;
+
+    string Percent(double value) => value.ToString("0.###", CultureInfo.InvariantCulture) + "%";
+
+    string SparkLine(DashboardMetric metric)
+    {
+        var (min, max) = ChartGeometry.NiceRange(metric.Trend);
+        return ChartGeometry.LinePoints(metric.Trend, sparkWidth, sparkHeight, min, max, 4d);
+    }
+
+    string SparkArea(DashboardMetric metric)
+    {
+        var (min, max) = ChartGeometry.NiceRange(metric.Trend);
+        return ChartGeometry.AreaPath(metric.Trend, sparkWidth, sparkHeight, min, max, 4d);
+    }
+}
+
+<div class="dash-head">
+    <div>
+        <h1>Dashboard</h1>
+        <p>Welcome back, @Model.GreetingName!</p>
+    </div>
+    <div class="dash-period" title="Reporting period">
+        <svg class="svg-icon"><use href="#i-calendar" /></svg>
+        <span>@Model.PeriodLabel</span>
+    </div>
+</div>
+
+@* ---------------------------------------------------------------- KPI cards *@
+<div class="row g-3 mb-3">
+    <div class="col-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--blue"><svg class="svg-icon"><use href="#i-customers" /></svg></span>
+                <span class="kpi-card__label">Total Customers</span>
+            </div>
+            <div class="kpi-card__value">@Model.TotalCustomers.ToString("N0")</div>
+            <div class="kpi-card__foot">
+                <div class="kpi-card__trend">
+                    <span class="kpi-trend @(Model.CustomerGrowth.IsUp ? "kpi-trend--up" : "kpi-trend--down")">
+                        @(Model.CustomerGrowth.IsUp ? "↑" : "↓") @Model.CustomerGrowth.ChangeLabel
+                    </span>
+                    <span class="kpi-trend__caption">vs. last month</span>
+                </div>
+                <svg class="kpi-spark" viewBox="0 0 120 44" preserveAspectRatio="none" aria-hidden="true">
+                    <path class="kpi-spark__area kpi-spark__area--blue" d="@SparkArea(Model.CustomerGrowth)" />
+                    <polyline class="kpi-spark__line kpi-spark__line--blue" points="@SparkLine(Model.CustomerGrowth)" />
+                </svg>
+            </div>
+        </article>
+    </div>
+    <div class="col-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--green"><svg class="svg-icon"><use href="#i-connections" /></svg></span>
+                <span class="kpi-card__label">Active Connections</span>
+            </div>
+            <div class="kpi-card__value">@Model.ActiveConnections.ToString("N0")</div>
+            <div class="kpi-card__foot">
+                <div class="kpi-card__trend">
+                    <span class="kpi-trend @(Model.ConnectionTrend.IsUp ? "kpi-trend--up" : "kpi-trend--down")">
+                        @(Model.ConnectionTrend.IsUp ? "↑" : "↓") @Model.ConnectionTrend.ChangeLabel
+                    </span>
+                    <span class="kpi-trend__caption">vs. last month</span>
+                </div>
+                <svg class="kpi-spark" viewBox="0 0 120 44" preserveAspectRatio="none" aria-hidden="true">
+                    <path class="kpi-spark__area kpi-spark__area--green" d="@SparkArea(Model.ConnectionTrend)" />
+                    <polyline class="kpi-spark__line kpi-spark__line--green" points="@SparkLine(Model.ConnectionTrend)" />
+                </svg>
+            </div>
+        </article>
+    </div>
+    <div class="col-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--orange"><svg class="svg-icon"><use href="#i-orders" /></svg></span>
+                <span class="kpi-card__label">Pending Orders</span>
+            </div>
+            <div class="kpi-card__value">@Model.PendingOrders.ToString("N0")</div>
+            <div class="kpi-card__foot">
+                <div class="kpi-card__trend">
+                    <span class="kpi-trend @(Model.PendingOrderTrend.IsUp ? "kpi-trend--up" : "kpi-trend--down")">
+                        @(Model.PendingOrderTrend.IsUp ? "↑" : "↓") @Model.PendingOrderTrend.ChangeLabel
+                    </span>
+                    <span class="kpi-trend__caption">vs. last month</span>
+                </div>
+                <svg class="kpi-spark" viewBox="0 0 120 44" preserveAspectRatio="none" aria-hidden="true">
+                    <path class="kpi-spark__area kpi-spark__area--orange" d="@SparkArea(Model.PendingOrderTrend)" />
+                    <polyline class="kpi-spark__line kpi-spark__line--orange" points="@SparkLine(Model.PendingOrderTrend)" />
+                </svg>
+            </div>
+        </article>
+    </div>
+    <div class="col-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--navy"><svg class="svg-icon"><use href="#i-wallet" /></svg></span>
+                <span class="kpi-card__label">Revenue (This Month)</span>
+            </div>
+            <div class="kpi-card__value">PKR @Model.RevenueThisMonth.ToString("N0")</div>
+            <div class="kpi-card__foot">
+                <div class="kpi-card__trend">
+                    <span class="kpi-trend @(Model.RevenueTrend.IsUp ? "kpi-trend--up" : "kpi-trend--down")">
+                        @(Model.RevenueTrend.IsUp ? "↑" : "↓") @Model.RevenueTrend.ChangeLabel
+                    </span>
+                    <span class="kpi-trend__caption">vs. last month</span>
+                </div>
+                <svg class="kpi-spark" viewBox="0 0 120 44" preserveAspectRatio="none" aria-hidden="true">
+                    <path class="kpi-spark__area kpi-spark__area--navy" d="@SparkArea(Model.RevenueTrend)" />
+                    <polyline class="kpi-spark__line kpi-spark__line--navy" points="@SparkLine(Model.RevenueTrend)" />
+                </svg>
+            </div>
+        </article>
+    </div>
+</div>
+
+@* ---------------------------------------------------------------- Charts *@
+<div class="row g-3 mb-3">
+    <div class="col-xl-8">
+        <section class="dash-card h-100">
+            <header class="dash-card__head">
+                <span class="dash-card__icon"><svg class="svg-icon"><use href="#i-trending-up" /></svg></span>
+                <h2 class="dash-card__title">Connection Growth</h2>
+                <div class="dash-legend ms-auto">
+                    <span class="dash-legend__item"><span class="dash-legend__dot dash-legend__dot--new"></span>New Connections</span>
+                    <span class="dash-legend__item"><span class="dash-legend__dot dash-legend__dot--total"></span>Total Connections</span>
+                </div>
+            </header>
+            <div class="dash-card__body">
+                @if (growth.Count == 0)
+                {
+                    <div class="empty-state"><p class="mb-0">No connection history to chart yet.</p></div>
+                }
+                else
+                {
+                    <div class="chart">
+                        <svg class="chart-svg" viewBox="0 0 @canvasWidth.ToString("0") @canvasHeight.ToString("0")" role="img"
+                             aria-label="New and total connections per month over the last twelve months">
+                            <g transform="translate(@ChartGeometry.N(plotLeft),@ChartGeometry.N(plotTop))">
+                                <rect class="chart-plot" x="0" y="0" width="@ChartGeometry.N(plotWidth)" height="@ChartGeometry.N(plotHeight)" rx="10" />
+
+                                @foreach (var tick in axisTicks)
+                                {
+                                    var y = (1 - tick.Fraction) * plotHeight;
+                                    <line class="chart-grid" x1="0" y1="@ChartGeometry.N(y)" x2="@ChartGeometry.N(plotWidth)" y2="@ChartGeometry.N(y)" />
+                                }
+
+                                <path class="chart-series__area chart-series__area--total" d="@totalArea" />
+                                <polyline class="chart-series__line chart-series__line--total" points="@totalLine" />
+                                <path class="chart-series__area chart-series__area--new" d="@newArea" />
+                                <polyline class="chart-series__line chart-series__line--new" points="@newLine" />
+                            </g>
+                        </svg>
+
+                        <div class="chart-axis chart-axis--y" aria-hidden="true">
+                            @foreach (var tick in axisTicks)
+                            {
+                                var top = (plotTop + ((1 - tick.Fraction) * plotHeight)) / canvasHeight * 100d;
+                                <span style="top:@Percent(top)">@tick.Value.ToString("N0")</span>
+                            }
+                        </div>
+
+                        <div class="chart-axis chart-axis--x" aria-hidden="true">
+                            @for (var index = 0; index < growth.Count; index++)
+                            {
+                                var left = (plotLeft + (index * labelStep)) / canvasWidth * 100d;
+                                <span style="left:@Percent(left)">@growth[index].Label</span>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </section>
+    </div>
+
+    <div class="col-xl-4">
+        <section class="dash-card h-100">
+            <header class="dash-card__head">
+                <span class="dash-card__icon"><svg class="svg-icon"><use href="#i-connections" /></svg></span>
+                <h2 class="dash-card__title">Service Distribution</h2>
+            </header>
+            <div class="dash-card__body">
+                @if (Model.ServiceDistribution.Count == 0)
+                {
+                    <div class="empty-state"><p class="mb-0">No connections have been created yet.</p></div>
+                }
+                else
+                {
+                    <div class="donut">
+                        <div class="donut__chart">
+                            <svg class="donut__svg" viewBox="0 0 160 160" role="img"
+                                 aria-label="Connections grouped by service type">
+                                <circle class="donut__track" cx="80" cy="80" r="60" fill="none" stroke-width="22" />
+                                @for (var index = 0; index < Model.ServiceDistribution.Count; index++)
+                                {
+                                    var slice = Model.ServiceDistribution[index];
+                                    <circle class="donut__slice donut__slice--@((index % 3) + 1)" cx="80" cy="80" r="60" fill="none"
+                                            stroke-width="22" stroke-dasharray="@slice.DashArray" stroke-dashoffset="@slice.DashOffset"
+                                            transform="rotate(-90 80 80)" />
+                                }
+                            </svg>
+                            <div class="donut__center" aria-hidden="true">
+                                <span class="donut__total">@Model.TotalConnections.ToString("N0")</span>
+                                <span class="donut__caption">Total</span>
+                            </div>
+                        </div>
+                        <ul class="donut__legend">
+                            @for (var index = 0; index < Model.ServiceDistribution.Count; index++)
+                            {
+                                var slice = Model.ServiceDistribution[index];
+                                <li>
+                                    <span class="donut__dot donut__dot--@((index % 3) + 1)"></span>
+                                    <span class="donut__name">@slice.Label</span>
+                                    <span class="donut__value">@slice.PercentLabel</span>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+            </div>
+        </section>
+    </div>
+</div>
+
+@* ---------------------------------------------------------------- Recent orders *@
+<section class="dash-card mb-3">
+    <header class="dash-card__head">
+        <span class="dash-card__icon"><svg class="svg-icon"><use href="#i-orders" /></svg></span>
+        <h2 class="dash-card__title">Recent Orders</h2>
+        <a class="btn btn-sm btn-outline-primary ms-auto" asp-controller="Orders" asp-action="Index">
+            View All <svg class="svg-icon"><use href="#i-arrow-right" /></svg>
+        </a>
+    </header>
+    <div class="dash-card__body dash-card__body--flush">
+        @if (Model.RecentOrders.Count == 0)
+        {
+            <div class="empty-state"><p class="mb-0">No orders have been placed yet.</p></div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table align-middle mb-0 dash-table">
+                    <thead>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Customer</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Amount</th>
+                            <th>Date</th>
+                            <th><span class="visually-hidden">Actions</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model.RecentOrders)
+                        {
+                            var orderTotal = order.Items.Sum(item => item.Quantity * item.UnitPrice);
+                            <tr>
+                                <td class="fw-semibold">@order.OrderNumber</td>
+                                <td>@order.Customer.FirstName @order.Customer.LastName</td>
+                                <td>@order.ConnectionType</td>
+                                <td><partial name="_Badge" model="@((object?)order.Status)" /></td>
+                                <td class="text-price">@(order.Items.Count == 0 ? "—" : $"PKR {orderTotal:N2}")</td>
+                                <td>@order.SubmittedAt.ToLocalTime().ToString("dd MMM yyyy")</td>
+                                <td class="dash-table__action">
+                                    <a asp-controller="Orders" asp-action="Details" asp-route-id="@order.Id"
+                                       aria-label="Open order @order.OrderNumber">
+                                        <svg class="svg-icon"><use href="#i-arrow-right" /></svg>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</section>

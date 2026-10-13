@@ -1,0 +1,169 @@
+@model LoginViewModel
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment Environment
+@{
+    ViewData["Title"] = "Login";
+    Layout = null;
+    var isDevelopment = Environment.IsDevelopment();
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - NEXUS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <script>
+        // NEXUS boot loader gate: decide before first paint whether the
+        // intro animation may play (first page of a session, motion allowed).
+        (function () {
+            try {
+                if (sessionStorage.getItem("nx-boot-skip") ||
+                    window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+                    document.documentElement.classList.add("nx-boot-skip");
+                }
+            } catch (e) {
+                document.documentElement.classList.add("nx-boot-skip");
+            }
+        })();
+    </script>
+</head>
+<body class="lg-body">
+    <div id="nx-loader" aria-hidden="true">
+        <div class="nx-loader-inner">
+            <span class="nx-logo-ghost"></span>
+            <span class="nx-logo-fill"></span>
+            <span class="nx-logo-glow"></span>
+            <span class="nx-loader-word">NEXUS</span>
+            <span class="nx-loader-bar"></span>
+        </div>
+    </div>
+    <partial name="_Icons" />
+
+    <div class="lg-page">
+        <span class="lg-deco lg-deco--blob-tr" aria-hidden="true"></span>
+        <span class="lg-deco lg-deco--blob-bl" aria-hidden="true"></span>
+        <span class="lg-deco lg-deco--arc" aria-hidden="true"></span>
+        <span class="lg-deco lg-deco--dots-tr" aria-hidden="true"></span>
+        <span class="lg-deco lg-deco--dots-br" aria-hidden="true"></span>
+        <span class="lg-deco lg-deco--wifi" aria-hidden="true">
+            <svg class="svg-icon"><use href="#i-wifi" /></svg>
+        </span>
+
+        <div class="lg-wrap">
+            <header class="lg-head">
+                <a class="lg-brand brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    <partial name="_Brand" />
+                </a>
+                <p class="lg-tagline">Network &amp; Internet Services</p>
+                <h1 class="lg-title">One account. <span>Every NEXUS service.</span></h1>
+                <p class="lg-sub">Your internet, TV, phone and more &mdash; all in one place.</p>
+            </header>
+
+            <div class="lg-card">
+                <header class="lg-card__head">
+                    <h2>Welcome back</h2>
+                    <p>Sign in to open your NEXUS panel.</p>
+                </header>
+
+                <form asp-area="Identity" asp-controller="Account" asp-action="Login" method="post" novalidate>
+                    <input type="hidden" asp-for="ReturnUrl" />
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label"></label>
+                        <div class="input-with-icon">
+                            <svg class="svg-icon input-icon input-icon--left" aria-hidden="true"><use href="#i-envelope" /></svg>
+                            <input asp-for="Email" class="form-control" placeholder="you@nexos.local" autocomplete="username" />
+                        </div>
+                        <span asp-validation-for="Email" class="field-validation-error"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label"></label>
+                        <div class="input-with-icon reg-pass">
+                            <svg class="svg-icon input-icon input-icon--left" aria-hidden="true"><use href="#i-shield-check" /></svg>
+                            <input asp-for="Password" class="form-control" placeholder="Your password" autocomplete="current-password" />
+                            <button type="button" class="reg-pass__toggle" data-pass-toggle="Password" aria-label="Show password" aria-pressed="false">
+                                <svg class="svg-icon pass-icon-on" aria-hidden="true"><use href="#i-eye-off" /></svg>
+                                <svg class="svg-icon pass-icon-off" aria-hidden="true" style="display:none"><use href="#i-eye" /></svg>
+                            </button>
+                        </div>
+                        <span asp-validation-for="Password" class="field-validation-error"></span>
+                    </div>
+
+                    <div class="lg-row">
+                        <div class="form-check">
+                            <input asp-for="RememberMe" class="form-check-input" />
+                            <label asp-for="RememberMe" class="form-check-label"></label>
+                        </div>
+                        <a asp-area="Identity" asp-controller="Account" asp-action="AccessDenied">Forgot password?</a>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary lg-submit">
+                        Sign in
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+                    </button>
+                </form>
+
+                @if (isDevelopment)
+                {
+                    <div class="lg-demo">
+                        <span class="lg-demo__icon" aria-hidden="true"><svg class="svg-icon"><use href="#i-user" /></svg></span>
+                        <div>
+                            <p class="lg-demo__title">Demo accounts <span>(development only, password <strong>Nexos@@123</strong>):</span></p>
+                            <p class="lg-demo__list">admin@@nexos.local &middot; retail@@nexos.local &middot; technical@@nexos.local &middot; accounts@@nexos.local &middot; customer@@nexos.local</p>
+                        </div>
+                    </div>
+                }
+
+                <div class="lg-or" aria-hidden="true"><span>OR</span></div>
+
+                <div class="lg-new">
+                    <span>New to NEXUS?</span>
+                    <a asp-area="Identity" asp-controller="Account" asp-action="Register">
+                        Create an account
+                        <svg class="btn-icon" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+                    </a>
+                </div>
+
+                <a class="lg-back" asp-area="" asp-controller="Home" asp-action="Index">
+                    <svg class="btn-icon" aria-hidden="true"><path d="M19 12H5" /><path d="m11 18-6-6 6-6" /></svg>
+                    Back to public website
+                </a>
+
+                <p class="lg-note">
+                    <span class="lg-note__icon" aria-hidden="true"><svg class="svg-icon"><use href="#i-info" /></svg></span>
+                    <span>Password reset requires email delivery, which is not configured in this phase. Please contact an administrator to reset your password.</span>
+                </p>
+            </div>
+        </div>
+
+        <p class="lg-copy">&copy; 2025 NEXUS. All rights reserved.</p>
+    </div>
+
+    <script>
+        (function () {
+            document.querySelectorAll("[data-pass-toggle]").forEach(function (btn) {
+                var input = document.getElementById(btn.getAttribute("data-pass-toggle"));
+                if (!input) { return; }
+
+                btn.addEventListener("click", function () {
+                    var show = input.type === "password";
+                    input.type = show ? "text" : "password";
+                    btn.setAttribute("aria-pressed", show ? "true" : "false");
+                    btn.setAttribute("aria-label", show ? "Hide password" : "Show password");
+
+                    var on = btn.querySelector(".pass-icon-on");
+                    var off = btn.querySelector(".pass-icon-off");
+                    if (on) { on.style.display = show ? "none" : ""; }
+                    if (off) { off.style.display = show ? "" : "none"; }
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+@model Connection
+@{
+    ViewData["Title"] = "Connection Details";
+    var outstanding = Model.Bills.SumLatestOutstanding();
+}
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div>
+        <h1 class="h4 mb-1">@Model.AccountNumber</h1>
+        <p class="text-muted mb-0">
+            @Model.ConnectionType &middot; @Model.Customer.FirstName @Model.Customer.LastName &middot;
+            <partial name="_Badge" model="@((object?)Model.Status)" />
+        </p>
+    </div>
+    <a class="btn btn-outline-secondary" asp-action="Index">Back to connections</a>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card p-4 mb-3">
+            <h6 class="mb-3">Connection</h6>
+            <dl class="row detail-list mb-0">
+                <dt class="col-5">Plan</dt>
+                <dd class="col-7">@Model.Plan?.Name</dd>
+                <dt class="col-5">City</dt>
+                <dd class="col-7">@Model.City?.Name</dd>
+                <dt class="col-5">Installed</dt>
+                <dd class="col-7">@(Model.InstalledAt?.ToLocalTime().ToString("dd MMM yyyy") ?? "-")</dd>
+                <dt class="col-5">Activated</dt>
+                <dd class="col-7">@(Model.ActivatedAt?.ToLocalTime().ToString("dd MMM yyyy") ?? "-")</dd>
+                <dt class="col-5">Outstanding dues</dt>
+                <dd class="col-7 text-price">PKR @outstanding.ToString("N2")</dd>
+                <dt class="col-5">Installation notes</dt>
+                <dd class="col-7">@(Model.InstallationNotes ?? "-")</dd>
+            </dl>
+        </div>
+
+        <div class="card p-4">
+            <h6 class="mb-3">Equipment</h6>
+            @if (Model.EquipmentItems.Count == 0)
+            {
+                <p class="text-muted mb-0">No equipment assigned.</p>
+            }
+            else
+            {
+                <ul class="list-unstyled mb-0">
+                    @foreach (var equipment in Model.EquipmentItems)
+                    {
+                        <li class="d-flex justify-content-between align-items-center mb-2">                                        <span>@(equipment.Product?.Name ?? "-") (@equipment.AssetTag)</span>
+                            <partial name="_Badge" model="@((object?)equipment.Status)" />
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">Bills (@Model.Bills.Count)</div>
+            <div class="card-body p-0">
+                @if (Model.Bills.Count == 0)
+                {
+                    <div class="empty-state"><p class="mb-0">No bills generated for this connection.</p></div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead><tr><th>Bill</th><th>Total</th><th>Due</th><th>Status</th><th></th></tr></thead>
+                            <tbody>
+                                @foreach (var bill in Model.Bills.OrderByDescending(b => b.GeneratedAt))
+                                {
+                                    <tr>
+                                        <td>@bill.BillNumber</td>
+                                        <td class="text-price">PKR @bill.TotalAmount.ToString("N2")</td>
+                                        <td class="text-price">PKR @bill.DueAmount.ToString("N2")</td>
+                                        <td><partial name="_Badge" model="@((object?)bill.Status)" /></td>
+                                        <td class="table-actions">
+                                            <a class="btn btn-outline-secondary" asp-controller="Bills" asp-action="Details" asp-route-id="@bill.Id">View</a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

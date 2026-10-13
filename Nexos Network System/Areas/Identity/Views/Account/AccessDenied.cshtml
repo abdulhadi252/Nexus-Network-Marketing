@@ -1,0 +1,24 @@
+@{
+    ViewData["Title"] = "Access Denied";
+}
+
+<section class="section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-7">
+                <div class="card p-5 text-center">
+                    <h1 class="display-5 text-danger mb-2">403</h1>
+                    <h5 class="mb-3">Access denied</h5>
+                    <p class="text-muted">
+                        You are signed in, but your account does not have permission to open this page.
+                        Each panel is restricted to its own role (Admin, Retail, Technical, Accounts, Customer).
+                    </p>
+                    <div class="d-flex justify-content-center gap-2">
+                        <a class="btn btn-primary" asp-area="" asp-controller="Home" asp-action="Index">Back to Home</a>
+                        <a class="btn btn-outline-secondary" asp-area="Identity" asp-controller="Account" asp-action="Profile">My Profile</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

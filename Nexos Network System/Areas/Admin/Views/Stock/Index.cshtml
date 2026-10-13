@@ -1,0 +1,81 @@
+@model PagedResult<Stock>
+@{
+    ViewData["Title"] = "Stock";
+    var lowOnly = (bool)(ViewData["lowOnly"] ?? false);
+}
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div>
+        <h1 class="h4 mb-1">Stock</h1>
+        <p class="text-muted mb-0">Current quantities, reservations and reorder levels per product.</p>
+    </div>
+    <a class="btn @(lowOnly ? "btn-primary" : "btn-outline-danger")" asp-action="Index" asp-route-lowOnly="true">Low Stock Only</a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="get" class="row g-2 mb-3">
+            <input type="hidden" name="lowOnly" value="@(lowOnly ? "true" : "false")" />
+            <div class="col-sm-6 col-md-4">
+                <input type="text" name="q" value="@ViewData["q"]" class="form-control" placeholder="Search product..." />
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-outline-primary">Search</button>
+                <a class="btn btn-outline-secondary" asp-action="Index">Reset</a>
+            </div>
+        </form>
+
+        @if (Model.Items.Count == 0)
+        {
+            <div class="empty-state">
+                <div class="empty-icon">&#128230;</div>
+                <p class="mb-0">@(lowOnly ? "No products are below their reorder level." : "No stock records found.")</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Vendor</th>
+                            <th>On hand</th>
+                            <th>Reserved</th>
+                            <th>Available</th>
+                            <th>Reorder level</th>
+                            <th>Last updated</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var stock in Model.Items)
+                        {
+                            var isLow = stock.QuantityOnHand <= stock.ReorderLevel;
+                            <tr class="@(isLow ? "table-warning" : string.Empty)">
+                                <td class="fw-semibold">@stock.Product.Name</td>
+                                <td>@stock.Product.Vendor?.Name</td>
+                                <td>@stock.QuantityOnHand</td>
+                                <td>@stock.QuantityReserved</td>
+                                <td>@(stock.QuantityOnHand - stock.QuantityReserved)</td>
+                                <td>
+                                    @stock.ReorderLevel
+                                    @if (isLow)
+                                    {
+                                        <span class="badge bg-danger ms-1">Low</span>
+                                    }
+                                </td>
+                                <td>@stock.LastUpdatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
+                                <td class="table-actions">
+                                    <a class="btn btn-outline-primary" asp-action="Adjust" asp-route-id="@stock.ProductId">Adjust</a>
+                                    <a class="btn btn-outline-secondary" asp-action="Movements" asp-route-id="@stock.ProductId">History</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <partial name="_Pagination" model="Model" />
+        }
+    </div>
+</div>

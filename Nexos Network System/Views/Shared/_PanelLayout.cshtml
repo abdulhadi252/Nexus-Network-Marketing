@@ -1,0 +1,129 @@
+@{
+    var areaName = ViewContext.RouteData.Values["area"]?.ToString() ?? string.Empty;
+    var panelName = ViewData["PanelName"] ?? "Panel";
+
+    // The free-text search box only appears where the panel has a search page able to run it.
+    var hasSearch = string.Equals(areaName, "Admin", StringComparison.OrdinalIgnoreCase);
+    var currentSearch = Context.Request.Query["Query"].ToString();
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - NEXUS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <script>
+        // NEXUS boot loader gate: decide before first paint whether the
+        // intro animation may play (first page of a session, motion allowed).
+        (function () {
+            try {
+                if (sessionStorage.getItem("nx-boot-skip") ||
+                    window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+                    document.documentElement.classList.add("nx-boot-skip");
+                }
+            } catch (e) {
+                document.documentElement.classList.add("nx-boot-skip");
+            }
+        })();
+    </script>
+</head>
+<body class="panel-body">
+    <div id="nx-loader" aria-hidden="true">
+        <div class="nx-loader-inner">
+            <span class="nx-logo-ghost"></span>
+            <span class="nx-logo-fill"></span>
+            <span class="nx-logo-glow"></span>
+            <span class="nx-loader-word">NEXUS</span>
+            <span class="nx-loader-bar"></span>
+        </div>
+    </div>
+    <partial name="_Icons" />
+    <div class="panel-wrapper" id="panelWrapper">
+        <aside class="panel-sidebar" id="panelSidebar">
+            <div class="panel-sidebar-head">
+                <a class="panel-brand text-decoration-none" asp-area="" asp-controller="Home" asp-action="Index">
+                    <partial name="_Brand" />
+                </a>
+                <span class="panel-area-name">@panelName</span>
+            </div>
+
+            <div class="panel-sidebar-scroll">
+                <partial name="_PanelSidebar" />
+            </div>
+
+            <div class="panel-nav panel-sidebar-foot">
+                <ul class="panel-nav-list">
+                    <li>
+                        <a asp-area="Identity" asp-controller="Account" asp-action="Profile"><svg class="nav-icon"><use href="#i-profile" /></svg>My Profile</a>
+                    </li>
+                    <li>
+                        <form asp-area="Identity" asp-controller="Account" asp-action="Logout" method="post">
+                            <button type="submit"><svg class="nav-icon"><use href="#i-logout" /></svg>Logout</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </aside>
+
+        <div class="panel-main">
+            <header class="panel-topbar">
+                <button class="panel-topbar__toggle" type="button" id="panelSidebarToggle"
+                        aria-controls="panelSidebar" aria-expanded="true" aria-label="Toggle navigation">
+                    <svg class="svg-icon"><use href="#i-menu" /></svg>
+                </button>
+
+                @if (hasSearch)
+                {
+                    <form class="panel-search" asp-area="@areaName" asp-controller="Search" asp-action="Index" method="get" role="search">
+                        <svg class="svg-icon panel-search__icon"><use href="#i-search" /></svg>
+                        <input type="search" name="Query" value="@currentSearch" aria-label="Search"
+                               placeholder="Search customers, orders, plans..." />
+                    </form>
+                }
+
+                <div class="panel-topbar__actions">
+                    @await Component.InvokeAsync("PanelNotifications")
+                    @await Component.InvokeAsync("PanelUser")
+                </div>
+            </header>
+
+            <main class="panel-content">
+                @if (TempData["Success"] is string successMessage)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @successMessage
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+                @if (TempData["Error"] is string errorMessage)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @errorMessage
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+                @RenderBody()
+            </main>
+
+            <footer class="panel-footer">
+                <span>&copy; 2026 NEXUS. All rights reserved.</span>
+                <span class="panel-footer__links">
+                    <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy Policy</a>
+                    <span class="panel-footer__sep" aria-hidden="true">|</span>
+                    <a asp-area="" asp-controller="Home" asp-action="Terms">Terms &amp; Conditions</a>
+                </span>
+            </footer>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,62 @@
+@model PagedResult<Nexos_Network_System.Models.Customer>
+@{
+    ViewData["Title"] = "Customers";
+}
+
+<h1 class="h4 mb-1">Customers</h1>
+<p class="text-muted">Customer reference list with their outstanding balance.</p>
+
+<div class="card">
+    <div class="card-body">
+        <form method="get" class="row g-2 mb-3">
+            <div class="col-sm-6 col-md-4">
+                <input type="text" name="q" value="@ViewData["q"]" class="form-control" placeholder="Search name, email or phone..." />
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-outline-primary">Search</button>
+                <a class="btn btn-outline-secondary" asp-action="Index">Reset</a>
+            </div>
+        </form>
+
+        @if (Model.Items.Count == 0)
+        {
+            <div class="empty-state"><p class="mb-0">No customers found.</p></div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr><th>Name</th><th>Email</th><th>Contact</th><th>Connections</th><th>Outstanding</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var customer in Model.Items)
+                        {
+                            var outstanding = customer.Bills.SumLatestOutstanding();
+                            <tr>
+                                <td class="fw-semibold">@customer.FirstName @customer.LastName</td>
+                                <td>@customer.Email</td>
+                                <td>@customer.PrimaryContactNumber</td>
+                                <td>@customer.Connections.Count</td>
+                                <td class="text-price">
+                                    @if (outstanding > 0)
+                                    {
+                                        <span class="text-danger fw-semibold">PKR @outstanding.ToString("N2")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-success">Clear</span>
+                                    }
+                                </td>
+                                <td class="table-actions">
+                                    <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@customer.Id">View</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <partial name="_Pagination" model="Model" />
+        }
+    </div>
+</div>

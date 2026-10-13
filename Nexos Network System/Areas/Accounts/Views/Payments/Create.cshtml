@@ -1,0 +1,62 @@
+@model PaymentRecordViewModel
+@{
+    ViewData["Title"] = "Record Payment";
+}
+
+<h1 class="h4 mb-1">Record Payment</h1>
+<p class="text-muted">Recording a payment updates the bill paid amount, due amount and status automatically.</p>
+
+<div class="card">
+    <div class="card-body">
+        <form asp-action="Create" method="post" class="row g-3">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+            <div class="col-md-8">
+                <label asp-for="BillId" class="form-label">Bill</label>
+                <select asp-for="BillId" class="form-select" asp-items="ViewBag.Bills">
+                    <option value="">-- Select a bill with outstanding dues --</option>
+                </select>
+                <span asp-validation-for="BillId" class="field-validation-error"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="Amount" class="form-label"></label>
+                <input asp-for="Amount" type="number" step="0.01" class="form-control" />
+                <span asp-validation-for="Amount" class="field-validation-error"></span>
+                @if (Model.DueAmount > 0)
+                {
+                    <div class="form-text">Outstanding due: <strong>PKR @Model.DueAmount.ToString("N2")</strong></div>
+                }
+            </div>
+            <div class="col-md-4">
+                <label asp-for="Method" class="form-label"></label>
+                <select asp-for="Method" class="form-select" asp-items="Html.GetEnumSelectList<PaymentMethod>()"></select>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="PaymentReference" class="form-label"></label>
+                <input asp-for="PaymentReference" class="form-control" placeholder="Cheque / transaction number" />
+            </div>
+            <div class="col-md-4">
+                <label asp-for="Notes" class="form-label"></label>
+                <input asp-for="Notes" class="form-control" placeholder="Optional notes" />
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(Model.BillNumber))
+            {
+                <div class="col-12">
+                    <div class="alert alert-info small mb-0">
+                        Bill <strong>@Model.BillNumber</strong> for <strong>@Model.CustomerName</strong> - outstanding PKR @Model.DueAmount.ToString("N2").
+                    </div>
+                </div>
+            }
+
+            <div class="col-12 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Record Payment</button>
+                <a class="btn btn-outline-secondary" asp-action="Index">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

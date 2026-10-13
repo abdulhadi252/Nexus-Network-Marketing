@@ -1,0 +1,41 @@
+@model PanelNotificationsViewModel
+
+<div class="dropdown">
+    <button class="panel-bell" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside"
+            aria-expanded="false" aria-label="Notifications">
+        <svg class="svg-icon"><use href="#i-bell" /></svg>
+        @if (Model.TotalCount > 0)
+        {
+            <span class="panel-bell__badge">@(Model.TotalCount > 99 ? "99+" : Model.TotalCount.ToString())</span>
+        }
+    </button>
+
+    <div class="dropdown-menu dropdown-menu-end panel-bell__menu">
+        <div class="panel-bell__head">Notifications</div>
+
+        @if (!Model.HasItems)
+        {
+            <p class="panel-bell__empty mb-0">You are all caught up.</p>
+        }
+        else
+        {
+            foreach (var item in Model.Items)
+            {
+                if (item.Url is null)
+                {
+                    <span class="panel-bell__item">
+                        <span class="panel-bell__label">@item.Label</span>
+                        <span class="panel-bell__count">@item.Count</span>
+                    </span>
+                }
+                else
+                {
+                    <a class="panel-bell__item" href="@item.Url">
+                        <span class="panel-bell__label">@item.Label</span>
+                        <span class="panel-bell__count">@item.Count</span>
+                    </a>
+                }
+            }
+        }
+    </div>
+</div>

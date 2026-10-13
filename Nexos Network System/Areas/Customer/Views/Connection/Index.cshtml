@@ -1,0 +1,90 @@
+@model IReadOnlyList<Connection>
+@{
+    ViewData["Title"] = "My Connection";
+}
+
+<h1 class="h4 mb-1">My Connection</h1>
+<p class="text-muted">Your account numbers, plans, equipment and plan history.</p>
+
+@if (Model.Count == 0)
+{
+    <div class="card">
+        <div class="empty-state">
+            <div class="empty-icon">&#128225;</div>
+            <p class="mb-0">You do not have an active connection yet.</p>
+        </div>
+    </div>
+}
+else
+{
+    foreach (var connection in Model)
+    {
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                    <div>
+                        <h5 class="mb-1">@connection.AccountNumber</h5>
+                        <p class="text-muted small mb-0">
+                            @connection.ConnectionType &middot; @connection.City?.Name &middot; plan @connection.Plan?.Name
+                        </p>
+                    </div>
+                    <partial name="_Badge" model="@((object?)connection.Status)" />
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <dl class="row detail-list mb-0">
+                            <dt class="col-6">Installed</dt>
+                            <dd class="col-6">@(connection.InstalledAt?.ToLocalTime().ToString("dd MMM yyyy") ?? "-")</dd>
+                            <dt class="col-6">Activated</dt>
+                            <dd class="col-6">@(connection.ActivatedAt?.ToLocalTime().ToString("dd MMM yyyy") ?? "-")</dd>
+                            <dt class="col-6">Installation notes</dt>
+                            <dd class="col-6">@(connection.InstallationNotes ?? "-")</dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted small text-uppercase">Equipment</h6>
+                        @if (connection.EquipmentItems.Count == 0)
+                        {
+                            <p class="text-muted small mb-0">No equipment is assigned.</p>
+                        }
+                        else
+                        {
+                            <ul class="list-unstyled small mb-0">
+                                @foreach (var equipment in connection.EquipmentItems)
+                                {
+                                    <li class="d-flex justify-content-between mb-1">
+                                        <span>@(equipment.Product?.Name ?? "-")</span>
+                                        <span class="text-muted">@equipment.AssetTag</span>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                    </div>
+                </div>
+
+                @if (connection.PlanHistory.Count > 0)
+                {
+                    <hr />
+                    <h6 class="text-muted small text-uppercase">Plan History</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead><tr><th>Plan</th><th>From</th><th>To</th><th>Reason</th></tr></thead>
+                            <tbody>
+                                @foreach (var history in connection.PlanHistory.OrderByDescending(h => h.EffectiveFrom))
+                                {
+                                    <tr>
+                                        <td>@history.Plan.Name</td>
+                                        <td>@history.EffectiveFrom.ToLocalTime().ToString("dd MMM yyyy")</td>
+                                        <td>@(history.EffectiveTo?.ToLocalTime().ToString("dd MMM yyyy") ?? "Current")</td>
+                                        <td>@(history.Reason ?? "-")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+}

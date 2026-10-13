@@ -1,0 +1,98 @@
+@model Connection
+@{
+    ViewData["Title"] = "Connection Details";
+    var address = Model.Customer.Addresses.OrderByDescending(a => a.IsPrimary).FirstOrDefault();
+}
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div>
+        <h1 class="h4 mb-1">@Model.AccountNumber</h1>
+        <p class="text-muted mb-0">
+            @Model.ConnectionType &middot; @Model.Customer.FirstName @Model.Customer.LastName &middot;
+            <partial name="_Badge" model="@((object?)Model.Status)" />
+        </p>
+    </div>
+    <a class="btn btn-outline-secondary" asp-action="Index">Back to connections</a>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-5">
+        <div class="card p-4 mb-3">
+            <h6 class="mb-3">Connection</h6>
+            <dl class="row detail-list mb-0">
+                <dt class="col-6">Plan</dt>
+                <dd class="col-6">@Model.Plan?.Name</dd>
+                <dt class="col-6">City</dt>
+                <dd class="col-6">@Model.City?.Name</dd>
+                <dt class="col-6">Order</dt>
+                <dd class="col-6">@(Model.Order?.OrderNumber ?? "Not linked")</dd>
+                <dt class="col-6">Installed</dt>
+                <dd class="col-6">@(Model.InstalledAt?.ToLocalTime().ToString("dd MMM yyyy") ?? "-")</dd>
+                <dt class="col-6">Activated</dt>
+                <dd class="col-6">@(Model.ActivatedAt?.ToLocalTime().ToString("dd MMM yyyy") ?? "-")</dd>
+                <dt class="col-6">Notes</dt>
+                <dd class="col-6">@(Model.InstallationNotes ?? "-")</dd>
+                <dt class="col-6">Customer address</dt>
+                <dd class="col-6">@(address is null ? "-" : $"{address.AddressLine1}, {address.City?.Name}")</dd>
+            </dl>
+        </div>
+
+        <div class="card p-4">
+            <h6 class="mb-3">Update Status</h6>
+            <form asp-action="UpdateStatus" asp-route-id="@Model.Id" method="post" class="row g-2">
+                <div class="col-12">
+                    <select name="status" class="form-select" asp-items="Html.GetEnumSelectList<ConnectionStatus>()"></select>
+                </div>
+                <div class="col-12">
+                    <textarea name="notes" class="form-control" rows="2" placeholder="Installation notes (optional)"></textarea>
+                </div>
+                <div class="col-12 d-grid">
+                    <button type="submit" class="btn btn-primary">Update Status</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Assigned Equipment (@Model.EquipmentItems.Count)</span>
+                <a class="btn btn-sm btn-outline-primary" asp-controller="Equipment" asp-action="Assign">Assign Equipment</a>
+            </div>
+            <div class="card-body p-0">
+                @if (Model.EquipmentItems.Count == 0)
+                {
+                    <div class="empty-state">
+                        <p class="mb-2">No equipment is assigned to this connection.</p>
+                        <a class="btn btn-sm btn-outline-primary" asp-controller="Equipment" asp-action="Assign">Assign Equipment</a>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead><tr><th>Asset tag</th><th>Product</th><th>Serial</th><th>Assigned</th><th>Status</th><th></th></tr></thead>
+                            <tbody>
+                                @foreach (var equipment in Model.EquipmentItems)
+                                {
+                                    <tr>
+                                        <td class="fw-semibold">@equipment.AssetTag</td>
+                                        <td>@(equipment.Product?.Name ?? "-")</td>
+                                        <td>@(equipment.SerialNumber ?? "-")</td>
+                                        <td>@(equipment.AssignedAt?.ToLocalTime().ToString("dd MMM yyyy") ?? "-")</td>
+                                        <td><partial name="_Badge" model="@((object?)equipment.Status)" /></td>
+                                        <td class="table-actions">
+                                            <form asp-controller="Equipment" asp-action="Return" method="post" asp-route-id="@equipment.Id" class="d-inline">
+                                                <button type="submit" class="btn btn-outline-warning">Return</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

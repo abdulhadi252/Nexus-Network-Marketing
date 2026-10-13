@@ -1,0 +1,33 @@
+@model RetailShop
+@{
+    ViewData["Title"] = "Delete Shop";
+}
+
+<h1 class="h4 mb-1">Delete Retail Shop</h1>
+<p class="text-muted">Shops referenced by employees or orders are deactivated instead.</p>
+
+<div class="card">
+    <div class="card-body">
+        <dl class="row detail-list">
+            <dt class="col-sm-4">Name</dt>
+            <dd class="col-sm-8">@Model.Name</dd>
+            <dt class="col-sm-4">City</dt>
+            <dd class="col-sm-8">@Model.City?.Name</dd>
+            <dt class="col-sm-4">Contact number</dt>
+            <dd class="col-sm-8">@Model.ContactNumber</dd>
+            <dt class="col-sm-4">Linked employees</dt>
+            <dd class="col-sm-8">@Model.Employees.Count</dd>
+            <dt class="col-sm-4">Orders placed</dt>
+            <dd class="col-sm-8">@Model.Orders.Count</dd>
+        </dl>
+
+        <div class="alert alert-warning small">
+            If this shop is referenced by employees or orders it will be deactivated instead of deleted.
+        </div>
+
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-flex gap-2">
+            <button type="submit" class="btn btn-danger">Delete / Deactivate Shop</button>
+            <a class="btn btn-outline-secondary" asp-action="Index">Cancel</a>
+        </form>
+    </div>
+</div>

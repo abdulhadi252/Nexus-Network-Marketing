@@ -1,0 +1,99 @@
+@model PagedResult<Bill>
+@{
+    ViewData["Title"] = "Outstanding Dues";
+    var overdueOnly = (bool)(ViewData["overdueOnly"] ?? false);
+    decimal totalOutstanding = ViewBag.TotalOutstanding ?? 0m;
+    int overdueCount = ViewBag.OverdueCount ?? 0;
+    decimal overdueAmount = ViewBag.OverdueAmount ?? 0m;
+    var today = DateOnly.FromDateTime(DateTime.UtcNow);
+}
+
+<h1 class="h4 mb-1">Outstanding Dues</h1>
+<p class="text-muted">Track unpaid and partially paid bills with their due dates.</p>
+
+<div class="row g-3 mb-3">
+    <div class="col-md-4">
+        <div class="stat-card card">
+            <div class="stat-label">Total Outstanding</div>
+            <div class="stat-value">PKR @totalOutstanding.ToString("N2")</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card card">
+            <div class="stat-label">Overdue Bills</div>
+            <div class="stat-value">@overdueCount</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card card">
+            <div class="stat-label">Overdue Amount</div>
+            <div class="stat-value text-danger">PKR @overdueAmount.ToString("N2")</div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2">
+            <input type="hidden" name="overdueOnly" value="@(overdueOnly ? "true" : "false")" />
+            <div class="col-md-4">
+                <input type="text" name="q" value="@ViewData["q"]" class="form-control" placeholder="Account number or customer..." />
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-outline-primary">Search</button>
+                <a class="btn btn-outline-secondary" asp-action="Index">Reset</a>
+            </div>
+            <div class="col-auto">
+                <a class="btn @(overdueOnly ? "btn-primary" : "btn-outline-danger")" asp-action="Index" asp-route-overdueOnly="true">Overdue Only</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        @if (Model.Items.Count == 0)
+        {
+            <div class="empty-state">
+                <div class="empty-icon">&#9989;</div>
+                <p class="mb-0">@(overdueOnly ? "No overdue bills." : "No outstanding dues.")</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr><th>Bill</th><th>Customer</th><th>Account</th><th>Due date</th><th>Total</th><th>Paid</th><th>Due</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var bill in Model.Items)
+                        {
+                            var overdue = bill.DueDate < today;
+                            var daysOverdue = overdue ? today.DayNumber - bill.DueDate.DayNumber : 0;
+                            <tr class="@(overdue ? "table-warning" : "")">
+                                <td class="fw-semibold">@bill.BillNumber</td>
+                                <td>@bill.Customer.FirstName @bill.Customer.LastName</td>
+                                <td>@bill.Connection.AccountNumber</td>
+                                <td>
+                                    @bill.DueDate.ToString("dd MMM yyyy")
+                                    @if (overdue)
+                                    {
+                                        <span class="badge bg-danger ms-1">@daysOverdue day(s) overdue</span>
+                                    }
+                                </td>
+                                <td class="text-price">PKR @bill.TotalAmount.ToString("N2")</td>
+                                <td class="text-price">PKR @bill.PaidAmount.ToString("N2")</td>
+                                <td class="text-price">PKR @bill.DueAmount.ToString("N2")</td>
+                                <td class="table-actions">
+                                    <a class="btn btn-outline-primary" asp-controller="Payments" asp-action="Create" asp-route-billId="@bill.Id">Collect</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <partial name="_Pagination" model="Model" />
+        }
+    </div>
+</div>

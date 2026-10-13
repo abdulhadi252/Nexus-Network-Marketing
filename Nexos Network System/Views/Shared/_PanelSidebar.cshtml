@@ -1,0 +1,71 @@
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty;
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? string.Empty;
+
+    string Active(string controller, string action = "Index") =>
+        string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase) &&
+        string.Equals(currentAction, action, StringComparison.OrdinalIgnoreCase)
+            ? "active"
+            : string.Empty;
+}
+
+<div class="panel-nav">
+    <ul class="panel-nav-list">
+        @if (User.IsInRole("Admin"))
+        {
+            <li><a class="@Active("Dashboard")" asp-area="Admin" asp-controller="Dashboard" asp-action="Index"><svg class="nav-icon"><use href="#i-dashboard" /></svg>Dashboard</a></li>
+            <li><a class="@Active("Employees")" asp-area="Admin" asp-controller="Employees" asp-action="Index"><svg class="nav-icon"><use href="#i-employees" /></svg>Employees</a></li>
+            <li><a class="@Active("Customers")" asp-area="Admin" asp-controller="Customers" asp-action="Index"><svg class="nav-icon"><use href="#i-customers" /></svg>Customers</a></li>
+            <li><a class="@Active("RetailShops")" asp-area="Admin" asp-controller="RetailShops" asp-action="Index"><svg class="nav-icon"><use href="#i-shops" /></svg>Retail Shops</a></li>
+            <li><a class="@Active("Vendors")" asp-area="Admin" asp-controller="Vendors" asp-action="Index"><svg class="nav-icon"><use href="#i-vendors" /></svg>Vendors</a></li>
+            <li><a class="@Active("Products")" asp-area="Admin" asp-controller="Products" asp-action="Index"><svg class="nav-icon"><use href="#i-products" /></svg>Products</a></li>
+            <li><a class="@Active("Stock")" asp-area="Admin" asp-controller="Stock" asp-action="Index"><svg class="nav-icon"><use href="#i-stock" /></svg>Stock</a></li>
+            <li><a class="@Active("Plans")" asp-area="Admin" asp-controller="Plans" asp-action="Index"><svg class="nav-icon"><use href="#i-plans" /></svg>Plans</a></li>
+            <li><a class="@Active("Orders")" asp-area="Admin" asp-controller="Orders" asp-action="Index"><svg class="nav-icon"><use href="#i-orders" /></svg>Orders</a></li>
+            <li><a class="@Active("Connections")" asp-area="Admin" asp-controller="Connections" asp-action="Index"><svg class="nav-icon"><use href="#i-connections" /></svg>Connections</a></li>
+            <li><a class="@Active("Bills")" asp-area="Admin" asp-controller="Bills" asp-action="Index"><svg class="nav-icon"><use href="#i-bills" /></svg>Billing</a></li>
+            <li><a class="@Active("Payments")" asp-area="Admin" asp-controller="Payments" asp-action="Index"><svg class="nav-icon"><use href="#i-payments" /></svg>Payments</a></li>
+            <li><a class="@Active("Messages")" asp-area="Admin" asp-controller="Messages" asp-action="Index"><svg class="nav-icon"><use href="#i-messages" /></svg>Messages</a></li>
+            <li><a class="@Active("Search")" asp-area="Admin" asp-controller="Search" asp-action="Index"><svg class="nav-icon"><use href="#i-search" /></svg>Advanced Search</a></li>
+        }
+        else if (User.IsInRole("Retail"))
+        {
+            <li><a class="@Active("Dashboard")" asp-area="Retail" asp-controller="Dashboard" asp-action="Index"><svg class="nav-icon"><use href="#i-dashboard" /></svg>Dashboard</a></li>
+            <li><a class="@Active("Customers")" asp-area="Retail" asp-controller="Customers" asp-action="Index"><svg class="nav-icon"><use href="#i-customers" /></svg>Customers</a></li>
+            <li><a class="@Active("Orders")" asp-area="Retail" asp-controller="Orders" asp-action="Index"><svg class="nav-icon"><use href="#i-orders" /></svg>Orders</a></li>
+            <li><a class="@Active("Plans")" asp-area="Retail" asp-controller="Plans" asp-action="Index"><svg class="nav-icon"><use href="#i-plans" /></svg>Plans</a></li>
+            <li><a class="@Active("Connections")" asp-area="Retail" asp-controller="Connections" asp-action="Index"><svg class="nav-icon"><use href="#i-connections" /></svg>Connections</a></li>
+            <li><a class="@Active("Bills")" asp-area="Retail" asp-controller="Bills" asp-action="Index"><svg class="nav-icon"><use href="#i-bills" /></svg>Bills</a></li>
+            <li><a class="@Active("Payments")" asp-area="Retail" asp-controller="Payments" asp-action="Index"><svg class="nav-icon"><use href="#i-payments" /></svg>Payments</a></li>
+        }
+        else if (User.IsInRole("Technical"))
+        {
+            <li><a class="@Active("Dashboard")" asp-area="Technical" asp-controller="Dashboard" asp-action="Index"><svg class="nav-icon"><use href="#i-dashboard" /></svg>Dashboard</a></li>
+            <li><a class="@Active("Orders")" asp-area="Technical" asp-controller="Orders" asp-action="Index"><svg class="nav-icon"><use href="#i-orders" /></svg>Orders</a></li>
+            <li><a class="@Active("Feasibility")" asp-area="Technical" asp-controller="Feasibility" asp-action="Index"><svg class="nav-icon"><use href="#i-feasibility" /></svg>Feasibility</a></li>
+            <li><a class="@Active("Connections")" asp-area="Technical" asp-controller="Connections" asp-action="Index"><svg class="nav-icon"><use href="#i-connections" /></svg>Connections</a></li>
+            <li><a class="@Active("Equipment")" asp-area="Technical" asp-controller="Equipment" asp-action="Index"><svg class="nav-icon"><use href="#i-equipment" /></svg>Equipment</a></li>
+        }
+        else if (User.IsInRole("Accounts"))
+        {
+            <li><a class="@Active("Dashboard")" asp-area="Accounts" asp-controller="Dashboard" asp-action="Index"><svg class="nav-icon"><use href="#i-dashboard" /></svg>Dashboard</a></li>
+            <li><a class="@Active("Bills")" asp-area="Accounts" asp-controller="Bills" asp-action="Index"><svg class="nav-icon"><use href="#i-bills" /></svg>Bills</a></li>
+            <li><a class="@Active("Payments")" asp-area="Accounts" asp-controller="Payments" asp-action="Index"><svg class="nav-icon"><use href="#i-payments" /></svg>Payments</a></li>
+            <li><a class="@Active("Dues")" asp-area="Accounts" asp-controller="Dues" asp-action="Index"><svg class="nav-icon"><use href="#i-dues" /></svg>Outstanding Dues</a></li>
+            <li><a class="@Active("Customers")" asp-area="Accounts" asp-controller="Customers" asp-action="Index"><svg class="nav-icon"><use href="#i-customers" /></svg>Customers</a></li>
+            <li><a class="@Active("Connections")" asp-area="Accounts" asp-controller="Connections" asp-action="Index"><svg class="nav-icon"><use href="#i-connections" /></svg>Connections</a></li>
+        }
+        else if (User.IsInRole("Customer"))
+        {
+            <li><a class="@Active("Dashboard")" asp-area="Customer" asp-controller="Dashboard" asp-action="Index"><svg class="nav-icon"><use href="#i-dashboard" /></svg>Dashboard</a></li>
+            <li><a class="@Active("Profile")" asp-area="Customer" asp-controller="Profile" asp-action="Index"><svg class="nav-icon"><use href="#i-profile" /></svg>Profile</a></li>
+            <li><a class="@Active("Orders")" asp-area="Customer" asp-controller="Orders" asp-action="Index"><svg class="nav-icon"><use href="#i-orders" /></svg>My Orders</a></li>
+            <li><a class="@Active("Connection")" asp-area="Customer" asp-controller="Connection" asp-action="Index"><svg class="nav-icon"><use href="#i-connections" /></svg>My Connection</a></li>
+            <li><a class="@Active("Plan")" asp-area="Customer" asp-controller="Plan" asp-action="Index"><svg class="nav-icon"><use href="#i-plan" /></svg>Current Plan</a></li>
+            <li><a class="@Active("Equipment")" asp-area="Customer" asp-controller="Equipment" asp-action="Index"><svg class="nav-icon"><use href="#i-equipment" /></svg>My Equipment</a></li>
+            <li><a class="@Active("Bills")" asp-area="Customer" asp-controller="Bills" asp-action="Index"><svg class="nav-icon"><use href="#i-bills" /></svg>My Bills</a></li>
+            <li><a class="@Active("Payments")" asp-area="Customer" asp-controller="Payments" asp-action="Index"><svg class="nav-icon"><use href="#i-payments" /></svg>Payment History</a></li>
+            <li><a class="@Active("Feedback")" asp-area="Customer" asp-controller="Feedback" asp-action="Index"><svg class="nav-icon"><use href="#i-feedback" /></svg>Feedback</a></li>
+        }
+    </ul>
+</div>

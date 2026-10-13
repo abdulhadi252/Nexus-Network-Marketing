@@ -1,0 +1,60 @@
+@model IReadOnlyList<Order>
+@{
+    ViewData["Title"] = "My Orders";
+}
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div>
+        <h1 class="h4 mb-1">My Orders</h1>
+        <p class="text-muted mb-0">Track the status of every order you have placed.</p>
+    </div>
+    <a class="btn btn-primary" asp-action="Create">+ Place Order</a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        @if (Model.Count == 0)
+        {
+            <div class="empty-state">
+                <div class="empty-icon">&#128221;</div>
+                <p class="mb-2">You have not placed any orders yet.</p>
+                <a class="btn btn-primary" asp-action="Create">Place an order</a>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr><th>Order</th><th>Type</th><th>Plan</th><th>Submitted</th><th>Feasibility</th><th>Status</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@order.OrderNumber</td>
+                                <td>@order.ConnectionType</td>
+                                <td>@(order.Plan?.Name ?? "-")</td>
+                                <td>@order.SubmittedAt.ToLocalTime().ToString("dd MMM yyyy")</td>
+                                <td>
+                                    @if (order.FeasibilityReport is null)
+                                    {
+                                        <span class="text-muted">Pending</span>
+                                    }
+                                    else
+                                    {
+                                        <partial name="_Badge" model="@((object?)order.FeasibilityReport.Status)" />
+                                    }
+                                </td>
+                                <td><partial name="_Badge" model="@((object?)order.Status)" /></td>
+                                <td class="table-actions">
+                                    <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@order.Id">View</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

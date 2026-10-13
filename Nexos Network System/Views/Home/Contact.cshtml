@@ -1,0 +1,289 @@
+@model ContactViewModel
+@{
+    ViewData["Title"] = "Contact";
+}
+
+<!-- ================= Hero ================= -->
+<section class="contact-hero" aria-labelledby="contact-title">
+    <span class="contact-hero__photo" aria-hidden="true"></span>
+    <span class="contact-hero__grid" aria-hidden="true"></span>
+    <span class="contact-hero__glow" aria-hidden="true"></span>
+    <div class="container contact-hero__inner">
+        <div class="contact-hero__copy">
+            <p class="contact-eyebrow">
+                <span class="contact-eyebrow__mark" aria-hidden="true"></span>
+                GET IN TOUCH
+            </p>
+            <h1 id="contact-title" class="contact-hero__title">
+                Contact <span>Us</span>
+            </h1>
+            <p class="contact-hero__lead">
+                Have a question, need support, or want to know more about our services? We're here to help!
+            </p>
+            <div class="contact-hero__badges">
+                <div class="contact-badge">
+                    <span class="contact-badge__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="9" />
+                            <path d="M3 18v-6a9 9 0 0 1 18 0v6" />
+                            <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z" />
+                            <path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" />
+                            <path d="M9.4 9.4a2.4 2.4 0 1 1 3.4 3.4" />
+                            <path d="M12.6 12.6a2.4 2.4 0 1 1 3.4 3.4" />
+                            <path d="M9.2 9.6h.01" />
+                        </svg>
+                    </span>
+                    <div>
+                        <div class="contact-badge__title">24/7 Support</div>
+                        <div class="contact-badge__sub">We're always here</div>
+                    </div>
+                </div>
+                <div class="contact-badge">
+                    <span class="contact-badge__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="9" />
+                            <path d="M13 2 4.5 13.5H11L10 22l9.5-11.5H13V2Z" />
+                        </svg>
+                    </span>
+                    <div>
+                        <div class="contact-badge__title">Quick Response</div>
+                        <div class="contact-badge__sub">Within a few hours</div>
+                    </div>
+                </div>
+                <div class="contact-badge">
+                    <span class="contact-badge__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="9" />
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+                            <path d="m9 12 2 2 4-4" />
+                        </svg>
+                    </span>
+                    <div>
+                        <div class="contact-badge__title">Trusted Service</div>
+                        <div class="contact-badge__sub">For over 10K+ customers</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ================= Contact body ================= -->
+<section class="section contact-section">
+    <div class="container">
+        <div class="row gy-4 align-items-stretch">
+            <!-- Message form -->
+            <div class="col-lg-7">
+                <div class="contact-card contact-card--form">
+                    <div class="contact-card__head">
+                        <span class="contact-card__icon contact-card__icon--fluent">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <rect x="3" y="4" width="18" height="16" rx="2" />
+                                <path d="M3 7l9 6 9-6" />
+                            </svg>
+                        </span>
+                        <div>
+                            <h3 class="contact-card__title">Send Us a Message</h3>
+                            <p class="contact-card__sub">Fill out the form below and we'll get back to you as soon as possible.</p>
+                        </div>
+                    </div>
+
+                    @if (TempData["Success"] is string success)
+                    {
+                        <div class="alert alert-success">@success</div>
+                    }
+
+                    <form asp-action="Contact" method="post" novalidate>
+                        <div asp-validation-summary="ModelOnly" class="contact-validation-summary"></div>
+                        <div class="row gy-3">
+                            <!-- Full Name -->
+                            <div class="col-sm-6">
+                                <label asp-for="Name" class="form-label">Full Name *</label>
+                                <div class="input-with-icon">
+                                    <svg class="input-icon input-icon--left" aria-hidden="true"><use href="#i-user" /></svg>
+                                    <input asp-for="Name" class="form-control" placeholder="Enter your full name" />
+                                </div>
+                                <span asp-validation-for="Name" class="field-validation-error"></span>
+                            </div>
+                            <!-- Email -->
+                            <div class="col-sm-6">
+                                <label asp-for="Email" class="form-label">Email Address *</label>
+                                <div class="input-with-icon">
+                                    <svg class="input-icon input-icon--left" aria-hidden="true"><use href="#i-envelope" /></svg>
+                                    <input asp-for="Email" class="form-control" placeholder="you@example.com" type="email" />
+                                </div>
+                                <span asp-validation-for="Email" class="field-validation-error"></span>
+                            </div>
+                            <!-- Subject -->
+                            <div class="col-12">
+                                <label asp-for="Subject" class="form-label">Subject *</label>
+                                <div class="input-with-icon input-with-icon--select">
+                                    <svg class="input-icon input-icon--left" aria-hidden="true"><use href="#i-plan" /></svg>
+                                    <select asp-for="Subject" class="form-select">
+                                        <option value="">Select a subject</option>
+                                        <option value="General Enquiry">General Enquiry</option>
+                                        <option value="New Connection">New Connection</option>
+                                        <option value="Plan Upgrade / Downgrade">Plan Upgrade / Downgrade</option>
+                                        <option value="Billing & Payments">Billing &amp; Payments</option>
+                                        <option value="Technical Issue">Technical Issue</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                    <svg class="input-icon input-icon--right" aria-hidden="true"><use href="#i-chevron-down" /></svg>
+                                </div>
+                                <span asp-validation-for="Subject" class="field-validation-error"></span>
+                            </div>
+                            <!-- Message -->
+                            <div class="col-12">
+                                <label asp-for="Message" class="form-label">Message *</label>
+                                <div class="input-with-icon input-with-icon--textarea">
+                                    <svg class="input-icon input-icon--left" aria-hidden="true"><use href="#i-speech" /></svg>
+                                    <textarea asp-for="Message" class="form-control" rows="5" placeholder="Type your message here..." maxlength="1000"></textarea>
+                                    <span class="input-char-counter" aria-live="polite">0/1000</span>
+                                </div>
+                                <span asp-validation-for="Message" class="field-validation-error"></span>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary btn-contact">
+                                    Send Message
+                                    <svg class="btn-icon" aria-hidden="true"><path d="M20 15.5a4.5 4.5 0 0 0-8.3-3.6L3 7.5v4a3.5 3.5 0 0 0 7 3.1c.7-.6 1.4-1.3 1.9-2 .5 0 .9.2 1.3.4L20 17.4v-1.9l-1.2.4Z" /><path d="M3 7.5 12 13.5" /></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right column: info + map -->
+            <div class="col-lg-5">
+                <!-- Contact info -->
+                <div class="contact-card contact-card--info">
+                    <div class="contact-card__head">
+                        <span class="contact-card__icon contact-card__icon--fluent">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M12 21s-7-5.6-7-11a7 7 0 1 1 14 0c0 5.4-7 11-7 11Z" />
+                                <circle cx="12" cy="10" r="2.6" />
+                            </svg>
+                        </span>
+                        <div>
+                            <h3 class="contact-card__title">Our Contact Information</h3>
+                            <p class="contact-card__sub">Get in touch with us through any of the following channels.</p>
+                        </div>
+                    </div>
+
+                    <div class="contact-grid">
+                        <!-- Head Office -->
+                        <div class="contact-item">
+                            <span class="contact-item__icon contact-item__icon--fluent">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M12 21s-7-5.6-7-11a7 7 0 1 1 14 0c0 5.4-7 11-7 11Z" />
+                                    <circle cx="12" cy="10" r="2.6" />
+                                </svg>
+                            </span>
+                            <div>
+                                <div class="contact-item__title">Head Office</div>
+                                <div class="contact-item__text">12 Shahrah-e-Faisal,<br />Karachi, Pakistan</div>
+                            </div>
+                        </div>
+                        <!-- Phone -->
+                        <div class="contact-item">
+                            <span class="contact-item__icon contact-item__icon--fluent">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M22 16.92v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.9.6 2.8.7A2 2 0 0 1 22 16.9Z" />
+                                </svg>
+                            </span>
+                            <div>
+                                <div class="contact-item__title">Phone</div>
+                                <div class="contact-item__text">+92 21 111 122 333</div>
+                                <div class="contact-item__sub">Mon - Sat, 9:00 AM - 9:00 PM</div>
+                            </div>
+                        </div>
+                        <!-- Email -->
+                        <div class="contact-item">
+                            <span class="contact-item__icon contact-item__icon--fluent">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <rect x="3" y="4" width="18" height="16" rx="2" />
+                                    <path d="M3 7l9 6 9-6" />
+                                </svg>
+                            </span>
+                            <div>
+                                <div class="contact-item__title">Email</div>
+                                <div class="contact-item__text"><a href="mailto:support@nexus.local">support@nexus.local</a></div>
+                                <div class="contact-item__sub">We reply within 24 hours</div>
+                            </div>
+                        </div>
+                        <!-- Business hours -->
+                        <div class="contact-item">
+                            <span class="contact-item__icon contact-item__icon--fluent">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <circle cx="12" cy="12" r="9" />
+                                    <path d="M12 7v5l3 2" />
+                                </svg>
+                            </span>
+                            <div>
+                                <div class="contact-item__title">Business Hours</div>
+                                <div class="contact-item__text">Mon - Sat, 9:00 AM - 9:00 PM</div>
+                                <div class="contact-item__sub">Sunday - Closed</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Map + find us -->
+                <div class="contact-card contact-card--map">
+                    <div class="contact-map">
+                        <img class="contact-map__photo" src="~/img/home/contact-map.jpg" width="600" height="240"
+                             loading="lazy" decoding="async" alt="Map showing Shahrah-e-Faisal with the NEXUS head office near the seafront, Karachi" />
+                        <span class="contact-map__pin contact-map__pin--outer" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:30px;height:30px;color:var(--nexos-accent);filter:drop-shadow(0 6px 14px rgba(32,196,255,.55))">
+                                <path d="M12 21s-7-5.6-7-11a7 7 0 1 1 14 0c0 5.4-7 11-7 11Z" />
+                                <circle cx="12" cy="10" r="2.6" />
+                            </svg>
+                        </span>
+                        <span class="contact-map__pin">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:14px;height:14px;color:var(--nexos-accent)">
+                                <path d="M12 21s-7-5.6-7-11a7 7 0 1 1 14 0c0 5.4-7 11-7 11Z" />
+                                <circle cx="12" cy="10" r="2.6" />
+                            </svg>
+                            NEXUS Head Office
+                        </span>
+                    </div>
+                    <div class="contact-find-us">
+                        <h3 class="contact-find-us__title">Find Us</h3>
+                        <p class="contact-find-us__text">Visit our head office for any inquiries or support.</p>
+                        <a class="btn btn-outline-primary btn-contact-sm" asp-action="Contact">
+                            Get Directions
+                            <svg class="btn-icon" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ================= Full-width location map (online embed) ================= -->
+<section class="contact-map-band" aria-label="NEXUS head office location">
+    <iframe class="contact-map-band__frame"
+            src="https://www.google.com/maps?q=Shahrah-e-Faisal%2C%20Karachi%2C%20Pakistan&output=embed"
+            title="NEXUS Head Office location - Shahrah-e-Faisal, Karachi"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            allowfullscreen></iframe>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            var textarea = document.querySelector("textarea[maxlength]");
+            var counter = document.querySelector(".input-char-counter");
+            if (textarea && counter) {
+                function update() {
+                    counter.textContent = textarea.value.length + "/1000";
+                }
+                textarea.addEventListener("input", update);
+                update();
+            }
+        })();
+    </script>
+}
