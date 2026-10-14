@@ -22,6 +22,15 @@ public class PagedResult<T> : PagedResultBase
         if (pageSize < 1) pageSize = 10;
 
         var totalItems = await query.CountAsync(cancellationToken);
+
+        // A page beyond the last one - bookmarking a high page number, or narrowing a
+        // filter while paging - shows the final page instead of an empty list.
+        var totalPages = Math.Max(1, (int)Math.Ceiling(totalItems / (double)pageSize));
+        if (page > totalPages)
+        {
+            page = totalPages;
+        }
+
         var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(cancellationToken);
 
         return new PagedResult<T>

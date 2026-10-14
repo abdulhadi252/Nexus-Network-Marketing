@@ -49,6 +49,7 @@ builder.Services.AddScoped<IAdminSearchService, AdminSearchService>();
 
 var app = builder.Build();
 
+await DbSeeder.EnsureDatabaseAsync(app);
 await DbSeeder.SeedAsync(app);
 
 if (!app.Environment.IsDevelopment())

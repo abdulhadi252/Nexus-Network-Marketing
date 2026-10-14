@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Nexos_Network_System.Data;
 using Nexos_Network_System.Helpers;
 using Nexos_Network_System.Models;
+using Nexos_Network_System.Models.Enums;
 using Nexos_Network_System.ViewModels;
 
 using CustomerModel = Nexos_Network_System.Models.Customer;
@@ -15,10 +16,9 @@ namespace Nexos_Network_System.Areas.Admin.Controllers;
 [Authorize(Roles = "Admin")]
 public class CustomersController(ApplicationDbContext db) : Controller
 {
-    public async Task<IActionResult> Index(string? q, int page = 1)
+    public async Task<IActionResult> Index(string? q, bool? isActive, int? cityId, int page = 1)
     {
         ViewData["PanelName"] = "Admin Panel";
-        ViewData["q"] = q;
 
         var query = db.Customers
             .Include(c => c.Addresses).ThenInclude(a => a.City)
@@ -37,8 +37,33 @@ public class CustomersController(ApplicationDbContext db) : Controller
                 (c.NationalId != null && c.NationalId.Contains(term)));
         }
 
-        var result = await PagedResult<CustomerModel>.CreateAsync(query.OrderBy(c => c.LastName).ThenBy(c => c.FirstName), page);
-        return View(result);
+        if (isActive.HasValue)
+        {
+            query = query.Where(c => c.IsActive == isActive.Value);
+        }
+
+        if (cityId.HasValue)
+        {
+            query = query.Where(c => c.Addresses.Any(a => a.CityId == cityId.Value));
+        }
+
+        var customers = await PagedResult<CustomerModel>.CreateAsync(
+            query.OrderBy(c => c.LastName).ThenBy(c => c.FirstName), page);
+
+        // The tiles summarise the whole register, so they are counted independently of the filters.
+        var model = new CustomerIndexViewModel
+        {
+            Customers = customers,
+            TotalCustomers = await db.Customers.CountAsync(),
+            ActiveConnections = await db.Connections.CountAsync(c => c.Status == ConnectionStatus.Active),
+            ServiceCities = await db.CustomerAddresses.Select(a => a.CityId).Distinct().CountAsync(),
+            Query = q,
+            IsActive = isActive,
+            CityId = cityId,
+            Cities = await db.Cities.AsNoTracking().OrderBy(c => c.Name).ToListAsync()
+        };
+
+        return View(model);
     }
 
     public async Task<IActionResult> Details(int id)

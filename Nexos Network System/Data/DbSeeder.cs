@@ -17,9 +17,36 @@ public static class DbSeeder
 {
     public const string DemoPassword = "Nexos@123";
 
-    public static async Task SeedAsync(WebApplication app)
+    /// <summary>
+    /// Applies migrations (or falls back to EnsureCreated when model changes are pending) 
+    /// before the real seed logic runs. The original seed entrypoint is preserved below.
+    /// </summary>
+    public static async Task EnsureDatabaseAsync(WebApplication app)
+{
+    using var scope = app.Services.CreateScope();
+    using var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    try
     {
-        using var scope = app.Services.CreateScope();
+        await db.Database.MigrateAsync();
+    }
+    catch (InvalidOperationException ex) when (ex.Message.Contains("pending changes", StringComparison.OrdinalIgnoreCase))
+    {
+        var loggerFactory = scope.ServiceProvider.GetRequiredService<ILoggerFactory>();
+        var logger = loggerFactory.CreateLogger("DbSeeder");
+        logger.LogWarning(ex, "Pending model changes detected; falling back to EnsureCreated.");
+        await db.Database.EnsureCreatedAsync();
+    }
+    catch (Exception ex)
+    {
+        var loggerFactory = scope.ServiceProvider.GetRequiredService<ILoggerFactory>();
+        var logger = loggerFactory.CreateLogger("DbSeeder");
+        logger.LogWarning(ex, "Database migration failed; seed will attempt to continue.");
+    }
+}
+
+    public static async Task SeedAsync(WebApplication app)
+{
+    using var scope = app.Services.CreateScope();
         var services = scope.ServiceProvider;
         var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger("DbSeeder");
 

@@ -15,12 +15,18 @@ namespace Nexos_Network_System.Areas.Admin.Controllers;
 [Authorize(Roles = "Admin")]
 public class EmployeesController(ApplicationDbContext db, UserManager<ApplicationUser> userManager) : Controller
 {
-    public async Task<IActionResult> Index(string? q, int page = 1)
+    public async Task<IActionResult> Index(string? q, EmployeeRole? role, int page = 1)
     {
         ViewData["PanelName"] = "Admin Panel";
-        ViewData["q"] = q;
 
-        var query = db.Employees.Include(e => e.RetailShop).AsNoTracking().AsQueryable();
+        var baseQuery = db.Employees.Include(e => e.RetailShop).AsNoTracking().AsQueryable();
+
+        // Summary tiles: counts from the unfiltered set so the tiles stay stable while paging.
+        var totalEmployees = await baseQuery.CountAsync();
+        var activeEmployees = await baseQuery.CountAsync(e => e.IsActive);
+        var staffRoles = await baseQuery.Select(e => e.Role).Distinct().CountAsync();
+
+        var query = baseQuery;
 
         if (!string.IsNullOrWhiteSpace(q))
         {
@@ -33,8 +39,24 @@ public class EmployeesController(ApplicationDbContext db, UserManager<Applicatio
                 e.ContactNumber.Contains(term));
         }
 
-        var result = await PagedResult<Employee>.CreateAsync(query.OrderBy(e => e.EmployeeNumber), page);
-        return View(result);
+        if (role.HasValue)
+        {
+            query = query.Where(e => e.Role == role.Value);
+        }
+
+        var employees = await PagedResult<Employee>.CreateAsync(query.OrderBy(e => e.EmployeeNumber), page);
+
+        var model = new EmployeeIndexViewModel
+        {
+            Employees = employees,
+            TotalEmployees = totalEmployees,
+            ActiveEmployees = activeEmployees,
+            StaffRoles = staffRoles,
+            Query = q,
+            Role = role
+        };
+
+        return View(model);
     }
 
     public async Task<IActionResult> Details(int id)

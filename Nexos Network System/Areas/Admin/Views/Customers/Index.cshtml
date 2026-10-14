@@ -1,71 +1,293 @@
-@model PagedResult<Customer>
+@model CustomerIndexViewModel
 @{
     ViewData["Title"] = "Customers";
+
+    var filtersActive = Model.IsActive.HasValue || Model.CityId.HasValue;
+
+    // Initials shown in the round avatar that opens the "Customer" cell.
+    string Initials(Customer customer)
+    {
+        var first = customer.FirstName.Trim();
+        var last = customer.LastName.Trim();
+        return ((first.Length > 0 ? first[..1] : string.Empty) + (last.Length > 0 ? last[..1] : string.Empty)).ToUpperInvariant();
+    }
+
+    // Preserves the search and filter selections while paging.
+    Dictionary<string, string> PageRoute(int targetPage)
+    {
+        var values = new Dictionary<string, string> { ["page"] = targetPage.ToString() };
+        if (!string.IsNullOrWhiteSpace(Model.Query))
+        {
+            values["q"] = Model.Query!;
+        }
+
+        if (Model.IsActive.HasValue)
+        {
+            values["isActive"] = Model.IsActive.Value ? "true" : "false";
+        }
+
+        if (Model.CityId.HasValue)
+        {
+            values["cityId"] = Model.CityId.Value.ToString();
+        }
+
+        return values;
+    }
+
+    var pageStart = Math.Max(1, Model.Customers.Page - 2);
+    var pageEnd = Math.Min(Model.Customers.TotalPages, pageStart + 4);
+    pageStart = Math.Max(1, pageEnd - 4);
 }
 
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+<nav class="crumbs" aria-label="Breadcrumb">
+    <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+        <svg class="svg-icon" aria-hidden="true"><use href="#i-home-clean" /></svg>
+        <span>Dashboard</span>
+    </a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <span class="crumbs__current" aria-current="page">Customers</span>
+</nav>
+
+<div class="page-header">
     <div>
-        <h1 class="h4 mb-1">Customers</h1>
-        <p class="text-muted mb-0">All registered customers with their primary address and connection count.</p>
+        <h1 class="h3">Customers</h1>
+        <p class="page-subtitle">Manage registered customers, contact details and connection accounts.</p>
     </div>
-    <a class="btn btn-primary" asp-action="Create">+ New Customer</a>
+    <div class="page-head__actions">
+        <span class="count-chip">
+            <svg class="svg-icon" aria-hidden="true"><use href="#i-people" /></svg>
+            @Model.Customers.TotalItems customer@(Model.Customers.TotalItems == 1 ? string.Empty : "s")
+        </span>
+        <a class="btn btn-primary" asp-action="Create">
+            <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-plus" /></svg>
+            New Customer
+        </a>
+    </div>
 </div>
 
-<div class="card">
+<div class="row g-3 mb-3">
+    <div class="col-12 col-md-4">
+        <article class="stat-tile">
+            <span class="stat-tile__icon"><svg class="svg-icon" aria-hidden="true"><use href="#i-people" /></svg></span>
+            <span class="stat-tile__body">
+                <span class="stat-tile__label">Total Customers</span>
+                <span class="stat-tile__value">@Model.TotalCustomers.ToString("N0")</span>
+            </span>
+        </article>
+    </div>
+    <div class="col-12 col-md-4">
+        <article class="stat-tile">
+            <span class="stat-tile__icon"><svg class="svg-icon" aria-hidden="true"><use href="#i-broadband" /></svg></span>
+            <span class="stat-tile__body">
+                <span class="stat-tile__label">Active Connections</span>
+                <span class="stat-tile__value">@Model.ActiveConnections.ToString("N0")</span>
+            </span>
+        </article>
+    </div>
+    <div class="col-12 col-md-4">
+        <article class="stat-tile">
+            <span class="stat-tile__icon"><svg class="svg-icon" aria-hidden="true"><use href="#i-location-pin" /></svg></span>
+            <span class="stat-tile__body">
+                <span class="stat-tile__label">Service Cities</span>
+                <span class="stat-tile__value">@Model.ServiceCities.ToString("N0")</span>
+            </span>
+        </article>
+    </div>
+</div>
+
+<section class="card directory">
     <div class="card-body">
-        <form method="get" class="row g-2 mb-3">
-            <div class="col-sm-6 col-md-4">
-                <input type="text" name="q" value="@ViewData["q"]" class="form-control" placeholder="Search name, email, phone..." />
+        <h2 class="directory__title">Customer Directory</h2>
+
+        <form method="get" class="toolbar directory__toolbar">
+            <div class="search-bar directory__search">
+                <svg class="search-icon svg-icon" aria-hidden="true"><use href="#i-search" /></svg>
+                <label class="visually-hidden" for="customerSearch">Search customers</label>
+                <input id="customerSearch" type="search" name="q" value="@Model.Query" class="form-control" placeholder="Search name, email or phone..." />
             </div>
-            <div class="col-auto">
-                <button type="submit" class="btn btn-outline-primary">Search</button>
-                <a class="btn btn-outline-secondary" asp-action="Index">Reset</a>
+            <button type="submit" class="btn btn-outline-primary">
+                <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-search" /></svg>
+                Search
+            </button>
+            <a class="btn btn-outline-secondary" asp-action="Index">
+                <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-refresh" /></svg>
+                Reset
+            </a>
+
+            <span class="toolbar-spacer" aria-hidden="true"></span>
+
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle @(filtersActive ? "is-filtered" : string.Empty)" type="button"
+                        data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
+                    <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-filter" /></svg>
+                    Filters
+                </button>
+                <div class="dropdown-menu dropdown-menu-end filter-menu">
+                    <div class="filter-menu__field">
+                        <label class="form-label" for="filterStatus">Status</label>
+                        <select id="filterStatus" name="isActive" class="form-select">
+                            <option value="">All statuses</option>
+                            <option value="true" selected="@(Model.IsActive == true)">Active</option>
+                            <option value="false" selected="@(Model.IsActive == false)">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="filter-menu__field">
+                        <label class="form-label" for="filterCity">City</label>
+                        <select id="filterCity" name="cityId" class="form-select">
+                            <option value="">All cities</option>
+                            @foreach (var city in Model.Cities)
+                            {
+                                <option value="@city.Id" selected="@(Model.CityId == city.Id)">@city.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="filter-menu__actions">
+                        <a class="btn btn-sm btn-outline-secondary" asp-action="Index">Clear</a>
+                        <button type="submit" class="btn btn-sm btn-primary">Apply</button>
+                    </div>
+                </div>
             </div>
         </form>
 
-        @if (Model.Items.Count == 0)
+        @if (Model.Customers.Items.Count == 0)
         {
             <div class="empty-state">
-                <div class="empty-icon">&#128101;</div>
-                <p class="mb-0">No customers match your search.</p>
+                <span class="empty-icon"><svg class="svg-icon" aria-hidden="true"><use href="#i-people" /></svg></span>
+                <p class="empty-title">No customers found</p>
+                <p class="mb-0">Try a different search term or clear the filters.</p>
             </div>
         }
         else
         {
             <div class="table-responsive">
-                <table class="table table-hover align-middle">
+                <table class="table table-hover align-middle directory__table">
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Contact</th>
-                            <th>City</th>
-                            <th>Connections</th>
-                            <th>Status</th>
-                            <th></th>
+                            <th scope="col">Customer</th>
+                            <th scope="col">Email Address</th>
+                            <th scope="col">Phone</th>
+                            <th scope="col">Connections</th>
+                            <th scope="col">Status</th>
+                            <th scope="col" class="text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var customer in Model.Items)
+                        @foreach (var customer in Model.Customers.Items)
                         {
+                            var fullName = $"{customer.FirstName} {customer.LastName}".Trim();
+                            var connectionCount = customer.Connections.Count;
+
+                            // The active connection (if any) describes the account best, so it
+                            // supplies the small label that sits under the customer name.
+                            var primaryConnection = customer.Connections
+                                .OrderByDescending(c => c.Status == ConnectionStatus.Active)
+                                .ThenBy(c => c.Id)
+                                .FirstOrDefault();
+
                             <tr>
-                                <td class="fw-semibold">@customer.FirstName @customer.LastName</td>
-                                <td>@customer.Email</td>
-                                <td>@customer.PrimaryContactNumber</td>
-                                <td>@(customer.Addresses.OrderByDescending(a => a.IsPrimary).FirstOrDefault()?.City?.Name ?? "-")</td>
-                                <td>@customer.Connections.Count</td>
-                                <td><partial name="_Badge" model="@((object?)(customer.IsActive ? "Active" : "Inactive"))" /></td>
-                                <td class="table-actions">
-                                    <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@customer.Id">View</a>
-                                    <a class="btn btn-outline-primary" asp-action="Edit" asp-route-id="@customer.Id">Edit</a>
-                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@customer.Id">Deactivate</a>
+                                <td>
+                                    <div class="person">
+                                        <span class="person__avatar" aria-hidden="true">@Initials(customer)</span>
+                                        <span class="person__body">
+                                            <a class="person__name" asp-action="Details" asp-route-id="@customer.Id">@fullName</a>
+                                            <span class="person__meta">@(primaryConnection is null ? "No connection" : primaryConnection.ConnectionType.ToString())</span>
+                                        </span>
+                                    </div>
+                                </td>
+                                <td><a class="text-body-muted" href="mailto:@customer.Email">@customer.Email</a></td>
+                                <td class="text-body-muted">@customer.PrimaryContactNumber</td>
+                                <td>
+                                    @if (connectionCount == 0)
+                                    {
+                                        <span class="conn conn--none">
+                                            <svg class="svg-icon" aria-hidden="true"><use href="#i-broadband" /></svg>
+                                            <span>No connections</span>
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <a class="conn" asp-controller="Connections" asp-action="Index" asp-route-q="@fullName"
+                                           aria-label="@connectionCount connection(s) for @fullName">
+                                            <svg class="svg-icon" aria-hidden="true"><use href="#i-broadband" /></svg>
+                                            <span>@connectionCount connection@(connectionCount == 1 ? string.Empty : "s")</span>
+                                            <svg class="svg-icon conn__go" aria-hidden="true"><use href="#i-chevron-right" /></svg>
+                                        </a>
+                                    }
+                                </td>
+                                <td><partial name="_StatusPill" model="@((object?)(customer.IsActive ? "Active" : "Inactive"))" /></td>
+                                <td>
+                                    <div class="row-actions">
+                                        <a class="icon-btn" asp-action="Details" asp-route-id="@customer.Id" title="View details" aria-label="View @fullName">
+                                            <svg class="svg-icon" aria-hidden="true"><use href="#i-eye" /></svg>
+                                        </a>
+                                        <a class="icon-btn" asp-action="Edit" asp-route-id="@customer.Id" title="Edit customer" aria-label="Edit @fullName">
+                                            <svg class="svg-icon" aria-hidden="true"><use href="#i-edit" /></svg>
+                                        </a>
+                                        <div class="dropdown">
+                                            <button class="icon-btn" type="button" data-bs-toggle="dropdown" data-bs-display="static"
+                                                    aria-expanded="false" title="More actions" aria-label="More actions for @fullName">
+                                                <svg class="svg-icon" aria-hidden="true"><use href="#i-more-vertical" /></svg>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li><a class="dropdown-item" asp-action="Details" asp-route-id="@customer.Id">View details</a></li>
+                                                <li><a class="dropdown-item" asp-action="Edit" asp-route-id="@customer.Id">Edit customer</a></li>
+                                                <li><hr class="dropdown-divider" /></li>
+                                                <li><a class="dropdown-item text-danger" asp-action="Delete" asp-route-id="@customer.Id">Deactivate</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
                                 </td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
-            <partial name="_Pagination" model="Model" />
+
+            <div class="directory__foot">
+                <span class="directory__showing">
+                    Showing @Model.FirstRowNumber&ndash;@Model.LastRowNumber of @Model.Customers.TotalItems customer@(Model.Customers.TotalItems == 1 ? string.Empty : "s")
+                </span>
+
+                <nav class="pager" aria-label="Customer directory pages">
+                    @if (Model.Customers.HasPrevious)
+                    {
+                        <a class="pager__btn" asp-action="Index" asp-all-route-data="PageRoute(Model.Customers.Page - 1)" aria-label="Previous page">
+                            <svg class="svg-icon" aria-hidden="true"><use href="#i-chevron-left" /></svg>
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="pager__btn is-disabled" aria-hidden="true">
+                            <svg class="svg-icon"><use href="#i-chevron-left" /></svg>
+                        </span>
+                    }
+
+                    @for (var pageNumber = pageStart; pageNumber <= pageEnd; pageNumber++)
+                    {
+                        if (pageNumber == Model.Customers.Page)
+                        {
+                            <span class="pager__btn is-active" aria-current="page">@pageNumber</span>
+                        }
+                        else
+                        {
+                            <a class="pager__btn" asp-action="Index" asp-all-route-data="PageRoute(pageNumber)">@pageNumber</a>
+                        }
+                    }
+
+                    @if (Model.Customers.HasNext)
+                    {
+                        <a class="pager__btn" asp-action="Index" asp-all-route-data="PageRoute(Model.Customers.Page + 1)" aria-label="Next page">
+                            <svg class="svg-icon" aria-hidden="true"><use href="#i-chevron-right" /></svg>
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="pager__btn is-disabled" aria-hidden="true">
+                            <svg class="svg-icon"><use href="#i-chevron-right" /></svg>
+                        </span>
+                    }
+                </nav>
+            </div>
         }
     </div>
-</div>
+</section>

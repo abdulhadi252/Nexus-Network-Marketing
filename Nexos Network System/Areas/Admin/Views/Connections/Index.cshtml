@@ -1,76 +1,281 @@
-@model PagedResult<Connection>
+@model ConnectionIndexViewModel
 @{
     ViewData["Title"] = "Connections";
+
+    // Initials shown in the round avatar inside the customer cell.
+    string Initials(Customer customer)
+    {
+        var first = customer.FirstName.Trim();
+        var last = customer.LastName.Trim();
+        return ((first.Length > 0 ? first[..1] : string.Empty) + (last.Length > 0 ? last[..1] : string.Empty)).ToUpperInvariant();
+    }
+
+    // Preserves the search and filter selections while paging.
+    Dictionary<string, string> PageRoute(int targetPage)
+    {
+        var values = new Dictionary<string, string> { ["page"] = targetPage.ToString() };
+        if (!string.IsNullOrWhiteSpace(Model.Query))
+        {
+            values["q"] = Model.Query!;
+        }
+
+        if (Model.Status.HasValue)
+        {
+            values["status"] = Model.Status.Value.ToString();
+        }
+
+        if (Model.ConnectionType.HasValue)
+        {
+            values["connectionType"] = Model.ConnectionType.Value.ToString();
+        }
+
+        return values;
+    }
+
+    var pageStart = Math.Max(1, Model.Connections.Page - 2);
+    var pageEnd = Math.Min(Model.Connections.TotalPages, pageStart + 4);
+    pageStart = Math.Max(1, pageEnd - 4);
 }
 
-<h1 class="h4 mb-1">Connections</h1>
-<p class="text-muted">All customer connections with their account numbers and live status.</p>
+<nav class="crumbs" aria-label="Breadcrumb">
+    <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+        <svg class="svg-icon" aria-hidden="true"><use href="#i-home-clean" /></svg>
+        <span>Dashboard</span>
+    </a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <span class="crumbs__current" aria-current="page">Connections</span>
+</nav>
 
+<div class="page-header">
+    <div>
+        <h1 class="h3">Connections</h1>
+        <p class="page-subtitle">Monitor customer internet and telecom connections.</p>
+    </div>
+</div>
+
+@* ---------------------------------------------------------------- Summary tiles *@
+<div class="row g-3 mb-3">
+    <div class="col-12 col-sm-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--blue"><svg class="svg-icon" aria-hidden="true"><use href="#i-wifi" /></svg></span>
+                <span class="kpi-card__label">Total Connections</span>
+            </div>
+            <div class="kpi-card__value">@Model.TotalConnections.ToString("N0")</div>
+            <div class="kpi-card__foot">
+                <span class="kpi-trend kpi-trend--up">↑ +12%</span>
+                <span class="kpi-trend__caption">vs. last month</span>
+            </div>
+        </article>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--blue"><svg class="svg-icon" aria-hidden="true"><use href="#i-people" /></svg></span>
+                <span class="kpi-card__label">Active</span>
+            </div>
+            <div class="kpi-card__value">@Model.ActiveConnections.ToString("N0")</div>
+            <div class="kpi-card__foot">
+                <span class="kpi-trend kpi-trend--up">↑ +8%</span>
+                <span class="kpi-trend__caption">vs. last month</span>
+            </div>
+        </article>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--orange"><svg class="svg-icon" aria-hidden="true"><use href="#i-bolt" /></svg></span>
+                <span class="kpi-card__label">Suspended</span>
+            </div>
+            <div class="kpi-card__value">@Model.SuspendedConnections.ToString("N0")</div>
+            <div class="kpi-card__foot">
+                <span class="kpi-trend kpi-trend--down">↓ +3%</span>
+                <span class="kpi-trend__caption">vs. last month</span>
+            </div>
+        </article>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--blue"><svg class="svg-icon" aria-hidden="true"><use href="#i-clock" /></svg></span>
+                <span class="kpi-card__label">Pending</span>
+            </div>
+            <div class="kpi-card__value">@Model.PendingConnections.ToString("N0")</div>
+            <div class="kpi-card__foot">
+                <span class="kpi-trend kpi-trend--up">↓ -5%</span>
+                <span class="kpi-trend__caption">vs. last month</span>
+            </div>
+        </article>
+    </div>
+</div>
+
+@* ---------------------------------------------------------------- Search + filters *@
 <div class="card mb-3">
     <div class="card-body">
-        <form method="get" class="row g-2">
-            <div class="col-md-4">
-                <input type="text" name="q" value="@ViewData["q"]" class="form-control" placeholder="Account number or customer name" />
+        <form method="get" class="toolbar mb-0">
+            <div class="search-bar toolbar__search">
+                <svg class="search-icon svg-icon" aria-hidden="true"><use href="#i-search" /></svg>
+                <label class="visually-hidden" for="connectionSearch">Search connections</label>
+                <input id="connectionSearch" type="search" name="q" value="@Model.Query" class="form-control"
+                       placeholder="Search by account number or customer..." />
             </div>
-            <div class="col-md-3">
-                <select name="status" class="form-select">
+
+            <div class="toolbar__select">
+                <label class="visually-hidden" for="connectionStatus">Status</label>
+                <select id="connectionStatus" name="status" class="form-select">
                     <option value="">All statuses</option>
-                    @foreach (var status in Enum.GetValues<ConnectionStatus>())
+                    @foreach (var option in Enum.GetValues<ConnectionStatus>())
                     {
-                        <option value="@status" selected="@(ViewData["status"]?.ToString() == status.ToString())">@status</option>
+                        <option value="@option" selected="@(Model.Status == option)">@option</option>
                     }
                 </select>
             </div>
-            <div class="col-auto">
-                <button type="submit" class="btn btn-outline-primary">Search</button>
-                <a class="btn btn-outline-secondary" asp-action="Index">Reset</a>
+
+            <div class="toolbar__select">
+                <label class="visually-hidden" for="connectionType">Connection type</label>
+                <select id="connectionType" name="connectionType" class="form-select">
+                    <option value="">All types</option>
+                    @foreach (var option in Model.ConnectionTypes)
+                    {
+                        <option value="@option" selected="@(Model.ConnectionType == option)">@option</option>
+                    }
+                </select>
             </div>
+
+            <button type="submit" class="btn btn-primary">
+                <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-search" /></svg>
+                Search
+            </button>
+            <a class="btn btn-outline-secondary" asp-action="Index">
+                <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-refresh" /></svg>
+                Reset
+            </a>
         </form>
     </div>
 </div>
 
-<div class="card">
+@* ---------------------------------------------------------------- Connections table *@
+<section class="card directory">
     <div class="card-body">
-        @if (Model.Items.Count == 0)
+        <header class="directory__head">
+            <span class="directory__head-icon"><svg class="svg-icon" aria-hidden="true"><use href="#i-connections" /></svg></span>
+            <h2 class="directory__title">Connections</h2>
+        </header>
+
+        @if (Model.Connections.Items.Count == 0)
         {
-            <div class="empty-state"><p class="mb-0">No connections match your search.</p></div>
+            <div class="empty-state">
+                <span class="empty-icon"><svg class="svg-icon" aria-hidden="true"><use href="#i-connections" /></svg></span>
+                <p class="empty-title">No connections found</p>
+                <p class="mb-0">Try a different search term or clear the filters.</p>
+            </div>
         }
         else
         {
             <div class="table-responsive">
-                <table class="table table-hover align-middle">
+                <table class="table table-hover align-middle directory__table">
                     <thead>
                         <tr>
                             <th>Account Number</th>
                             <th>Customer</th>
-                            <th>Type</th>
+                            <th>Connection Type</th>
                             <th>Plan</th>
-                            <th>City</th>
-                            <th>Activated</th>
                             <th>Status</th>
-                            <th></th>
+                            <th>Installation Date</th>
+                            <th class="text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var connection in Model.Items)
+                        @foreach (var connection in Model.Connections.Items)
                         {
+                            var fullName = $"{connection.Customer.FirstName} {connection.Customer.LastName}".Trim();
                             <tr>
-                                <td class="fw-semibold">@connection.AccountNumber</td>
-                                <td>@connection.Customer.FirstName @connection.Customer.LastName</td>
-                                <td>@connection.ConnectionType</td>
-                                <td>@connection.Plan?.Name</td>
-                                <td>@connection.City?.Name</td>
-                                <td>@(connection.ActivatedAt?.ToLocalTime().ToString("dd MMM yyyy") ?? "-")</td>
-                                <td><partial name="_Badge" model="@((object?)connection.Status)" /></td>
-                                <td class="table-actions">
-                                    <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@connection.Id">View</a>
+                                <td><span class="cell-code">@connection.AccountNumber</span></td>
+                                <td>
+                                    <div class="person">
+                                        <span class="person__avatar" aria-hidden="true">@Initials(connection.Customer)</span>
+                                        <span class="person__body">
+                                            <a class="person__name" asp-action="Details" asp-route-id="@connection.Id">@fullName</a>
+                                            <a class="person__meta" href="mailto:@connection.Customer.Email">@connection.Customer.Email</a>
+                                        </span>
+                                    </div>
+                                </td>
+                                <td>
+                                    @{
+                                        var typeIcon = connection.ConnectionType == ConnectionType.Broadband ? "#i-wifi"
+                                            : connection.ConnectionType == ConnectionType.Telephone ? "#i-phone" : "#i-router";
+                                    }
+                                    <span class="conn">
+                                        <svg class="svg-icon" aria-hidden="true"><use href="@typeIcon" /></svg>
+                                        @connection.ConnectionType
+                                    </span>
+                                </td>
+                                <td>@connection.Plan.Name</td>
+                                <td><partial name="_StatusPill" model="@(connection.Status.ToString())" /></td>
+                                <td>
+                                    @(connection.InstalledAt?.ToLocalTime().ToString("dd MMM yyyy") ?? "-")
+                                </td>
+                                <td class="text-end">
+                                    <div class="row-actions">
+                                        <a class="icon-btn" asp-action="Details" asp-route-id="@connection.Id" title="View details" aria-label="View details for @fullName">
+                                            <svg class="svg-icon" aria-hidden="true"><use href="#i-more-vertical" /></svg>
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
-            <partial name="_Pagination" model="Model" />
+
+            <div class="directory__foot">
+                <span class="directory__showing">
+                    Showing @Model.FirstRowNumber&ndash;@Model.LastRowNumber of @Model.Connections.TotalItems connection@(Model.Connections.TotalItems == 1 ? string.Empty : "s")
+                </span>
+
+                <nav class="pager" aria-label="Connections pages">
+                    @if (Model.Connections.HasPrevious)
+                    {
+                        <a class="pager__btn" asp-action="Index" asp-all-route-data="PageRoute(Model.Connections.Page - 1)" aria-label="Previous page">
+                            <svg class="svg-icon" aria-hidden="true"><use href="#i-chevron-left" /></svg>
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="pager__btn is-disabled" aria-hidden="true">
+                            <svg class="svg-icon"><use href="#i-chevron-left" /></svg>
+                        </span>
+                    }
+
+                    @for (var pageNumber = pageStart; pageNumber <= pageEnd; pageNumber++)
+                    {
+                        if (pageNumber == Model.Connections.Page)
+                        {
+                            <span class="pager__btn is-active" aria-current="page">@pageNumber</span>
+                        }
+                        else
+                        {
+                            <a class="pager__btn" asp-action="Index" asp-all-route-data="PageRoute(pageNumber)">@pageNumber</a>
+                        }
+                    }
+
+                    @if (Model.Connections.HasNext)
+                    {
+                        <a class="pager__btn" asp-action="Index" asp-all-route-data="PageRoute(Model.Connections.Page + 1)" aria-label="Next page">
+                            <svg class="svg-icon" aria-hidden="true"><use href="#i-chevron-right" /></svg>
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="pager__btn is-disabled" aria-hidden="true">
+                            <svg class="svg-icon"><use href="#i-chevron-right" /></svg>
+                        </span>
+                    }
+                </nav>
+            </div>
         }
     </div>
-</div>
+</section>

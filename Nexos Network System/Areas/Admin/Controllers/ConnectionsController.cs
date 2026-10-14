@@ -7,6 +7,7 @@ using Nexos_Network_System.Interfaces;
 using Nexos_Network_System.Models;
 using Nexos_Network_System.Models.Enums;
 using Nexos_Network_System.Services;
+using Nexos_Network_System.ViewModels;
 
 namespace Nexos_Network_System.Areas.Admin.Controllers;
 
@@ -14,18 +15,27 @@ namespace Nexos_Network_System.Areas.Admin.Controllers;
 [Authorize(Roles = "Admin")]
 public class ConnectionsController(ApplicationDbContext db, IConnectionService connectionService) : Controller
 {
-    public async Task<IActionResult> Index(string? q, ConnectionStatus? status, int page = 1)
+    public async Task<IActionResult> Index(string? q, ConnectionStatus? status, ConnectionType? connectionType, int page = 1)
     {
         ViewData["PanelName"] = "Admin Panel";
-        ViewData["q"] = q;
-        ViewData["status"] = status;
 
-        var query = db.Connections
+        var baseQuery = db.Connections
             .Include(c => c.Customer)
             .Include(c => c.Plan)
             .Include(c => c.City)
             .AsNoTracking()
             .AsQueryable();
+
+        // Summary tiles: counts from the unfiltered set so the tiles stay stable while paging.
+        var totalConnections = await baseQuery.CountAsync();
+        var activeConnections = await baseQuery.CountAsync(c => c.Status == ConnectionStatus.Active);
+        var pendingConnections = await baseQuery.CountAsync(c => c.Status == ConnectionStatus.Pending);
+        var suspendedConnections = await baseQuery.CountAsync(c =>
+            c.Status == ConnectionStatus.TemporarilyInactive ||
+            c.Status == ConnectionStatus.PermanentlyInactive ||
+            c.Status == ConnectionStatus.Cancelled);
+
+        var query = baseQuery;
 
         if (!string.IsNullOrWhiteSpace(q))
         {
@@ -40,8 +50,26 @@ public class ConnectionsController(ApplicationDbContext db, IConnectionService c
             query = query.Where(c => c.Status == status.Value);
         }
 
-        var result = await PagedResult<Connection>.CreateAsync(query.OrderBy(c => c.AccountNumber), page);
-        return View(result);
+        if (connectionType.HasValue)
+        {
+            query = query.Where(c => c.ConnectionType == connectionType.Value);
+        }
+
+        var connections = await PagedResult<Connection>.CreateAsync(query.OrderBy(c => c.AccountNumber), page);
+
+        var model = new ConnectionIndexViewModel
+        {
+            Connections = connections,
+            TotalConnections = totalConnections,
+            ActiveConnections = activeConnections,
+            PendingConnections = pendingConnections,
+            SuspendedConnections = suspendedConnections,
+            Query = q,
+            Status = status,
+            ConnectionType = connectionType
+        };
+
+        return View(model);
     }
 
     public async Task<IActionResult> Details(int id)

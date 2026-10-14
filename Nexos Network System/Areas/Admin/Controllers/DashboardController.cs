@@ -30,7 +30,7 @@ public class DashboardController(ApplicationDbContext db) : Controller
 
         // The headline numbers describe the current calendar month; the charts look back
         // over a full year so seasonal movement stays visible.
-        var monthStart = StartOfMonth(DateTimeOffset.UtcNow);
+        var monthStart = MonthlySeries.StartOfMonth(DateTimeOffset.UtcNow);
         var previousMonthStart = monthStart.AddMonths(-1);
         var windowStart = monthStart.AddMonths(-(ChartMonths - 1));
 
@@ -63,10 +63,10 @@ public class DashboardController(ApplicationDbContext db) : Controller
             .Select(p => new { p.PaidAt, p.Amount })
             .ToListAsync();
 
-        var monthlyCustomers = MonthlyCounts(customerDates, windowStart, ChartMonths);
-        var monthlyConnections = MonthlyCounts(connectionDates, windowStart, ChartMonths);
-        var monthlyOrders = MonthlyCounts(orderDates, windowStart, ChartMonths);
-        var monthlyRevenue = MonthlySums(
+        var monthlyCustomers = MonthlySeries.Counts(customerDates, windowStart, ChartMonths);
+        var monthlyConnections = MonthlySeries.Counts(connectionDates, windowStart, ChartMonths);
+        var monthlyOrders = MonthlySeries.Counts(orderDates, windowStart, ChartMonths);
+        var monthlyRevenue = MonthlySeries.Sums(
             paymentRows.Select(row => (row.PaidAt, (double)row.Amount)),
             windowStart,
             ChartMonths);
@@ -130,7 +130,7 @@ public class DashboardController(ApplicationDbContext db) : Controller
         // The running total finishes on the true connection count.
         // ------------------------------------------------------------------
         var baselineConnections = totalConnections - monthlyConnections.Sum();
-        var cumulativeConnections = Cumulative(monthlyConnections, baselineConnections);
+        var cumulativeConnections = MonthlySeries.Cumulative(monthlyConnections, baselineConnections);
         var monthLabels = Enumerable.Range(0, ChartMonths)
             .Select(offset => windowStart.AddMonths(offset).ToString("MMM"))
             .ToList();
@@ -153,25 +153,25 @@ public class DashboardController(ApplicationDbContext db) : Controller
             {
                 Value = totalCustomers,
                 PreviousValue = customersBeforeThisMonth,
-                Trend = Tail(monthlyCustomers, TrendMonths)
+                Trend = MonthlySeries.Tail(monthlyCustomers, TrendMonths)
             },
             ConnectionTrend = new DashboardMetric
             {
                 Value = activeConnections,
                 PreviousValue = activeConnectionsBeforeThisMonth,
-                Trend = Tail(monthlyConnections, TrendMonths)
+                Trend = MonthlySeries.Tail(monthlyConnections, TrendMonths)
             },
             PendingOrderTrend = new DashboardMetric
             {
                 Value = pendingOrders,
                 PreviousValue = pendingOrdersBeforeThisMonth,
-                Trend = Tail(monthlyOrders, TrendMonths)
+                Trend = MonthlySeries.Tail(monthlyOrders, TrendMonths)
             },
             RevenueTrend = new DashboardMetric
             {
                 Value = (double)revenueThisMonth,
                 PreviousValue = (double)revenueLastMonth,
-                Trend = Tail(monthlyRevenue, TrendMonths)
+                Trend = MonthlySeries.Tail(monthlyRevenue, TrendMonths)
             },
 
             RevenueThisMonth = revenueThisMonth,
@@ -195,74 +195,6 @@ public class DashboardController(ApplicationDbContext db) : Controller
 
         return View(model);
     }
-
-    private static DateTimeOffset StartOfMonth(DateTimeOffset moment) =>
-        new(moment.Year, moment.Month, 1, 0, 0, 0, moment.Offset);
-
-    /// <summary>Counts moments into one bucket per month of the window; anything outside is ignored.</summary>
-    private static List<int> MonthlyCounts(IEnumerable<DateTimeOffset?> moments, DateTimeOffset windowStart, int months)
-    {
-        var buckets = new int[months];
-
-        foreach (var moment in moments)
-        {
-            if (moment is null)
-            {
-                continue;
-            }
-
-            var index = MonthIndex(moment.Value, windowStart);
-            if (index >= 0 && index < months)
-            {
-                buckets[index]++;
-            }
-        }
-
-        return buckets.ToList();
-    }
-
-    /// <summary>Totals amounts into one bucket per month of the window.</summary>
-    private static List<double> MonthlySums(
-        IEnumerable<(DateTimeOffset Moment, double Amount)> rows,
-        DateTimeOffset windowStart,
-        int months)
-    {
-        var buckets = new double[months];
-
-        foreach (var (moment, amount) in rows)
-        {
-            var index = MonthIndex(moment, windowStart);
-            if (index >= 0 && index < months)
-            {
-                buckets[index] += amount;
-            }
-        }
-
-        return buckets.ToList();
-    }
-
-    private static int MonthIndex(DateTimeOffset moment, DateTimeOffset windowStart) =>
-        ((moment.Year - windowStart.Year) * 12) + (moment.Month - windowStart.Month);
-
-    private static List<int> Cumulative(IReadOnlyList<int> monthly, int baseline)
-    {
-        var running = baseline;
-        var totals = new List<int>(monthly.Count);
-
-        foreach (var value in monthly)
-        {
-            running += value;
-            totals.Add(running);
-        }
-
-        return totals;
-    }
-
-    private static List<double> Tail(IReadOnlyList<int> values, int count) =>
-        values.Skip(Math.Max(values.Count - count, 0)).Select(value => (double)value).ToList();
-
-    private static List<double> Tail(IReadOnlyList<double> values, int count) =>
-        values.Skip(Math.Max(values.Count - count, 0)).ToList();
 
     private static string ConnectionTypeLabel(ConnectionType type) => type switch
     {

@@ -1,74 +1,274 @@
-@model PagedResult<Employee>
+@model EmployeeIndexViewModel
 @{
     ViewData["Title"] = "Employees";
+
+    // Initials shown in the round avatar inside the employee cell.
+    string Initials(Employee employee)
+    {
+        var first = employee.FirstName.Trim();
+        var last = employee.LastName.Trim();
+        return ((first.Length > 0 ? first[..1] : string.Empty) + (last.Length > 0 ? last[..1] : string.Empty)).ToUpperInvariant();
+    }
+
+    // Preserves the search and filter selections while paging.
+    Dictionary<string, string> PageRoute(int targetPage)
+    {
+        var values = new Dictionary<string, string> { ["page"] = targetPage.ToString() };
+        if (!string.IsNullOrWhiteSpace(Model.Query))
+        {
+            values["q"] = Model.Query!;
+        }
+
+        if (Model.Role.HasValue)
+        {
+            values["role"] = Model.Role.Value.ToString();
+        }
+
+        return values;
+    }
+
+    var pageStart = Math.Max(1, Model.Employees.Page - 2);
+    var pageEnd = Math.Min(Model.Employees.TotalPages, pageStart + 4);
+    pageStart = Math.Max(1, pageEnd - 4);
+
+    // Pre-compute the row class so the attribute value stays a simple token.
+    string EmployeeRowClass(bool isActive) => isActive ? "" : "is-inactive";
 }
 
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+<nav class="crumbs" aria-label="Breadcrumb">
+    <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+        <svg class="svg-icon" aria-hidden="true"><use href="#i-home-clean" /></svg>
+        <span>Dashboard</span>
+    </a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <span class="crumbs__current" aria-current="page">Employees</span>
+</nav>
+
+<div class="page-header">
     <div>
-        <h1 class="h4 mb-1">Employees</h1>
-        <p class="text-muted mb-0">Staff accounts for admin, retail, technical and accounts roles.</p>
+        <h1 class="h3">Employees</h1>
+        <p class="page-subtitle">Manage staff accounts, roles and employee information.</p>
     </div>
-    <a class="btn btn-primary" asp-action="Create">+ New Employee</a>
+    <div class="page-head__actions">
+        <a class="btn btn-primary" asp-action="Create">
+            <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-plus" /></svg>
+            New Employee
+        </a>
+    </div>
 </div>
 
-<div class="card">
-    <div class="card-body">
-        <form method="get" class="row g-2 mb-3">
-            <div class="col-sm-6 col-md-4">
-                <input type="text" name="q" value="@ViewData["q"]" class="form-control" placeholder="Search name, number, email..." />
+@* ---------------------------------------------------------------- Summary tiles *@
+<div class="row g-3 mb-3">
+    <div class="col-12 col-sm-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--blue"><svg class="svg-icon" aria-hidden="true"><use href="#i-employees" /></svg></span>
+                <span class="kpi-card__label">Total Employees</span>
             </div>
-            <div class="col-auto">
-                <button type="submit" class="btn btn-outline-primary">Search</button>
-                <a class="btn btn-outline-secondary" asp-action="Index">Reset</a>
+            <div class="kpi-card__value">@Model.TotalEmployees.ToString("N0")</div>
+            <div class="kpi-card__foot">
+                <span class="kpi-trend kpi-trend--up">↑ 0 this week</span>
             </div>
-        </form>
+        </article>
+    </div>
 
-        @if (Model.Items.Count == 0)
+    <div class="col-12 col-sm-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--green"><svg class="svg-icon" aria-hidden="true"><use href="#i-user" /></svg></span>
+                <span class="kpi-card__label">Active Employees</span>
+            </div>
+            <div class="kpi-card__value">@Model.ActiveEmployees.ToString("N0")</div>
+            <div class="kpi-card__foot">
+                <span class="kpi-trend kpi-trend--up">↑ 0 this week</span>
+            </div>
+        </article>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--purple"><svg class="svg-icon" aria-hidden="true"><use href="#i-shield" /></svg></span>
+                <span class="kpi-card__label">Staff Roles</span>
+            </div>
+            <div class="kpi-card__value">@Model.StaffRoles.ToString("N0")</div>
+            <div class="kpi-card__foot">
+                <span class="kpi-trend kpi-trend--up">↑ 0 this week</span>
+            </div>
+        </article>
+    </div>
+</div>
+
+@* ---------------------------------------------------------------- Search + role filter *@
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="toolbar mb-0">
+            <div class="search-bar toolbar__search">
+                <svg class="search-icon svg-icon" aria-hidden="true"><use href="#i-search" /></svg>
+                <label class="visually-hidden" for="employeeSearch">Search employees</label>
+                <input id="employeeSearch" type="search" name="q" value="@Model.Query" class="form-control"
+                       placeholder="Search name, employee number or email..." />
+            </div>
+
+            <div class="toolbar__select">
+                <label class="visually-hidden" for="employeeRole">Role</label>
+                <select id="employeeRole" name="role" class="form-select">
+                    <option value="">All Roles</option>
+                    @foreach (var option in Model.Roles)
+                    {
+                        <option value="@option" selected="@(Model.Role == option)">@EmployeeIndexViewModel.RoleLabel(option)</option>
+                    }
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-search" /></svg>
+                Search
+            </button>
+            <a class="btn btn-outline-secondary" asp-action="Index">
+                <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-refresh" /></svg>
+                Reset
+            </a>
+        </form>
+    </div>
+</div>
+
+@* ---------------------------------------------------------------- Employee directory *@
+<section class="card directory">
+    <div class="card-body">
+        <header class="directory__head">
+            <span class="directory__head-icon"><svg class="svg-icon" aria-hidden="true"><use href="#i-employees" /></svg></span>
+            <h2 class="directory__title">Employee Directory</h2>
+        </header>
+
+        @if (Model.Employees.Items.Count == 0)
         {
             <div class="empty-state">
-                <div class="empty-icon">&#128100;</div>
-                <p class="mb-0">No employees match your search.</p>
+                <span class="empty-icon"><svg class="svg-icon" aria-hidden="true"><use href="#i-employees" /></svg></span>
+                <p class="empty-title">No employees found</p>
+                <p class="mb-0">Try a different search term or clear the role filter.</p>
             </div>
         }
         else
         {
             <div class="table-responsive">
-                <table class="table table-hover align-middle">
+                <table class="table table-hover align-middle directory__table">
                     <thead>
                         <tr>
                             <th>Employee #</th>
-                            <th>Name</th>
+                            <th>Employee</th>
+                            <th>Email</th>
                             <th>Role</th>
                             <th>Retail Shop</th>
-                            <th>Contact</th>
                             <th>Status</th>
-                            <th></th>
+                            <th class="text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var employee in Model.Items)
+                        @foreach (var employee in Model.Employees.Items)
                         {
-                            <tr>
-                                <td class="fw-semibold">@employee.EmployeeNumber</td>
+                            var fullName = $"{employee.FirstName} {employee.LastName}".Trim();
+                            var roleLabel = EmployeeIndexViewModel.RoleLabel(employee.Role);
+                            var shopName = employee.RetailShop?.Name ?? "Head office";
+
+                            // Role pill colour, matched to the requested role swatches.
+                            var roleClass = employee.Role switch
+                            {
+                                EmployeeRole.Admin => "badge badge-soft-primary",
+                                EmployeeRole.Accounts => "badge badge-soft-accent",
+                                EmployeeRole.Technical => "badge badge-soft-purple",
+                                EmployeeRole.Retail => "badge badge-soft-green",
+                                _ => "badge badge-soft-neutral"
+                            };
+
+                            <tr class="@EmployeeRowClass(employee.IsActive)">
+                                <td><span class="cell-code">@employee.EmployeeNumber</span></td>
                                 <td>
-                                    @employee.FirstName @employee.LastName
-                                    <div class="text-muted small">@employee.Email</div>
+                                    <div class="person">
+                                        <span class="person__avatar" aria-hidden="true">@Initials(employee)</span>
+                                        <span class="person__body">
+                                            <a class="person__name" asp-action="Details" asp-route-id="@employee.Id">@fullName</a>
+                                            <span class="person__meta">@roleLabel</span>
+                                        </span>
+                                    </div>
                                 </td>
-                                <td><span class="badge bg-primary">@employee.Role</span></td>
-                                <td>@(employee.RetailShop?.Name ?? "Head office")</td>
-                                <td>@employee.ContactNumber</td>
-                                <td><partial name="_Badge" model="@((object?)(employee.IsActive ? "Active" : "Inactive"))" /></td>
-                                <td class="table-actions">
-                                    <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@employee.Id">View</a>
-                                    <a class="btn btn-outline-primary" asp-action="Edit" asp-route-id="@employee.Id">Edit</a>
-                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@employee.Id">Deactivate</a>
+                                <td><a class="text-body-muted" href="mailto:@employee.Email">@employee.Email</a></td>
+                                <td><span class="@roleClass">@roleLabel</span></td>
+                                <td>@shopName</td>
+                                <td><partial name="_StatusPill" model="@(employee.IsActive ? "Active" : "Inactive")" /></td>
+                                <td class="text-end">
+                                    <div class="row-actions">
+                                        <a class="icon-btn" asp-action="Details" asp-route-id="@employee.Id" title="View details" aria-label="View details for @fullName">
+                                            <svg class="svg-icon" aria-hidden="true"><use href="#i-eye" /></svg>
+                                        </a>
+                                        <a class="icon-btn" asp-action="Edit" asp-route-id="@employee.Id" title="Edit employee" aria-label="Edit @fullName">
+                                            <svg class="svg-icon" aria-hidden="true"><use href="#i-edit" /></svg>
+                                        </a>
+                                        <div class="dropdown">
+                                            <button class="icon-btn" type="button" data-bs-toggle="dropdown" data-bs-display="static"
+                                                    aria-expanded="false" title="More actions" aria-label="More actions for @fullName">
+                                                <svg class="svg-icon" aria-hidden="true"><use href="#i-more-vertical" /></svg>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li><a class="dropdown-item" asp-action="Details" asp-route-id="@employee.Id">View details</a></li>
+                                                <li><a class="dropdown-item" asp-action="Edit" asp-route-id="@employee.Id">Edit employee</a></li>
+                                                <li><hr class="dropdown-divider" /></li>
+                                                <li><a class="dropdown-item text-danger" asp-action="Delete" asp-route-id="@employee.Id">Deactivate</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
                                 </td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
-            <partial name="_Pagination" model="Model" />
+
+            <div class="directory__foot">
+                <span class="directory__showing">
+                    Showing @Model.FirstRowNumber&ndash;@Model.LastRowNumber of @Model.Employees.TotalItems employee@(Model.Employees.TotalItems == 1 ? string.Empty : "s")
+                </span>
+
+                <nav class="pager" aria-label="Employee directory pages">
+                    @if (Model.Employees.HasPrevious)
+                    {
+                        <a class="pager__btn" asp-action="Index" asp-all-route-data="PageRoute(Model.Employees.Page - 1)" aria-label="Previous page">
+                            <svg class="svg-icon" aria-hidden="true"><use href="#i-chevron-left" /></svg>
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="pager__btn is-disabled" aria-hidden="true">
+                            <svg class="svg-icon"><use href="#i-chevron-left" /></svg>
+                        </span>
+                    }
+
+                    @for (var pageNumber = pageStart; pageNumber <= pageEnd; pageNumber++)
+                    {
+                        if (pageNumber == Model.Employees.Page)
+                        {
+                            <span class="pager__btn is-active" aria-current="page">@pageNumber</span>
+                        }
+                        else
+                        {
+                            <a class="pager__btn" asp-action="Index" asp-all-route-data="PageRoute(pageNumber)">@pageNumber</a>
+                        }
+                    }
+
+                    @if (Model.Employees.HasNext)
+                    {
+                        <a class="pager__btn" asp-action="Index" asp-all-route-data="PageRoute(Model.Employees.Page + 1)" aria-label="Next page">
+                            <svg class="svg-icon" aria-hidden="true"><use href="#i-chevron-right" /></svg>
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="pager__btn is-disabled" aria-hidden="true">
+                            <svg class="svg-icon"><use href="#i-chevron-right" /></svg>
+                        </span>
+                    }
+                </nav>
+            </div>
         }
     </div>
-</div>
+</section>

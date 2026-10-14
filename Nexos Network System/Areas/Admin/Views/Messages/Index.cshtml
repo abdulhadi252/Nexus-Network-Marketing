@@ -1,66 +1,472 @@
-@model PagedResult<ContactMessage>
+@using Nexos_Network_System.Areas.Admin.ViewModels
+@model MessageIndexViewModel
 @{
     ViewData["Title"] = "Messages";
-    var unreadOnly = (bool)(ViewData["unreadOnly"] ?? false);
+    var unreadOnly = Model.Status == "Unread";
+
+    var pageStart = Math.Max(1, Model.Messages.Page - 2);
+    var pageEnd = Math.Min(Model.Messages.TotalPages, pageStart + 4);
+    pageStart = Math.Max(1, pageEnd - 4);
+
+    Dictionary<string, string> PageRoute(int targetPage)
+    {
+        var values = new Dictionary<string, string> { ["page"] = targetPage.ToString() };
+        if (!string.IsNullOrWhiteSpace(Model.Query))
+        {
+            values["q"] = Model.Query!;
+        }
+
+        if (Model.Status is not null)
+        {
+            values["status"] = Model.Status;
+        }
+
+        if (Model.DateRange is not null)
+        {
+            values["dateRange"] = Model.DateRange;
+        }
+
+        return values;
+    }
 }
 
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+<nav class="crumbs" aria-label="Breadcrumb">
+    <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+        <svg class="svg-icon" aria-hidden="true"><use href="#i-home-clean" /></svg>
+        <span>Admin</span>
+    </a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <span class="crumbs__current" aria-current="page">Messages</span>
+</nav>
+
+<div class="page-header">
     <div>
-        <h1 class="h4 mb-1">Contact Messages</h1>
-        <p class="text-muted mb-0">Messages submitted through the public contact form.</p>
+        <h1 class="h3">Contact Messages</h1>
+        <p class="page-subtitle">Manage enquiries submitted through your public contact form.</p>
     </div>
-    <a class="btn @(unreadOnly ? "btn-primary" : "btn-outline-primary")" asp-action="Index" asp-route-unreadOnly="true">Unread Only</a>
+    <div class="page-head__actions">
+        <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#newMessageModal">
+            <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-messages" /></svg>
+            New Message
+        </button>
+    </div>
 </div>
 
-<div class="card">
+@* ---------------------------------------------------------------- KPI Cards Row *@
+<div class="row g-3 mb-3">
+    <div class="col-12 col-sm-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--blue">
+                    <svg class="svg-icon" aria-hidden="true"><use href="#i-messages" /></svg>
+                </span>
+                <span class="kpi-card__label">Total Messages</span>
+            </div>
+            <div class="kpi-card__value">@Model.TotalMetric.Value.ToString("N0")</div>
+            <div class="kpi-card__foot">
+                <span class="kpi-trend @(Model.TotalMetric.FootRises ? "kpi-trend--up" : "kpi-trend--down")">
+                    @(Model.TotalMetric.FootRises ? "↑" : "↓") +12%
+                </span>
+                <span class="kpi-trend__caption">vs. last 30 days</span>
+            </div>
+        </article>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--cyan">
+                    <svg class="svg-icon" aria-hidden="true"><use href="#i-messages" /></svg>
+                </span>
+                <span class="kpi-card__label">Unread</span>
+            </div>
+            <div class="kpi-card__value">@Model.UnreadCount.ToString("N0")</div>
+            <div class="kpi-card__foot">
+                <span class="kpi-trend kpi-trend--up">↑ +3%</span>
+                <span class="kpi-trend__caption">vs. last 30 days</span>
+            </div>
+        </article>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--green">
+                    <svg class="svg-icon" aria-hidden="true"><use href="#i-arrow-right" /></svg>
+                </span>
+                <span class="kpi-card__label">Replied</span>
+            </div>
+            <div class="kpi-card__value">@Model.RepliedCount.ToString("N0")</div>
+            <div class="kpi-card__foot">
+                <span class="kpi-trend kpi-trend--up">↑ +18%</span>
+                <span class="kpi-trend__caption">vs. last 30 days</span>
+            </div>
+        </article>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--purple">
+                    <svg class="svg-icon" aria-hidden="true"><use href="#i-clock" /></svg>
+                </span>
+                <span class="kpi-card__label">Pending</span>
+            </div>
+            <div class="kpi-card__value">@Model.PendingCount.ToString("N0")</div>
+            <div class="kpi-card__foot">
+                <span class="kpi-trend kpi-trend--down">↓ -5%</span>
+                <span class="kpi-trend__caption">vs. last 30 days</span>
+            </div>
+        </article>
+    </div>
+</div>
+
+@* ---------------------------------------------------------------- Filter & Search Bar *@
+<div class="card mb-3">
     <div class="card-body">
-        @if (Model.Items.Count == 0)
+        <form method="get" class="toolbar mb-0">
+            <div class="search-bar toolbar__search">
+                <svg class="search-icon svg-icon" aria-hidden="true"><use href="#i-search" /></svg>
+                <label class="visually-hidden" for="messageSearch">Search messages</label>
+                <input id="messageSearch" type="search" name="q" value="@Model.Query"
+                       class="form-control" placeholder="Search by name, email, subject..." />
+            </div>
+
+            <div class="toolbar__select">
+                <label class="visually-hidden" for="messageStatus">Status</label>
+                <select id="messageStatus" name="status" class="form-select">
+                    <option value="">All statuses</option>
+                    <option value="unread" selected="@(Model.Status == "Unread")">Unread</option>
+                    <option value="pending" selected="@(Model.Status == "Pending")">Pending</option>
+                    <option value="replied" selected="@(Model.Status == "Replied")">Replied</option>
+                </select>
+            </div>
+
+            <div class="toolbar__select">
+                <label class="visually-hidden" for="messageDateRange">Date range</label>
+                <select id="messageDateRange" name="dateRange" class="form-select">
+                    <option value="">Any date</option>
+                    <option value="today" selected="@(Model.DateRange == "today")">Today</option>
+                    <option value="week" selected="@(Model.DateRange == "week")">Last 7 days</option>
+                    <option value="month" selected="@(Model.DateRange == "month")">Last 30 days</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-search" /></svg>
+                Search
+            </button>
+            <a class="btn btn-outline-secondary" asp-action="Index">
+                <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-refresh" /></svg>
+                Reset
+            </a>
+
+            <span class="toolbar-spacer" aria-hidden="true"></span>
+
+            <a class="btn btn-outline-secondary dropdown-toggle"
+               data-bs-toggle="collapse" data-bs-target="#advancedFilters"
+               aria-expanded="false" aria-controls="advancedFilters">
+                <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-filter" /></svg>
+                Advanced Filters
+            </a>
+        </form>
+
+        <div class="collapse" id="advancedFilters">
+            <div class="card-body pt-2 pb-3">
+                <form method="get" class="row g-2 advanced-filters">
+                    <div class="col-auto">
+                        <label class="form-label visually-hidden" for="afSubject">Subject contains</label>
+                        <input id="afSubject" type="text" name="afSubject"
+                               class="form-control form-control-sm"
+                               placeholder="Subject..." value="@Context.Request.Query["afSubject"]" />
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label visually-hidden" for="afFrom">From email</label>
+                        <input id="afFrom" type="email" name="afFrom"
+                               class="form-control form-control-sm"
+                               placeholder="From email..." value="@Context.Request.Query["afFrom"]" />
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label visually-hidden" for="afMinDate">From date</label>
+                        <input id="afMinDate" type="date" name="afMinDate"
+                               class="form-control form-control-sm"
+                               value="@Context.Request.Query["afMinDate"]" />
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label visually-hidden" for="afMaxDate">To date</label>
+                        <input id="afMaxDate" type="date" name="afMaxDate"
+                               class="form-control form-control-sm"
+                               value="@Context.Request.Query["afMaxDate"]" />
+                    </div>
+                    <div class="col-auto d-flex align-items-end gap-2">
+                        <button type="submit" class="btn btn-sm btn-primary">
+                            <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-search" /></svg>
+                            Apply
+                        </button>
+                        <a class="btn btn-sm btn-outline-secondary" asp-action="Index">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ---------------------------------------------------------------- Messages Table *@
+<section class="card directory">
+    <div class="card-body">
+        <header class="directory__head">
+            <span class="directory__head-icon">
+                <svg class="svg-icon" aria-hidden="true"><use href="#i-messages" /></svg>
+            </span>
+            <h2 class="directory__title">Messages</h2>
+        </header>
+
+        @* Tabs / filter pills *@
+        <div class="directory__tabs">
+            <a class="directory__tab @(Model.SelectedTab == "All" ? "is-active" : "")"
+               asp-action="Index" asp-route-status=""
+               aria-current="@(Model.SelectedTab == "All" ? "page" : null)">
+                All Messages
+                <span class="directory__tab-badge">@Model.TotalMessages</span>
+            </a>
+            <a class="directory__tab @(Model.SelectedTab == "Unread" ? "is-active" : "")"
+               asp-action="Index" asp-route-status="unread"
+               asp-route-page="1"
+               aria-current="@(Model.SelectedTab == "Unread" ? "page" : null)">
+                Unread
+                <span class="directory__tab-badge">@Model.UnreadCount</span>
+            </a>
+            <a class="directory__tab @(Model.SelectedTab == "Replied" ? "is-active" : "")"
+               asp-action="Index" asp-route-status="replied"
+               asp-route-page="1"
+               aria-current="@(Model.SelectedTab == "Replied" ? "page" : null)">
+                Read
+                <span class="directory__tab-badge">@Model.RepliedCount</span>
+            </a>
+            <a class="directory__tab @(Model.SelectedTab == "Pending" ? "is-active" : "")"
+               asp-action="Index" asp-route-status="pending"
+               asp-route-page="1"
+               aria-current="@(Model.SelectedTab == "Pending" ? "page" : null)">
+                Pending
+                <span class="directory__tab-badge">@Model.PendingCount</span>
+            </a>
+        </div>
+
+        <div class="directory__sort">
+            <label class="visually-hidden" for="sortSelect">Sort by</label>
+            <select id="sortSelect" class="form-select form-select-sm">
+                <option value="newest" selected>Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="name">Name A-Z</option>
+                <option value="subject">Subject A-Z</option>
+            </select>
+        </div>
+
+        @* Message list table *@
+        @if (Model.Messages.Items.Count == 0)
         {
             <div class="empty-state">
-                <div class="empty-icon">&#9993;</div>
-                <p class="mb-0">@(unreadOnly ? "No unread messages." : "No contact messages received yet.")</p>
+                <span class="empty-icon">
+                    <svg class="svg-icon" aria-hidden="true"><use href="#i-messages" /></svg>
+                </span>
+                <p class="empty-title">No messages found</p>
+                <p class="mb-0">Try a different search term or clear the filters.</p>
             </div>
         }
         else
         {
             <div class="table-responsive">
-                <table class="table table-hover align-middle">
+                <table class="table table-hover align-middle directory__table">
                     <thead>
-                        <tr><th>Received</th><th>From</th><th>Subject</th><th>Message</th><th>Status</th><th></th></tr>
+                        <tr>
+                            <th scope="col" class="text-center">
+                                <input type="checkbox" class="form-check-input" aria-label="Select all messages" />
+                            </th>
+                            <th scope="col">Sender</th>
+                            <th scope="col">Subject</th>
+                            <th scope="col">Message Preview</th>
+                            <th scope="col">Received</th>
+                            <th scope="col">Status</th>
+                            <th scope="col" class="text-end">Actions</th>
+                        </tr>
                     </thead>
                     <tbody>
-                        @foreach (var message in Model.Items)
+                        @foreach (var message in Model.Messages.Items)
                         {
-                            <tr class="@(message.IsRead ? "" : "table-light")">
-                                <td>@message.SubmittedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
+                            var initials = string.Concat(
+                                message.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                    .Take(2)
+                                    .Select(n => n.Length > 0 ? n[..1].ToUpperInvariant() : string.Empty));
+
+                            var avatarColor = message.Name.ToLowerInvariant() switch
+                            {
+                                var n when n.StartsWith("a") => "person__avatar--blue",
+                                var n when n.StartsWith("s") => "person__avatar--purple",
+                                var n when n.StartsWith("u") => "person__avatar--teal",
+                                var n when n.StartsWith("m") => "person__avatar--pink",
+                                _ => "person__avatar--indigo"
+                            };
+
+                            var statusLabel = message.Status switch
+                            {
+                                ContactMessageStatus.New when !message.IsRead => "Unread",
+                                ContactMessageStatus.Pending when !message.IsRead => "Pending",
+                                ContactMessageStatus.Replied => "Replied",
+                                _ when message.IsRead => "Read",
+                                _ => "New"
+                            };
+
+                            var statusClass = message.Status switch
+                            {
+                                ContactMessageStatus.Replied => "status-pill--positive",
+                                ContactMessageStatus.Pending when !message.IsRead => "status-pill--warning",
+                                _ when message.IsRead => "status-pill--neutral",
+                                _ => "status-pill--info"
+                            };
+
+                            <tr>
+                                <td class="text-center">
+                                    <input type="checkbox" class="form-check-input"
+                                           aria-label="Select @message.Name" />
+                                </td>
                                 <td>
-                                    @message.Name
-                                    <div class="text-muted small">@message.Email</div>
+                                    <div class="person">
+                                        <span class="person__avatar @avatarColor" aria-hidden="true" style="width:36px;height:36px;border-radius:10px;">@initials</span>
+                                        <span class="person__body">
+                                            <span class="person__name">@message.Name</span>
+                                            <a class="person__meta" href="mailto:@message.Email">@message.Email</a>
+                                        </span>
+                                    </div>
                                 </td>
                                 <td class="fw-semibold">@message.Subject</td>
-                                <td class="text-truncate" style="max-width: 320px;">@message.Message</td>
-                                <td>
-                                    @if (message.IsRead)
-                                    {
-                                        <span class="badge bg-secondary">Read</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-danger">New</span>
-                                    }
+                                <td class="text-truncate" style="max-width: 280px;" title="@message.Message">
+                                    @message.Message
                                 </td>
-                                <td class="table-actions">
-                                    <form asp-action="ToggleRead" method="post" class="d-inline"
-                                          asp-route-id="@message.Id" asp-route-unreadOnly="@unreadOnly" asp-route-page="@Model.Page">
-                                        <button type="submit" class="btn btn-outline-primary">@(message.IsRead ? "Mark unread" : "Mark read")</button>
-                                    </form>
+                                <td class="text-body-muted">
+                                    @message.SubmittedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")
+                                </td>
+                                <td>
+                                    <span class="status-pill @statusClass">
+                                        <span class="status-pill__dot" aria-hidden="true"></span>
+                                        @statusLabel
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <div class="row-actions">
+                                        <button class="icon-btn" type="button" title="Reply"
+                                                data-bs-toggle="tooltip" data-bs-placement="top"
+                                                data-bs-title="Reply to @message.Name">
+                                            <svg class="svg-icon" aria-hidden="true"><use href="#i-arrow-right" /></svg>
+                                        </button>
+                                        <div class="dropdown">
+                                            <button class="icon-btn" type="button"
+                                                    data-bs-toggle="dropdown" data-bs-display="static"
+                                                    aria-expanded="false" title="More actions"
+                                                    aria-label="More actions for @message.Name">
+                                                <svg class="svg-icon" aria-hidden="true"><use href="#i-more-vertical" /></svg>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li><a class="dropdown-item" asp-action="Details" asp-route-id="@message.Id">View details</a></li>
+                                                <li><a class="dropdown-item" asp-action="Reply" asp-route-id="@message.Id">Reply</a></li>
+                                                <li><hr class="dropdown-divider" /></li>
+                                                <li>
+                                                    <a class="dropdown-item text-danger"
+                                                       asp-action="ToggleRead" asp-route-id="@message.Id"
+                                                       asp-route-unreadOnly="false" asp-route-page="@Model.Messages.Page"
+                                                       asp-route-status="@Model.Status">
+                                                        @(message.IsRead ? "Mark unread" : "Mark read")
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
                                 </td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
-            <partial name="_Pagination" model="Model" />
+
+            <div class="directory__foot">
+                <span class="directory__showing">
+                    Showing @Model.FirstRowNumber&ndash;@Model.LastRowNumber
+                    of @Model.TotalMessages message@(Model.TotalMessages == 1 ? string.Empty : "s")
+                </span>
+
+                <nav class="pager" aria-label="Messages pages">
+                    @if (Model.Messages.HasPrevious)
+                    {
+                        <a class="pager__btn" asp-action="Index"
+                           asp-all-route-data="PageRoute(Model.Messages.Page - 1)"
+                           aria-label="Previous page">
+                            <svg class="svg-icon" aria-hidden="true"><use href="#i-chevron-left" /></svg>
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="pager__btn is-disabled" aria-hidden="true">
+                            <svg class="svg-icon"><use href="#i-chevron-left" /></svg>
+                        </span>
+                    }
+
+
+
+                    @for (var pageNumber = pageStart; pageNumber <= pageEnd; pageNumber++)
+                    {
+                        if (pageNumber == Model.Messages.Page)
+                        {
+                            <span class="pager__btn is-active" aria-current="page">@pageNumber</span>
+                        }
+                        else
+                        {
+                            <a class="pager__btn"
+                               asp-action="Index" asp-all-route-data="PageRoute(pageNumber)">@pageNumber</a>
+                        }
+                    }
+
+                    @if (Model.Messages.HasNext)
+                    {
+                        <a class="pager__btn" asp-action="Index"
+                           asp-all-route-data="PageRoute(Model.Messages.Page + 1)"
+                           aria-label="Next page">
+                            <svg class="svg-icon" aria-hidden="true"><use href="#i-chevron-right" /></svg>
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="pager__btn is-disabled" aria-hidden="true">
+                            <svg class="svg-icon"><use href="#i-chevron-right" /></svg>
+                        </span>
+                    }
+                </nav>
+            </div>
         }
     </div>
-</div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const sortSelect = document.getElementById('sortSelect');
+            if (sortSelect) {
+                sortSelect.addEventListener('change', function () {
+                    const form = this.closest('form') || this.closest('.card')?.querySelector('form');
+                    if (form) {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'sort';
+                        input.value = this.value;
+                        form.appendChild(input);
+                        form.submit();
+                    }
+                });
+            }
+
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        })();
+    </script>
+}

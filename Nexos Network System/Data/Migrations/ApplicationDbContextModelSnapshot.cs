@@ -325,7 +325,7 @@ namespace Nexos_Network_System.Data.Migrations
                     b.HasIndex("ConnectionId", "BillingPeriodStart", "BillingPeriodEnd")
                         .IsUnique();
 
-                    b.ToTable("Bills", (string)null);
+                    b.ToTable("Bills");
                 });
 
             modelBuilder.Entity("Nexos_Network_System.Models.BillItem", b =>
@@ -355,7 +355,7 @@ namespace Nexos_Network_System.Data.Migrations
 
                     b.HasIndex("BillId");
 
-                    b.ToTable("BillItems", (string)null);
+                    b.ToTable("BillItems");
                 });
 
             modelBuilder.Entity("Nexos_Network_System.Models.City", b =>
@@ -384,7 +384,7 @@ namespace Nexos_Network_System.Data.Migrations
                     b.HasIndex("Code")
                         .IsUnique();
 
-                    b.ToTable("Cities", (string)null);
+                    b.ToTable("Cities");
                 });
 
             modelBuilder.Entity("Nexos_Network_System.Models.Connection", b =>
@@ -449,7 +449,7 @@ namespace Nexos_Network_System.Data.Migrations
                     b.HasIndex("ConnectionType", "CityId", "AccountSerialNumber")
                         .IsUnique();
 
-                    b.ToTable("Connections", (string)null);
+                    b.ToTable("Connections");
                 });
 
             modelBuilder.Entity("Nexos_Network_System.Models.ConnectionPlanHistory", b =>
@@ -482,7 +482,7 @@ namespace Nexos_Network_System.Data.Migrations
 
                     b.HasIndex("PlanId");
 
-                    b.ToTable("ConnectionPlanHistories", (string)null);
+                    b.ToTable("ConnectionPlanHistories");
                 });
 
             modelBuilder.Entity("Nexos_Network_System.Models.ContactMessage", b =>
@@ -511,6 +511,9 @@ namespace Nexos_Network_System.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
                     b.Property<string>("Subject")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -523,7 +526,7 @@ namespace Nexos_Network_System.Data.Migrations
 
                     b.HasIndex("IsRead");
 
-                    b.ToTable("ContactMessages", (string)null);
+                    b.ToTable("ContactMessages");
                 });
 
             modelBuilder.Entity("Nexos_Network_System.Models.Customer", b =>
@@ -577,7 +580,7 @@ namespace Nexos_Network_System.Data.Migrations
                         .IsUnique()
                         .HasFilter("[NationalId] IS NOT NULL");
 
-                    b.ToTable("Customers", (string)null);
+                    b.ToTable("Customers");
                 });
 
             modelBuilder.Entity("Nexos_Network_System.Models.CustomerAddress", b =>
@@ -616,7 +619,7 @@ namespace Nexos_Network_System.Data.Migrations
 
                     b.HasIndex("CustomerId", "IsPrimary");
 
-                    b.ToTable("CustomerAddresses", (string)null);
+                    b.ToTable("CustomerAddresses");
                 });
 
             modelBuilder.Entity("Nexos_Network_System.Models.Employee", b =>
@@ -674,7 +677,7 @@ namespace Nexos_Network_System.Data.Migrations
 
                     b.HasIndex("RetailShopId");
 
-                    b.ToTable("Employees", (string)null);
+                    b.ToTable("Employees");
                 });
 
             modelBuilder.Entity("Nexos_Network_System.Models.Equipment", b =>
@@ -735,7 +738,7 @@ namespace Nexos_Network_System.Data.Migrations
 
                     b.HasIndex("VendorId");
 
-                    b.ToTable("Equipment", (string)null);
+                    b.ToTable("Equipment");
                 });
 
             modelBuilder.Entity("Nexos_Network_System.Models.FeasibilityReport", b =>
@@ -776,7 +779,7 @@ namespace Nexos_Network_System.Data.Migrations
 
                     b.HasIndex("TechnicalEmployeeId");
 
-                    b.ToTable("FeasibilityReports", (string)null);
+                    b.ToTable("FeasibilityReports");
                 });
 
             modelBuilder.Entity("Nexos_Network_System.Models.Feedback", b =>
@@ -813,7 +816,7 @@ namespace Nexos_Network_System.Data.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("FeedbackEntries", null, t =>
+                    b.ToTable("FeedbackEntries", t =>
                         {
                             t.HasCheckConstraint("CK_Feedback_Rating", "[Rating] IS NULL OR [Rating] BETWEEN 1 AND 5");
                         });
@@ -891,7 +894,7 @@ namespace Nexos_Network_System.Data.Migrations
                     b.HasIndex("ConnectionType", "SequenceNumber")
                         .IsUnique();
 
-                    b.ToTable("Orders", (string)null);
+                    b.ToTable("Orders");
                 });
 
             modelBuilder.Entity("Nexos_Network_System.Models.OrderItem", b =>
@@ -921,7 +924,7 @@ namespace Nexos_Network_System.Data.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("OrderItems", (string)null);
+                    b.ToTable("OrderItems");
                 });
 
             modelBuilder.Entity("Nexos_Network_System.Models.OrderStatusHistory", b =>
@@ -959,7 +962,7 @@ namespace Nexos_Network_System.Data.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("OrderStatusHistories", (string)null);
+                    b.ToTable("OrderStatusHistories");
                 });
 
             modelBuilder.Entity("Nexos_Network_System.Models.Payment", b =>
@@ -1021,7 +1024,7 @@ namespace Nexos_Network_System.Data.Migrations
 
                     b.HasIndex("RecordedByEmployeeId");
 
-                    b.ToTable("Payments", (string)null);
+                    b.ToTable("Payments");
                 });
 
             modelBuilder.Entity("Nexos_Network_System.Models.Plan", b =>
@@ -1076,7 +1079,7 @@ namespace Nexos_Network_System.Data.Migrations
                     b.HasIndex("Name", "ConnectionType")
                         .IsUnique();
 
-                    b.ToTable("Plans", (string)null);
+                    b.ToTable("Plans");
                 });
 
             modelBuilder.Entity("Nexos_Network_System.Models.Product", b =>
@@ -1119,7 +1122,7 @@ namespace Nexos_Network_System.Data.Migrations
 
                     b.HasIndex("VendorId");
 
-                    b.ToTable("Products", (string)null);
+                    b.ToTable("Products");
                 });
 
             modelBuilder.Entity("Nexos_Network_System.Models.RetailShop", b =>
@@ -1159,7 +1162,7 @@ namespace Nexos_Network_System.Data.Migrations
 
                     b.HasIndex("CityId");
 
-                    b.ToTable("RetailShops", (string)null);
+                    b.ToTable("RetailShops");
                 });
 
             modelBuilder.Entity("Nexos_Network_System.Models.Stock", b =>
@@ -1190,7 +1193,7 @@ namespace Nexos_Network_System.Data.Migrations
                     b.HasIndex("ProductId")
                         .IsUnique();
 
-                    b.ToTable("StockItems", (string)null);
+                    b.ToTable("StockItems");
                 });
 
             modelBuilder.Entity("Nexos_Network_System.Models.StockMovement", b =>
@@ -1231,7 +1234,7 @@ namespace Nexos_Network_System.Data.Migrations
 
                     b.HasIndex("StockId");
 
-                    b.ToTable("StockMovements", (string)null);
+                    b.ToTable("StockMovements");
                 });
 
             modelBuilder.Entity("Nexos_Network_System.Models.Vendor", b =>
@@ -1265,7 +1268,7 @@ namespace Nexos_Network_System.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Vendors", (string)null);
+                    b.ToTable("Vendors");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

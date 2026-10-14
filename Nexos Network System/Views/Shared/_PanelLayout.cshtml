@@ -55,6 +55,19 @@
             <div class="panel-sidebar-scroll">
                 <partial name="_PanelSidebar" />
             </div>
+
+            <div class="panel-nav panel-sidebar-foot">
+                <ul class="panel-nav-list">
+                    <li>
+                        <a asp-area="Identity" asp-controller="Account" asp-action="Profile"><svg class="nav-icon"><use href="#i-profile" /></svg>My Profile</a>
+                    </li>
+                    <li>
+                        <form asp-area="Identity" asp-controller="Account" asp-action="Logout" method="post">
+                            <button type="submit"><svg class="nav-icon"><use href="#i-logout" /></svg>Logout</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
         </aside>
 
         <div class="panel-main">

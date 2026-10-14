@@ -1,84 +1,317 @@
-@model PagedResult<Bill>
+@using System.Globalization
+@model BillIndexViewModel
 @{
     ViewData["Title"] = "Billing";
-    var totalDue = (decimal)(ViewBag.TotalOutstanding ?? 0m);
+
+    // Sparkline geometry, drawn server-side from the live series.
+    const double sparkWidth = 120d;
+    const double sparkHeight = 44d;
+
+    string SparkLine(BillMetric metric)
+    {
+        var (min, max) = ChartGeometry.NiceRange(metric.Trend);
+        return ChartGeometry.LinePoints(metric.Trend, sparkWidth, sparkHeight, min, max, 4d);
+    }
+
+    string SparkArea(BillMetric metric)
+    {
+        var (min, max) = ChartGeometry.NiceRange(metric.Trend);
+        return ChartGeometry.AreaPath(metric.Trend, sparkWidth, sparkHeight, min, max, 4d);
+    }
+
+    string Rate(double value) => value.ToString("0.##", CultureInfo.InvariantCulture) + "%";
+
+    Dictionary<string, string> PageRoute(int targetPage)
+    {
+        var values = new Dictionary<string, string> { ["page"] = targetPage.ToString() };
+        if (!string.IsNullOrWhiteSpace(Model.Query))
+        {
+            values["q"] = Model.Query!;
+        }
+
+        if (Model.Status.HasValue)
+        {
+            values["status"] = Model.Status.Value.ToString();
+        }
+
+        return values;
+    }
+
+    var pageStart = Math.Max(1, Model.Bills.Page - 2);
+    var pageEnd = Math.Min(Model.Bills.TotalPages, pageStart + 4);
+    pageStart = Math.Max(1, pageEnd - 4);
 }
 
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+<nav class="crumbs" aria-label="Breadcrumb">
+    <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+        <svg class="svg-icon" aria-hidden="true"><use href="#i-home-clean" /></svg>
+        <span>Dashboard</span>
+    </a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <span class="crumbs__current" aria-current="page">Billing</span>
+</nav>
+
+<div class="page-header">
     <div>
-        <h1 class="h4 mb-1">Bills</h1>
-        <p class="text-muted mb-0">Generated bills including 12.24% service tax. Current outstanding: PKR @totalDue.ToString("N2")</p>
+        <h1 class="h3">Bills</h1>
+        <p class="page-subtitle">Generated bills including @Rate(Model.ServiceTax.Value) service tax.</p>
+        <p class="page-subtitle__meta">
+            Current outstanding:
+            <strong>PKR @Model.Outstanding.Value.ToString("N2")</strong>
+        </p>
     </div>
-    <a class="btn btn-primary" asp-action="Generate">+ Generate Bill</a>
+    <div class="page-head__actions">
+        <a class="btn btn-primary" asp-action="Generate">
+            <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-plus" /></svg>
+            Generate Bill
+        </a>
+    </div>
 </div>
 
+@* ---------------------------------------------------------------- Summary tiles *@
+<div class="row g-3 mb-3">
+    <div class="col-12 col-sm-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--blue"><svg class="svg-icon" aria-hidden="true"><use href="#i-bills" /></svg></span>
+                <span class="kpi-card__label">Total Bills</span>
+            </div>
+            <div class="kpi-card__value">@Model.TotalBills.Value.ToString("N0")</div>
+            <div class="kpi-card__foot">
+                <span class="kpi-trend @(Model.TotalBills.FootIsBad ? "kpi-trend--down" : "kpi-trend--up")">
+                    @(Model.TotalBills.FootRises ? "↑" : "↓") @Model.TotalBills.Foot
+                </span>
+                @if (Model.TotalBills.HasTrend)
+                {
+                    <svg class="kpi-spark" viewBox="0 0 120 44" preserveAspectRatio="none" aria-hidden="true">
+                        <path class="kpi-spark__area kpi-spark__area--blue" d="@SparkArea(Model.TotalBills)" />
+                        <polyline class="kpi-spark__line kpi-spark__line--blue" points="@SparkLine(Model.TotalBills)" />
+                    </svg>
+                }
+            </div>
+        </article>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--green"><svg class="svg-icon" aria-hidden="true"><use href="#i-wallet" /></svg></span>
+                <span class="kpi-card__label">Outstanding</span>
+            </div>
+            <div class="kpi-card__value">PKR @Model.Outstanding.Value.ToString("N2")</div>
+            <div class="kpi-card__foot">
+                <span class="kpi-trend @(Model.Outstanding.FootIsBad ? "kpi-trend--down" : "kpi-trend--up")">
+                    @(Model.Outstanding.FootRises ? "↑" : "↓") @Model.Outstanding.Foot
+                </span>
+                @if (Model.Outstanding.HasTrend)
+                {
+                    <svg class="kpi-spark" viewBox="0 0 120 44" preserveAspectRatio="none" aria-hidden="true">
+                        <path class="kpi-spark__area kpi-spark__area--green" d="@SparkArea(Model.Outstanding)" />
+                        <polyline class="kpi-spark__line kpi-spark__line--green" points="@SparkLine(Model.Outstanding)" />
+                    </svg>
+                }
+            </div>
+        </article>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--purple"><svg class="svg-icon" aria-hidden="true"><use href="#i-percent" /></svg></span>
+                <span class="kpi-card__label">Service Tax</span>
+            </div>
+            <div class="kpi-card__value">@Rate(Model.ServiceTax.Value)</div>
+            <div class="kpi-card__foot">
+                <span class="kpi-trend kpi-trend--info">
+                    <svg class="svg-icon me-1" aria-hidden="true"><use href="#i-info" /></svg>@Model.ServiceTax.Foot
+                </span>
+                @if (Model.ServiceTax.HasTrend)
+                {
+                    <svg class="kpi-spark" viewBox="0 0 120 44" preserveAspectRatio="none" aria-hidden="true">
+                        <path class="kpi-spark__area kpi-spark__area--purple" d="@SparkArea(Model.ServiceTax)" />
+                        <polyline class="kpi-spark__line kpi-spark__line--purple" points="@SparkLine(Model.ServiceTax)" />
+                    </svg>
+                }
+            </div>
+        </article>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--blue"><svg class="svg-icon" aria-hidden="true"><use href="#i-calendar" /></svg></span>
+                <span class="kpi-card__label">This Month</span>
+            </div>
+            <div class="kpi-card__value">@Model.ThisMonth.Value.ToString("N0")</div>
+            <div class="kpi-card__foot">
+                <span class="kpi-trend @(Model.ThisMonth.FootIsBad ? "kpi-trend--down" : "kpi-trend--up")">
+                    @(Model.ThisMonth.FootRises ? "↑" : "↓") @Model.ThisMonth.Foot
+                </span>
+                @if (Model.ThisMonth.HasTrend)
+                {
+                    <svg class="kpi-spark" viewBox="0 0 120 44" preserveAspectRatio="none" aria-hidden="true">
+                        <path class="kpi-spark__area kpi-spark__area--blue" d="@SparkArea(Model.ThisMonth)" />
+                        <polyline class="kpi-spark__line kpi-spark__line--blue" points="@SparkLine(Model.ThisMonth)" />
+                    </svg>
+                }
+            </div>
+        </article>
+    </div>
+</div>
+
+@* ---------------------------------------------------------------- Search + status filter *@
 <div class="card mb-3">
     <div class="card-body">
-        <form method="get" class="row g-2">
-            <div class="col-md-4">
-                <input type="text" name="q" value="@ViewData["q"]" class="form-control" placeholder="Bill number, account number or customer" />
+        <form method="get" class="toolbar mb-0">
+            <div class="search-bar toolbar__search">
+                <svg class="search-icon svg-icon" aria-hidden="true"><use href="#i-search" /></svg>
+                <label class="visually-hidden" for="billSearch">Search bills</label>
+                <input id="billSearch" type="search" name="q" value="@Model.Query" class="form-control"
+                       placeholder="Bill number, account number or customer" />
             </div>
-            <div class="col-md-3">
-                <select name="status" class="form-select">
+            <div class="toolbar__select">
+                <label class="visually-hidden" for="billStatus">Status</label>
+                <select id="billStatus" name="status" class="form-select">
                     <option value="">All statuses</option>
-                    @foreach (var status in Enum.GetValues<BillStatus>())
+                    @foreach (var option in Enum.GetValues<BillStatus>())
                     {
-                        <option value="@status" selected="@(ViewData["status"]?.ToString() == status.ToString())">@status</option>
+                        <option value="@option" selected="@(Model.Status == option)">@option</option>
                     }
                 </select>
             </div>
-            <div class="col-auto">
-                <button type="submit" class="btn btn-outline-primary">Search</button>
-                <a class="btn btn-outline-secondary" asp-action="Index">Reset</a>
-            </div>
+            <button type="submit" class="btn btn-primary">
+                <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-search" /></svg>
+                Search
+            </button>
+            <a class="btn btn-outline-secondary" asp-action="Index">
+                <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-refresh" /></svg>
+                Reset
+            </a>
         </form>
     </div>
 </div>
 
-<div class="card">
+@* ---------------------------------------------------------------- Bills table *@
+<section class="card directory">
     <div class="card-body">
-        @if (Model.Items.Count == 0)
+        <header class="directory__head">
+            <span class="directory__head-icon"><svg class="svg-icon" aria-hidden="true"><use href="#i-bills" /></svg></span>
+            <h2 class="directory__title">Bills</h2>
+        </header>
+
+        @if (Model.Bills.Items.Count == 0)
         {
-            <div class="empty-state"><p class="mb-0">No bills match your search.</p></div>
+            <div class="empty-state">
+                <span class="empty-icon"><svg class="svg-icon" aria-hidden="true"><use href="#i-bills" /></svg></span>
+                <p class="empty-title">No bills found</p>
+                <p class="mb-0">Try a different search term or clear the status filter.</p>
+            </div>
         }
         else
         {
             <div class="table-responsive">
-                <table class="table table-hover align-middle">
+                <table class="table table-hover align-middle directory__table">
                     <thead>
                         <tr>
-                            <th>Bill</th>
-                            <th>Customer</th>
-                            <th>Account</th>
-                            <th>Period</th>
-                            <th>Total</th>
-                            <th>Paid</th>
-                            <th>Due</th>
-                            <th>Status</th>
-                            <th></th>
+                            <th scope="col">Bill Number</th>
+                            <th scope="col">Customer</th>
+                            <th scope="col">Account</th>
+                            <th scope="col">Billing Period</th>
+                            <th scope="col">Amount</th>
+                            <th scope="col">Due Date</th>
+                            <th scope="col">Status</th>
+                            <th scope="col" class="text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var bill in Model.Items)
+                        @foreach (var bill in Model.Bills.Items)
                         {
+                            var fullName = $"{bill.Customer.FirstName} {bill.Customer.LastName}".Trim();
                             <tr>
-                                <td class="fw-semibold">@bill.BillNumber</td>
-                                <td>@bill.Customer.FirstName @bill.Customer.LastName</td>
-                                <td>@bill.Connection.AccountNumber</td>
-                                <td>@bill.BillingPeriodStart.ToString("dd MMM") - @bill.BillingPeriodEnd.ToString("dd MMM yyyy")</td>
-                                <td class="text-price">PKR @bill.TotalAmount.ToString("N2")</td>
-                                <td class="text-price">PKR @bill.PaidAmount.ToString("N2")</td>
-                                <td class="text-price">PKR @bill.DueAmount.ToString("N2")</td>
-                                <td><partial name="_Badge" model="@((object?)bill.Status)" /></td>
-                                <td class="table-actions">
-                                    <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@bill.Id">View</a>
+                                <td><span class="cell-code">@bill.BillNumber</span></td>
+                                <td>
+                                    <div class="cell-stack">
+                                        <a class="cell-title" asp-action="Details" asp-route-id="@bill.Id">@fullName</a>
+                                        <span class="cell-sub">@bill.Connection.Plan.Name</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="cell-stack">
+                                        <span class="cell-mono">@bill.Connection.AccountNumber</span>
+                                        <span class="cell-sub">@bill.Connection.ConnectionType</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="cell-stack">
+                                        <span class="cell-title">@bill.BillingPeriodStart.ToString("MMM yyyy")</span>
+                                        <span class="cell-sub">(@bill.BillingPeriodStart.ToString("dd MMM") &ndash; @bill.BillingPeriodEnd.ToString("dd MMM"))</span>
+                                    </div>
+                                </td>
+                                <td class="text-price fw-semibold">PKR @bill.TotalAmount.ToString("N2")</td>
+                                <td class="text-body-muted">@bill.DueDate.ToString("yyyy-MM-dd")</td>
+                                <td><partial name="_StatusPill" model="@((object?)bill.Status)" /></td>
+                                <td>
+                                    <div class="row-actions">
+                                        <a class="icon-btn" asp-action="Details" asp-route-id="@bill.Id" title="View bill" aria-label="View bill @bill.BillNumber">
+                                            <svg class="svg-icon" aria-hidden="true"><use href="#i-eye" /></svg>
+                                        </a>
+                                        <a class="icon-btn" asp-controller="Connections" asp-action="Details" asp-route-id="@bill.ConnectionId"
+                                           title="Open connection" aria-label="Open the connection billed as @bill.BillNumber">
+                                            <svg class="svg-icon" aria-hidden="true"><use href="#i-connections" /></svg>
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
-            <partial name="_Pagination" model="Model" />
+
+            <div class="directory__foot">
+                <span class="directory__showing">
+                    Showing @Model.FirstRowNumber&ndash;@Model.LastRowNumber of @Model.Bills.TotalItems bill@(Model.Bills.TotalItems == 1 ? string.Empty : "s")
+                </span>
+
+                <nav class="pager" aria-label="Bills pages">
+                    @if (Model.Bills.HasPrevious)
+                    {
+                        <a class="pager__btn" asp-action="Index" asp-all-route-data="PageRoute(Model.Bills.Page - 1)" aria-label="Previous page">
+                            <svg class="svg-icon" aria-hidden="true"><use href="#i-chevron-left" /></svg>
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="pager__btn is-disabled" aria-hidden="true">
+                            <svg class="svg-icon"><use href="#i-chevron-left" /></svg>
+                        </span>
+                    }
+
+                    @for (var pageNumber = pageStart; pageNumber <= pageEnd; pageNumber++)
+                    {
+                        if (pageNumber == Model.Bills.Page)
+                        {
+                            <span class="pager__btn is-active" aria-current="page">@pageNumber</span>
+                        }
+                        else
+                        {
+                            <a class="pager__btn" asp-action="Index" asp-all-route-data="PageRoute(pageNumber)">@pageNumber</a>
+                        }
+                    }
+
+                    @if (Model.Bills.HasNext)
+                    {
+                        <a class="pager__btn" asp-action="Index" asp-all-route-data="PageRoute(Model.Bills.Page + 1)" aria-label="Next page">
+                            <svg class="svg-icon" aria-hidden="true"><use href="#i-chevron-right" /></svg>
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="pager__btn is-disabled" aria-hidden="true">
+                            <svg class="svg-icon"><use href="#i-chevron-right" /></svg>
+                        </span>
+                    }
+                </nav>
+            </div>
         }
     </div>
-</div>
+</section>
