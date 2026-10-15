@@ -1,8 +1,25 @@
+@using System.Globalization
 @using Nexos_Network_System.Areas.Admin.ViewModels
 @model MessageIndexViewModel
 @{
     ViewData["Title"] = "Messages";
     var unreadOnly = Model.Status == "Unread";
+
+    // Sparkline geometry, drawn server-side from the live monthly series.
+    const double sparkWidth = 120d;
+    const double sparkHeight = 44d;
+
+    string SparkLine(BillMetric metric)
+    {
+        var (min, max) = ChartGeometry.NiceRange(metric.Trend);
+        return ChartGeometry.LinePoints(metric.Trend, sparkWidth, sparkHeight, min, max, 4d);
+    }
+
+    string SparkArea(BillMetric metric)
+    {
+        var (min, max) = ChartGeometry.NiceRange(metric.Trend);
+        return ChartGeometry.AreaPath(metric.Trend, sparkWidth, sparkHeight, min, max, 4d);
+    }
 
     var pageStart = Math.Max(1, Model.Messages.Page - 2);
     var pageEnd = Math.Min(Model.Messages.TotalPages, pageStart + 4);
@@ -64,10 +81,19 @@
             </div>
             <div class="kpi-card__value">@Model.TotalMetric.Value.ToString("N0")</div>
             <div class="kpi-card__foot">
-                <span class="kpi-trend @(Model.TotalMetric.FootRises ? "kpi-trend--up" : "kpi-trend--down")">
-                    @(Model.TotalMetric.FootRises ? "↑" : "↓") +12%
-                </span>
-                <span class="kpi-trend__caption">vs. last 30 days</span>
+                <div class="kpi-card__trend">
+                    <span class="kpi-trend @(Model.TotalMetric.FootRises ? "kpi-trend--up" : "kpi-trend--down")">
+                        @(Model.TotalMetric.FootRises ? "↑" : "↓") @Model.TotalMetric.Foot
+                    </span>
+                    <span class="kpi-trend__caption">vs. last 30 days</span>
+                </div>
+                @if (Model.TotalMetric.HasTrend)
+                {
+                    <svg class="kpi-spark" viewBox="0 0 120 44" preserveAspectRatio="none" aria-hidden="true">
+                        <path class="kpi-spark__area kpi-spark__area--blue" d="@SparkArea(Model.TotalMetric)" />
+                        <polyline class="kpi-spark__line kpi-spark__line--blue" points="@SparkLine(Model.TotalMetric)" />
+                    </svg>
+                }
             </div>
         </article>
     </div>
@@ -82,8 +108,19 @@
             </div>
             <div class="kpi-card__value">@Model.UnreadCount.ToString("N0")</div>
             <div class="kpi-card__foot">
-                <span class="kpi-trend kpi-trend--up">↑ +3%</span>
-                <span class="kpi-trend__caption">vs. last 30 days</span>
+                <div class="kpi-card__trend">
+                    <span class="kpi-trend @(Model.UnreadMetric.FootRises ? "kpi-trend--up" : "kpi-trend--down")">
+                        @(Model.UnreadMetric.FootRises ? "↑" : "↓") @Model.UnreadMetric.Foot
+                    </span>
+                    <span class="kpi-trend__caption">vs. last 30 days</span>
+                </div>
+                @if (Model.UnreadMetric.HasTrend)
+                {
+                    <svg class="kpi-spark" viewBox="0 0 120 44" preserveAspectRatio="none" aria-hidden="true">
+                        <path class="kpi-spark__area kpi-spark__area--cyan" d="@SparkArea(Model.UnreadMetric)" />
+                        <polyline class="kpi-spark__line kpi-spark__line--cyan" points="@SparkLine(Model.UnreadMetric)" />
+                    </svg>
+                }
             </div>
         </article>
     </div>
@@ -98,8 +135,19 @@
             </div>
             <div class="kpi-card__value">@Model.RepliedCount.ToString("N0")</div>
             <div class="kpi-card__foot">
-                <span class="kpi-trend kpi-trend--up">↑ +18%</span>
-                <span class="kpi-trend__caption">vs. last 30 days</span>
+                <div class="kpi-card__trend">
+                    <span class="kpi-trend @(Model.RepliedMetric.FootRises ? "kpi-trend--up" : "kpi-trend--down")">
+                        @(Model.RepliedMetric.FootRises ? "↑" : "↓") @Model.RepliedMetric.Foot
+                    </span>
+                    <span class="kpi-trend__caption">vs. last 30 days</span>
+                </div>
+                @if (Model.RepliedMetric.HasTrend)
+                {
+                    <svg class="kpi-spark" viewBox="0 0 120 44" preserveAspectRatio="none" aria-hidden="true">
+                        <path class="kpi-spark__area kpi-spark__area--green" d="@SparkArea(Model.RepliedMetric)" />
+                        <polyline class="kpi-spark__line kpi-spark__line--green" points="@SparkLine(Model.RepliedMetric)" />
+                    </svg>
+                }
             </div>
         </article>
     </div>
@@ -114,8 +162,19 @@
             </div>
             <div class="kpi-card__value">@Model.PendingCount.ToString("N0")</div>
             <div class="kpi-card__foot">
-                <span class="kpi-trend kpi-trend--down">↓ -5%</span>
-                <span class="kpi-trend__caption">vs. last 30 days</span>
+                <div class="kpi-card__trend">
+                    <span class="kpi-trend @(Model.PendingMetric.FootIsBad ? "kpi-trend--down" : "kpi-trend--up")">
+                        @(Model.PendingMetric.FootRises ? "↑" : "↓") @Model.PendingMetric.Foot
+                    </span>
+                    <span class="kpi-trend__caption">vs. last 30 days</span>
+                </div>
+                @if (Model.PendingMetric.HasTrend)
+                {
+                    <svg class="kpi-spark" viewBox="0 0 120 44" preserveAspectRatio="none" aria-hidden="true">
+                        <path class="kpi-spark__area kpi-spark__area--purple" d="@SparkArea(Model.PendingMetric)" />
+                        <polyline class="kpi-spark__line kpi-spark__line--purple" points="@SparkLine(Model.PendingMetric)" />
+                    </svg>
+                }
             </div>
         </article>
     </div>
