@@ -3,12 +3,23 @@
     ViewData["Title"] = "My Orders";
 }
 
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+<nav class="crumbs" aria-label="Breadcrumb">
+    <a asp-area="Customer" asp-controller="Dashboard" asp-action="Index">
+        <svg class="svg-icon" aria-hidden="true"><use href="#i-home-clean" /></svg>
+        <span>Dashboard</span>
+    </a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <span class="crumbs__current" aria-current="page">My Orders</span>
+</nav>
+
+<div class="page-header">
     <div>
-        <h1 class="h4 mb-1">My Orders</h1>
-        <p class="text-muted mb-0">Track the status of every order you have placed.</p>
+        <h1 class="h3">My Orders</h1>
+        <p class="page-subtitle">Track the status of every order you have placed.</p>
     </div>
-    <a class="btn btn-primary" asp-action="Create">+ Place Order</a>
+    <div class="page-head__actions">
+        <a class="btn btn-primary" asp-action="Create">+ Place Order</a>
+    </div>
 </div>
 
 <div class="card">
@@ -16,7 +27,7 @@
         @if (Model.Count == 0)
         {
             <div class="empty-state">
-                <div class="empty-icon">&#128221;</div>
+                <span class="empty-icon"><svg class="svg-icon" aria-hidden="true"><use href="#i-orders" /></svg></span>
                 <p class="mb-2">You have not placed any orders yet.</p>
                 <a class="btn btn-primary" asp-action="Create">Place an order</a>
             </div>
@@ -43,10 +54,10 @@
                                     }
                                     else
                                     {
-                                        <partial name="_Badge" model="@((object?)order.FeasibilityReport.Status)" />
+                                        <partial name="_StatusPill" model="@((object?)order.FeasibilityReport.Status)" />
                                     }
                                 </td>
-                                <td><partial name="_Badge" model="@((object?)order.Status)" /></td>
+                                <td><partial name="_StatusPill" model="@((object?)order.Status)" /></td>
                                 <td class="table-actions">
                                     <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@order.Id">View</a>
                                 </td>

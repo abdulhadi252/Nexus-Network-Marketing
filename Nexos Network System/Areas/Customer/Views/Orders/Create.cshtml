@@ -3,8 +3,21 @@
     ViewData["Title"] = "Place an Order";
 }
 
-<h1 class="h4 mb-1">Place a service order</h1>
-<p class="text-muted">Choose an active plan. Your order number and status will be available in your account.</p>
+<nav class="crumbs" aria-label="Breadcrumb">
+    <a asp-area="Customer" asp-controller="Dashboard" asp-action="Index">
+        <svg class="svg-icon" aria-hidden="true"><use href="#i-home-clean" /></svg>
+        <span>Dashboard</span>
+    </a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <span class="crumbs__current" aria-current="page">Place Order</span>
+</nav>
+
+<div class="page-header">
+    <div>
+        <h1 class="h3">Place a service order</h1>
+        <p class="page-subtitle">Choose an active plan. Your order number and status will be available in your account.</p>
+    </div>
+</div>
 
 <div class="card">
     <div class="card-body">

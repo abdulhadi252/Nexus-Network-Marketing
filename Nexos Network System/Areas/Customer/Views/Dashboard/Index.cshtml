@@ -1,142 +1,362 @@
 @model CustomerDashboardViewModel
 @{
     ViewData["Title"] = "Customer Dashboard";
+
+    var connections = Model.Connections;
+    var recentOrders = Model.RecentOrders;
+    var recentPayments = Model.RecentPayments;
+
+    string MethodLabel(PaymentMethod method) => method switch
+    {
+        PaymentMethod.BankTransfer => "Bank Transfer",
+        _ => method.ToString()
+    };
+
+    string MethodIcon(PaymentMethod method) => method switch
+    {
+        PaymentMethod.Cash => "i-wallet",
+        PaymentMethod.Card => "i-credit-card",
+        PaymentMethod.BankTransfer => "i-payments",
+        PaymentMethod.Cheque => "i-bills",
+        _ => "i-payments"
+    };
+
+    string TypeLabel(ConnectionType type) => type switch
+    {
+        ConnectionType.DialUp => "Dial-Up",
+        ConnectionType.Broadband => "Broadband",
+        ConnectionType.Telephone => "Telephone",
+        _ => type.ToString()
+    };
+
+    string TypeIcon(ConnectionType type) => type switch
+    {
+        ConnectionType.DialUp => "i-signal",
+        ConnectionType.Broadband => "i-broadband",
+        ConnectionType.Telephone => "i-phone",
+        _ => "i-connections"
+    };
+
+    // Stable per-record tint so the same row keeps the same colour as newer rows appear.
+    string AvatarTone(int id) => (id % 5) switch
+    {
+        0 => "person__avatar--blue",
+        1 => "person__avatar--purple",
+        2 => "person__avatar--teal",
+        3 => "person__avatar--indigo",
+        _ => "person__avatar--pink"
+    };
 }
 
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+<div class="dash-head">
     <div>
-        <h1 class="h4 mb-1">My Account</h1>
-        <p class="text-muted mb-0">Your connection, billing and payment overview.</p>
+        <h1>Dashboard</h1>
+        <p>Welcome back, @Model.GreetingName! Your connections, bills and payments at a glance.</p>
     </div>
-    <a class="btn btn-outline-primary" asp-controller="Feedback" asp-action="Create">+ Give Feedback</a>
+    <div class="dash-period" title="Reporting period">
+        <svg class="svg-icon"><use href="#i-calendar" /></svg>
+        <span>@Model.PeriodLabel</span>
+    </div>
 </div>
 
-@if (Model.Connections.Count == 0)
-{
-    <div class="card mb-3">
-        <div class="empty-state">
-            <div class="empty-icon"><svg class="svg-icon"><use href="#i-connections" /></svg></div>
-            <h6>No connections yet</h6>
-            <p class="mb-2">Place a service order online and follow its progress from your account.</p>
-            <a class="btn btn-primary" asp-controller="Orders" asp-action="Create">Place an order</a>
-        </div>
+@* ---------------------------------------------------------------- KPI cards *@
+<div class="row g-3 mb-3">
+    <div class="col-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--blue"><svg class="svg-icon"><use href="#i-connections" /></svg></span>
+                <span class="kpi-card__label">Connections</span>
+            </div>
+            <div class="kpi-card__value">@connections.Count.ToString("N0")</div>
+        </article>
     </div>
-}
-else
-{
-    var primaryConnection = Model.Connections[0];
-    <div class="row g-3 mb-4">
-        <div class="col-md-4">
-            <div class="stat-card card h-100">
-                <div class="stat-label">Account Number</div>
-                <div class="stat-value" style="font-size: 1.05rem;">@primaryConnection.AccountNumber</div>
-                <div class="text-muted small">@primaryConnection.ConnectionType &middot; @primaryConnection.City?.Name</div>
+    <div class="col-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--orange"><svg class="svg-icon"><use href="#i-dues" /></svg></span>
+                <span class="kpi-card__label">Outstanding Dues</span>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="stat-card card h-100">
-                <div class="stat-label">Connection Status</div>
-                <div class="mt-1 mb-1"><partial name="_Badge" model="@((object?)primaryConnection.Status)" /></div>
-                <div class="text-muted small">Current plan: @primaryConnection.Plan?.Name</div>
+            <div class="kpi-card__value">PKR @Model.OutstandingAmount.ToString("N0")</div>
+        </article>
+    </div>
+    <div class="col-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--purple"><svg class="svg-icon"><use href="#i-clock" /></svg></span>
+                <span class="kpi-card__label">Pending Orders</span>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="stat-card card h-100">
-                <div class="stat-label">Outstanding Amount</div>
-                <div class="stat-value @(Model.OutstandingAmount > 0 ? "text-danger" : "text-success")">
-                    PKR @Model.OutstandingAmount.ToString("N2")
+            <div class="kpi-card__value">@Model.PendingOrders.ToString("N0")</div>
+        </article>
+    </div>
+    <div class="col-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--cyan"><svg class="svg-icon"><use href="#i-wallet" /></svg></span>
+                <span class="kpi-card__label">Payments Made</span>
+            </div>
+            <div class="kpi-card__value">PKR @Model.PaymentsMade.ToString("N0")</div>
+        </article>
+    </div>
+</div>
+
+@* ---------------------------------------------------------------- Orders + Payments *@
+<div class="row g-3 mb-3">
+    <div class="col-xl-6">
+        <section class="dash-card h-100">
+            <header class="dash-card__head">
+                <span class="dash-card__icon"><svg class="svg-icon"><use href="#i-orders" /></svg></span>
+                <div class="dash-card__heading">
+                    <h2 class="dash-card__title">Recent Orders</h2>
+                    <p class="dash-card__sub">
+                        @if (recentOrders.Count == 0)
+                        {
+                            <text>No orders placed yet</text>
+                        }
+                        else
+                        {
+                            <text>Newest @recentOrders.Count.ToString("N0") order@(recentOrders.Count == 1 ? string.Empty : "s")</text>
+                        }
+                    </p>
+                </div>
+                <a class="btn btn-sm btn-outline-primary order-card__cta ms-auto"
+                   asp-controller="Orders" asp-action="Index">
+                    View All
+                </a>
+            </header>
+            <div class="dash-card__body dash-card__body--flush">
+                @if (recentOrders.Count == 0)
+                {
+                    <div class="empty-state">
+                        <span class="empty-icon"><svg class="svg-icon" aria-hidden="true"><use href="#i-orders" /></svg></span>
+                        <p class="empty-title">No orders have been placed yet.</p>
+                        <p class="mb-3">Place a service order online and follow its progress here.</p>
+                        <a class="btn btn-sm btn-primary" asp-controller="Orders" asp-action="Create">Place an order</a>
+                    </div>
+                }
+                else
+                {
+                    <ul class="order-list">
+                        @foreach (var order in recentOrders)
+                        {
+                            <partial name="_OrderRow" model="order" />
+                        }
+                    </ul>
+                }
+            </div>
+        </section>
+    </div>
+
+    <div class="col-xl-6">
+        <section class="dash-card h-100">
+            <header class="dash-card__head">
+                <span class="dash-card__icon"><svg class="svg-icon"><use href="#i-wallet" /></svg></span>
+                <div class="dash-card__heading">
+                    <h2 class="dash-card__title">Recent Payments</h2>
+                    <p class="dash-card__sub">
+                        @if (recentPayments.Count == 0)
+                        {
+                            <text>No payments recorded yet</text>
+                        }
+                        else
+                        {
+                            <text>Newest @recentPayments.Count.ToString("N0") receipt@(recentPayments.Count == 1 ? string.Empty : "s")</text>
+                        }
+                    </p>
+                </div>
+                <a class="btn btn-sm btn-outline-primary order-card__cta ms-auto"
+                   asp-controller="Payments" asp-action="Index">
+                    View All
+                </a>
+            </header>
+            <div class="dash-card__body dash-card__body--flush">
+                @if (recentPayments.Count == 0)
+                {
+                    <div class="empty-state">
+                        <span class="empty-icon"><svg class="svg-icon" aria-hidden="true"><use href="#i-wallet" /></svg></span>
+                        <p class="empty-title">No payments recorded yet.</p>
+                        <p class="mb-0">Payments recorded at any NEXUS branch will appear here.</p>
+                    </div>
+                }
+                else
+                {
+                    <ul class="order-list">
+                        @foreach (var payment in recentPayments)
+                        {
+                            var paidLocal = payment.PaidAt.ToLocalTime();
+                            <li>
+                                @if (payment.Bill is not null)
+                                {
+                                    <a class="order-item" asp-controller="Bills" asp-action="Details" asp-route-id="@payment.BillId"
+                                       aria-label="Open the bill this payment was recorded against">
+                                        <span class="order-item__avatar @AvatarTone(payment.Id)" aria-hidden="true">
+                                            <svg class="svg-icon"><use href="#@MethodIcon(payment.Method)" /></svg>
+                                        </span>
+                                        <span class="order-item__body">
+                                            <span class="order-item__top">
+                                                <span class="order-item__number">@payment.ReceiptNumber</span>
+                                                <span class="order-item__type">
+                                                    <svg class="svg-icon" aria-hidden="true"><use href="#@MethodIcon(payment.Method)" /></svg>
+                                                    @MethodLabel(payment.Method)
+                                                </span>
+                                            </span>
+                                            <span class="order-item__sub">
+                                                <span class="order-item__plan">Bill @payment.Bill.BillNumber</span>
+                                            </span>
+                                        </span>
+                                        <span class="order-item__status">
+                                            <partial name="_StatusPill" model="@((object?)payment.Status)" />
+                                        </span>
+                                        <span class="order-item__amount">
+                                            <span class="order-item__price">PKR @payment.Amount.ToString("N0")</span>
+                                            <span class="order-item__age" title="@paidLocal.ToString("dd MMM yyyy, HH:mm")">
+                                                <svg class="svg-icon" aria-hidden="true"><use href="#i-calendar" /></svg>
+                                                @paidLocal.ToString("dd MMM yyyy")
+                                            </span>
+                                        </span>
+                                        <span class="order-item__go" aria-hidden="true">
+                                            <svg class="svg-icon"><use href="#i-arrow-right" /></svg>
+                                        </span>
+                                    </a>
+                                }
+                                else
+                                {
+                                    <div class="order-item">
+                                        <span class="order-item__avatar @AvatarTone(payment.Id)" aria-hidden="true">
+                                            <svg class="svg-icon"><use href="#@MethodIcon(payment.Method)" /></svg>
+                                        </span>
+                                        <span class="order-item__body">
+                                            <span class="order-item__top">
+                                                <span class="order-item__number">@payment.ReceiptNumber</span>
+                                                <span class="order-item__type">
+                                                    <svg class="svg-icon" aria-hidden="true"><use href="#@MethodIcon(payment.Method)" /></svg>
+                                                    @MethodLabel(payment.Method)
+                                                </span>
+                                            </span>
+                                            <span class="order-item__sub">
+                                                <span class="order-item__plan">@(payment.Connection?.AccountNumber ?? "Payment")</span>
+                                            </span>
+                                        </span>
+                                        <span class="order-item__status">
+                                            <partial name="_StatusPill" model="@((object?)payment.Status)" />
+                                        </span>
+                                        <span class="order-item__amount">
+                                            <span class="order-item__price">PKR @payment.Amount.ToString("N0")</span>
+                                            <span class="order-item__age" title="@paidLocal.ToString("dd MMM yyyy, HH:mm")">
+                                                <svg class="svg-icon" aria-hidden="true"><use href="#i-calendar" /></svg>
+                                                @paidLocal.ToString("dd MMM yyyy")
+                                            </span>
+                                        </span>
+                                    </div>
+                                }
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </section>
+    </div>
+</div>
+
+@* ---------------------------------------------------------------- Connections + latest bill *@
+<div class="row g-3">
+    <div class="col-xl-6">
+        <section class="dash-card h-100">
+            <header class="dash-card__head">
+                <span class="dash-card__icon"><svg class="svg-icon"><use href="#i-connections" /></svg></span>
+                <div class="dash-card__heading">
+                    <h2 class="dash-card__title">My Connection</h2>
+                    <p class="dash-card__sub">Account numbers, plans and current status</p>
+                </div>
+                <a class="btn btn-sm btn-outline-primary order-card__cta ms-auto"
+                   asp-controller="Connection" asp-action="Index">
+                    View All
+                </a>
+            </header>
+            <div class="dash-card__body dash-card__body--flush">
+                @if (connections.Count == 0)
+                {
+                    <div class="empty-state">
+                        <span class="empty-icon"><svg class="svg-icon" aria-hidden="true"><use href="#i-connections" /></svg></span>
+                        <p class="empty-title">No connections yet</p>
+                        <p class="mb-3">Place a service order online and follow its progress from your account.</p>
+                        <a class="btn btn-sm btn-primary" asp-controller="Orders" asp-action="Create">Place an order</a>
+                    </div>
+                }
+                else
+                {
+                    <ul class="order-list">
+                        @foreach (var connection in connections)
+                        {
+                            <li>
+                                <div class="order-item">
+                                    <span class="order-item__avatar @AvatarTone(connection.Id)" aria-hidden="true">
+                                        <svg class="svg-icon"><use href="#@TypeIcon(connection.ConnectionType)" /></svg>
+                                    </span>
+                                    <span class="order-item__body">
+                                        <span class="order-item__top">
+                                            <span class="order-item__number">@connection.AccountNumber</span>
+                                            <span class="order-item__type">
+                                                <svg class="svg-icon" aria-hidden="true"><use href="#@TypeIcon(connection.ConnectionType)" /></svg>
+                                                @TypeLabel(connection.ConnectionType)
+                                            </span>
+                                        </span>
+                                        <span class="order-item__sub">
+                                            <span class="order-item__customer">@(connection.City?.Name ?? "-")</span>
+                                            <span class="order-item__dot" aria-hidden="true"></span>
+                                            <span class="order-item__plan">@(string.IsNullOrWhiteSpace(connection.Plan?.Name) ? "No plan assigned" : connection.Plan!.Name)</span>
+                                        </span>
+                                    </span>
+                                    <span class="order-item__status">
+                                        <partial name="_StatusPill" model="@((object?)connection.Status)" />
+                                    </span>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </section>
+    </div>
+
+    <div class="col-xl-6">
+        <section class="dash-card h-100">
+            <header class="dash-card__head">
+                <span class="dash-card__icon"><svg class="svg-icon"><use href="#i-bills" /></svg></span>
+                <div class="dash-card__heading">
+                    <h2 class="dash-card__title">Latest Bill</h2>
+                    <p class="dash-card__sub">Your most recently generated bill</p>
                 </div>
                 @if (Model.CurrentBill is not null)
                 {
-                    <div class="text-muted small">Latest bill: @Model.CurrentBill.BillNumber</div>
-                }
-            </div>
-        </div>
-    </div>
-}
-
-@if (Model.CurrentBill is not null)
-{
-    <div class="card p-4 mb-3">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div>
-                <h6 class="mb-1">Latest Bill</h6>
-                <p class="text-muted small mb-0">
-                    @Model.CurrentBill.BillNumber &middot; period @Model.CurrentBill.BillingPeriodStart.ToString("dd MMM") - @Model.CurrentBill.BillingPeriodEnd.ToString("dd MMM yyyy") &middot; due @Model.CurrentBill.DueDate.ToString("dd MMM yyyy")
-                </p>
-            </div>
-            <div class="d-flex align-items-center gap-3">
-                <partial name="_Badge" model="@((object?)Model.CurrentBill.Status)" />
-                <span class="fw-bold text-price">PKR @Model.CurrentBill.DueAmount.ToString("N2") due</span>
-                <a class="btn btn-sm btn-outline-primary" asp-controller="Bills" asp-action="Details" asp-route-id="@Model.CurrentBill.Id">View bill</a>
-            </div>
-        </div>
-    </div>
-}
-
-<div class="row g-3">
-    <div class="col-lg-6">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Recent Orders</span>
-                <a class="btn btn-sm btn-outline-primary" asp-controller="Orders" asp-action="Index">View all</a>
-            </div>
-            <div class="card-body p-0">
-                @if (Model.RecentOrders.Count == 0)
-                {
-                    <div class="empty-state"><p class="mb-0">No orders yet.</p></div>
+                    <a class="btn btn-sm btn-outline-primary order-card__cta ms-auto"
+                       asp-controller="Bills" asp-action="Details" asp-route-id="@Model.CurrentBill.Id">
+                        View Bill
+                    </a>
                 }
                 else
                 {
-                    <div class="table-responsive">
-                        <table class="table align-middle mb-0">
-                            <thead><tr><th>Order</th><th>Plan</th><th>Status</th></tr></thead>
-                            <tbody>
-                                @foreach (var order in Model.RecentOrders)
-                                {
-                                    <tr>
-                                        <td class="fw-semibold">@order.OrderNumber</td>
-                                        <td>@(order.Plan?.Name ?? "-")</td>
-                                        <td><partial name="_Badge" model="@((object?)order.Status)" /></td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
+                    <a class="btn btn-sm btn-outline-primary order-card__cta ms-auto"
+                       asp-controller="Bills" asp-action="Index">
+                        All Bills
+                    </a>
                 }
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-6">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Recent Payments</span>
-                <a class="btn btn-sm btn-outline-primary" asp-controller="Payments" asp-action="Index">View all</a>
-            </div>
-            <div class="card-body p-0">
-                @if (Model.RecentPayments.Count == 0)
+            </header>
+            <div class="dash-card__body dash-card__body--flush">
+                @if (Model.CurrentBill is null)
                 {
-                    <div class="empty-state"><p class="mb-0">No payments recorded yet.</p></div>
+                    <div class="empty-state">
+                        <span class="empty-icon"><svg class="svg-icon" aria-hidden="true"><use href="#i-bills" /></svg></span>
+                        <p class="empty-title">No bills yet</p>
+                        <p class="mb-0">Your monthly bills will appear here once they are generated.</p>
+                    </div>
                 }
                 else
                 {
-                    <div class="table-responsive">
-                        <table class="table align-middle mb-0">
-                            <thead><tr><th>Receipt</th><th>Date</th><th>Amount</th></tr></thead>
-                            <tbody>
-                                @foreach (var payment in Model.RecentPayments)
-                                {
-                                    <tr>
-                                        <td class="fw-semibold">@payment.ReceiptNumber</td>
-                                        <td>@payment.PaidAt.ToLocalTime().ToString("dd MMM yyyy")</td>
-                                        <td class="text-price">PKR @payment.Amount.ToString("N2")</td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
+                    <ul class="order-list">
+                        <partial name="_BillRow" model="Model.CurrentBill" />
+                    </ul>
                 }
             </div>
-        </div>
+        </section>
     </div>
 </div>
