@@ -3,8 +3,21 @@
     ViewData["Title"] = "New Customer";
 }
 
-<h1 class="h4 mb-1">Register Customer</h1>
-<p class="text-muted">Register the customer at the branch, then place their service order.</p>
+<nav class="crumbs" aria-label="Breadcrumb">
+    <a asp-area="Retail" asp-controller="Dashboard" asp-action="Index">
+        <svg class="svg-icon" aria-hidden="true"><use href="#i-home-clean" /></svg>
+        <span>Dashboard</span>
+    </a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <span class="crumbs__current" aria-current="page">Register Customer</span>
+</nav>
+
+<div class="page-header">
+    <div>
+        <h1 class="h3">Register Customer</h1>
+        <p class="page-subtitle">Register the customer at the branch, then place their service order.</p>
+    </div>
+</div>
 
 <div class="card">
     <div class="card-body">

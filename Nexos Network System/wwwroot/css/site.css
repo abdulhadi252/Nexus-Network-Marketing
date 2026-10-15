@@ -650,18 +650,6 @@ h1, h2, h3, h4, h5, h6 {
     border-bottom: 3px solid var(--nexos-primary);
 }
 
-.contact-hero__grid {
-    position: absolute;
-    inset: 0;
-    background-image:
-        linear-gradient(rgba(48, 86, 154, .22) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(48, 86, 154, .22) 1px, transparent 1px);
-    background-size: 48px 48px;
-    mask-image: radial-gradient(closest-side, #000 72%, transparent 100%);
-    -webkit-mask-image: radial-gradient(closest-side, #000 72%, transparent 100%);
-    pointer-events: none;
-}
-
 .contact-hero__glow {
     position: absolute;
     inset: 0;
@@ -880,24 +868,12 @@ h1, h2, h3, h4, h5, h6 {
     margin-left: .4rem;
 }
 
-.btn-contact-sm {
-    padding: .55rem 1.3rem;
-    font-weight: 600;
-    border-radius: 999px;
-}
-
-.btn-contact-sm .btn-icon {
-    width: 15px;
-    height: 15px;
-    margin-left: .35rem;
-}
-
-/* ---- Contact grid ---- */
+/* ---- Contact grid: one detail per row ---- */
 
 .contact-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
+    grid-template-columns: 1fr;
+    gap: .75rem;
 }
 
 .contact-item {
@@ -951,85 +927,7 @@ h1, h2, h3, h4, h5, h6 {
     line-height: 1.3;
 }
 
-/* ---- Map + find us ---- */
-
-.contact-card--map {
-    padding: 0;
-    overflow: hidden;
-}
-
-.contact-map {
-    position: relative;
-    width: 100%;
-    height: 200px;
-    overflow: hidden;
-    background: #eef2f7;
-}
-
-.contact-map__photo {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-}
-
-.contact-map__pin {
-    position: absolute;
-    left: .9rem;
-    bottom: .7rem;
-    display: inline-flex;
-    align-items: center;
-    gap: .4rem;
-    background: rgba(11, 31, 58, .88);
-    color: #fff;
-    font-size: .78rem;
-    font-weight: 600;
-    padding: .35rem .7rem .35rem .5rem;
-    border-radius: 999px;
-    backdrop-filter: blur(2px);
-    border: 1px solid rgba(126, 208, 255, .3);
-    box-shadow: 0 8px 20px -10px rgba(11, 31, 58, .9), 0 0 0 4px rgba(11, 31, 58, .25);
-}
-
-.contact-map__pin--outer {
-    position: absolute;
-    left: .9rem;
-    bottom: .7rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    pointer-events: none;
-}
-
-.contact-find-us {
-    padding: 1.2rem 1.4rem;
-    background: var(--nexos-navy);
-    color: #dbe4f0;
-}
-
-.contact-find-us__title {
-    margin: 0 0 .3rem;
-    font-size: 1rem;
-    font-weight: 700;
-    color: #fff;
-}
-
-.contact-find-us__text {
-    margin: 0 0 1rem;
-    font-size: .85rem;
-    color: rgba(180, 201, 228, .85);
-    line-height: 1.45;
-}
-
 /* ---- Responsive ---- */
-
-@media (max-width: 991px) {
-    .contact-grid { grid-template-columns: 1fr; }
-    .contact-card--map { display: block; }
-    .contact-map { height: 180px; }
-}
 
 @media (max-width: 767px) {
     .contact-hero { padding: 4rem 0 3.4rem; }
@@ -1039,7 +937,6 @@ h1, h2, h3, h4, h5, h6 {
     .contact-section { padding: 3rem 0; }
     .contact-card { padding: 1.3rem; }
     .contact-card__head { margin-bottom: 1.1rem; padding-bottom: 1rem; }
-    .contact-find-us { padding: 1rem 1.1rem; }
 }
 /* ============================================================
    Services page (AESA-style hero + service cards)
@@ -1163,6 +1060,10 @@ h1, h2, h3, h4, h5, h6 {
     color: #fff;
     flex-shrink: 0;
 }
+
+/* Explicit icon size, exactly like .pl-badge__icon on the Plans page -
+   without it the <use> sprite fills the whole viewport-sized SVG. */
+.svc-badge__icon .svg-icon { width: 20px; height: 20px; }
 
 .svc-badge__title {
     font-size: .9rem;
@@ -1721,6 +1622,7 @@ h1, h2, h3, h4, h5, h6 {
     .svc-hero__badges { gap: .55rem; }
     .svc-badge { padding: .5rem .85rem; }
     .svc-badge__icon { width: 30px; height: 30px; }
+    .svc-badge__icon .svg-icon { width: 17px; height: 17px; }
     .svc-about { padding: 3rem 0; }
     .svc-card__overlay { padding: 1.2rem; }
     .svc-stats { padding: 1.3rem .8rem; }
@@ -3588,9 +3490,14 @@ h1, h2, h3, h4, h5, h6 {
     border: 4px solid #fff;
     color: var(--nexos-primary-dark);
     box-shadow: 0 14px 26px -18px rgba(11, 31, 58, .55);
+    font-family: var(--nexos-font-head);
+    font-size: 2.6rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -.02em;
+    text-transform: uppercase;
+    user-select: none;
 }
-
-.profile-hero__avatar .svg-icon { width: 52px; height: 52px; stroke-width: 1.6; }
 
 .profile-hero__body { flex: 1 1 240px; min-width: 0; }
 
@@ -3751,8 +3658,7 @@ h1, h2, h3, h4, h5, h6 {
 
 @media (max-width: 767.98px) {
     .profile-hero { padding: 1.25rem; }
-    .profile-hero__avatar { width: 82px; height: 82px; }
-    .profile-hero__avatar .svg-icon { width: 42px; height: 42px; }
+    .profile-hero__avatar { width: 82px; height: 82px; font-size: 2.05rem; }
     .profile-hero__actions { flex-basis: 100%; }
 
     .profile-row {
@@ -3984,6 +3890,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .dash-card__head {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: .8rem;
     padding: 1.05rem 1.4rem;
@@ -4010,6 +3917,21 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 1.02rem;
     font-weight: 700;
     color: var(--nexos-ink);
+}
+
+.dash-card__heading {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: .1rem;
+    min-width: 0;
+}
+
+.dash-card__sub {
+    margin: 0;
+    font-size: .78rem;
+    font-weight: 500;
+    color: var(--nexos-muted);
 }
 
 .dash-card__body { padding: 1.15rem 1.4rem; }
@@ -4178,38 +4100,231 @@ h1, h2, h3, h4, h5, h6 {
     font-variant-numeric: tabular-nums;
 }
 
-/* --- Dashboard tables --- */
-.dash-table thead th {
-    padding: .8rem 1rem;
-    background: #fbfcfe;
+/* --- Dashboard recent-orders list --- */
+/* Rows are data-driven cards: avatar, order identity, status, amount and
+   age all come from the order itself, so the list reflows with the data.
+   The list holds every order; it scrolls once it grows past the card, so the
+   dashboard stays scannable without cutting any order off. */
+.order-list__scroll {
+    max-height: 34rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.order-card__cta { flex-shrink: 0; }
+
+.order-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.order-item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+    align-items: center;
+    gap: 1rem;
+    padding: .85rem 1.4rem;
     border-bottom: 1px solid var(--nexos-line);
-    color: var(--nexos-muted);
+    color: inherit;
+    transition: background-color .15s ease;
+}
+
+.order-list > li:last-child .order-item { border-bottom: 0; }
+
+.order-item:hover { background: #f7faff; }
+.order-item:focus-visible { outline: 2px solid var(--nexos-primary); outline-offset: -2px; }
+
+.order-item__avatar {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: .92rem;
+    letter-spacing: .02em;
+    line-height: 1;
+}
+
+.order-item__body {
+    display: flex;
+    flex-direction: column;
+    gap: .22rem;
+    min-width: 0;
+}
+
+.order-item__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .55rem;
+}
+
+.order-item__number {
+    font-family: var(--nexos-font-head);
+    font-size: .95rem;
+    font-weight: 700;
+    color: var(--nexos-ink);
+    letter-spacing: -.01em;
+}
+
+.order-item__type {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    padding: .15rem .55rem;
+    border-radius: 999px;
+    background: var(--nexos-primary-soft);
+    color: var(--nexos-primary);
     font-size: .72rem;
     font-weight: 700;
-    letter-spacing: .08em;
-    text-transform: uppercase;
+    letter-spacing: .01em;
     white-space: nowrap;
 }
 
-.dash-table tbody td {
-    padding: .85rem 1rem;
-    border-bottom: 1px solid var(--nexos-line);
-    color: var(--nexos-slate);
-    font-size: .88rem;
-}
+.order-item__type .svg-icon { width: 13px; height: 13px; }
 
-.dash-table tbody tr:last-child td { border-bottom: 0; }
-.dash-table tbody tr:hover { background: #f9fbff; }
-
-.dash-table__action { width: 48px; text-align: right; }
-
-.dash-table__action a {
-    display: inline-flex;
+.order-item__sub {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .45rem;
+    min-width: 0;
+    font-size: .82rem;
     color: var(--nexos-muted);
-    transition: color .18s ease, transform .18s ease;
 }
 
-.dash-table__action a:hover { color: var(--nexos-primary); transform: translateX(2px); }
+.order-item__customer {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 600;
+    color: var(--nexos-slate);
+}
+
+.order-item__dot {
+    width: 4px;
+    height: 4px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--nexos-line-strong);
+}
+
+.order-item__plan {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.order-item__status { justify-self: start; }
+
+.order-item__amount {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: .2rem;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.order-item__price {
+    font-size: .92rem;
+    font-weight: 700;
+    color: var(--nexos-ink);
+    font-variant-numeric: tabular-nums;
+}
+
+.order-item__price--muted { font-weight: 600; color: var(--nexos-muted); }
+
+.order-item__age {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    font-size: .74rem;
+    color: var(--nexos-muted);
+}
+
+.order-item__age .svg-icon { width: 13px; height: 13px; }
+
+.order-item__go {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    color: var(--nexos-muted);
+    transition: color .18s ease, background-color .18s ease, transform .18s ease;
+}
+
+.order-item__go .svg-icon { width: 16px; height: 16px; }
+
+.order-item:hover .order-item__go {
+    background: var(--nexos-primary-soft);
+    color: var(--nexos-primary);
+    transform: translateX(2px);
+}
+
+.order-list__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    padding: .8rem 1.4rem;
+    background: #fbfcfe;
+    border-top: 1px solid var(--nexos-line);
+    font-size: .8rem;
+    color: var(--nexos-muted);
+}
+
+.order-list__foot-note { display: inline-flex; align-items: center; gap: .35rem; }
+.order-list__foot-note .svg-icon { width: 14px; height: 14px; color: var(--nexos-primary); }
+
+.order-list__foot-total { display: inline-flex; align-items: center; gap: .4rem; }
+
+.order-list__foot-total strong {
+    color: var(--nexos-ink);
+    font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 767.98px) {
+    .order-item {
+        grid-template-columns: auto minmax(0, 1fr);
+        grid-template-areas:
+            "avatar body"
+            "status amount";
+        row-gap: .7rem;
+        padding: .9rem 1.1rem;
+    }
+
+    .order-item__avatar { grid-area: avatar; }
+    .order-item__body { grid-area: body; }
+    .order-item__status { grid-area: status; align-self: center; }
+    .order-item__amount { grid-area: amount; justify-self: end; }
+    .order-item__go { display: none; }
+
+    .order-list__scroll { max-height: 26rem; }
+}
+
+@media (max-width: 479.98px) {
+    .order-item {
+        grid-template-areas:
+            "avatar body"
+            "status status"
+            "amount amount";
+    }
+
+    .order-item__amount {
+        justify-self: start;
+        align-items: flex-start;
+        text-align: left;
+    }
+}
 
 /* --- More statistics --- */
 .dash-mini {
@@ -4494,25 +4609,11 @@ h1, h2, h3, h4, h5, h6 {
     height: 16px;
 }
 
-.btn-contact-sm {
-    display: inline-flex;
-    align-items: center;
-    gap: .45rem;
-    padding: .45rem 1.1rem;
-    font-size: .9rem;
-    font-weight: 600;
-}
-
-.btn-contact-sm .btn-icon {
-    width: 14px;
-    height: 14px;
-}
-
-/* Contact info grid */
+/* Contact info grid: one detail per row, so every item gets its own line */
 .contact-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1.1rem;
+    grid-template-columns: 1fr;
+    gap: .85rem;
 }
 
 .contact-item {
@@ -4565,60 +4666,6 @@ h1, h2, h3, h4, h5, h6 {
     font-size: .78rem;
     color: var(--nexos-muted);
     line-height: 1.4;
-}
-
-/* Map + find us */
-.contact-map {
-    position: relative;
-    border-radius: var(--nexos-radius-sm);
-    overflow: hidden;
-    aspect-ratio: 5 / 2;
-    background: #eef2f8;
-}
-
-.contact-map__photo {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
-.contact-map__pin {
-    position: absolute;
-    bottom: 12px;
-    left: 12px;
-    display: inline-flex;
-    align-items: center;
-    gap: .5rem;
-    background: var(--nexos-navy);
-    color: #fff;
-    font-size: .78rem;
-    font-weight: 600;
-    padding: .4rem .65rem;
-    border-radius: 999px;
-    letter-spacing: .01em;
-    box-shadow: var(--nexos-shadow);
-}
-
-.contact-map__pin .svg-icon {
-    width: 14px;
-    height: 14px;
-}
-
-.contact-find-us {
-    padding-top: 1rem;
-}
-
-.contact-find-us .contact-card__title {
-    font-size: 1.1rem;
-    margin-bottom: .35rem;
-}
-
-.contact-find-us p {
-    color: var(--nexos-muted);
-    font-size: .88rem;
-    margin-bottom: .9rem;
-    line-height: 1.5;
 }
 
 /* ============================================================
@@ -4675,32 +4722,6 @@ h1, h2, h3, h4, h5, h6 {
     padding: .9rem 1rem;
 }
 
-/* Map + Find Us side by side */
-.contact-card--map {
-    display: grid;
-    grid-template-columns: 1.45fr 1fr;
-    align-items: stretch;
-}
-
-.contact-card--map .contact-map {
-    height: 100%;
-    min-height: 210px;
-    aspect-ratio: auto;
-    border-radius: 0;
-}
-
-.contact-find-us {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    background: linear-gradient(180deg, #eef4ff 0%, #e3edff 100%);
-    padding: 1.5rem 1.4rem;
-}
-
-.contact-find-us__title { color: var(--nexos-navy); }
-
-.contact-find-us__text { color: var(--nexos-muted); }
-
 @media (max-width: 991px) {
     .contact-hero__photo {
         width: 100%;
@@ -4710,14 +4731,6 @@ h1, h2, h3, h4, h5, h6 {
             url("../img/home/contact-banner.png") center / cover no-repeat;
     }
 
-    .contact-grid { grid-template-columns: 1fr; }
-
-    .contact-card--map { display: block; }
-
-    .contact-card--map .contact-map {
-        height: 200px;
-        min-height: 0;
-    }
 }
 
 @media (max-width: 767px) {
@@ -4737,6 +4750,9 @@ h1, h2, h3, h4, h5, h6 {
    ============================================================ */
 .contact-map-band {
     width: 100%;
+    /* Held clear of the footer, so the map reads as its own section
+       instead of blending into the dark footer band. */
+    margin-bottom: 2.5rem;
     line-height: 0;
     border-top: 3px solid var(--nexos-primary);
     background: #e8eef7;
@@ -6558,188 +6574,6 @@ body:not(.panel-body) main > :not(.hero):nth-child(3) { animation-delay: 160ms; 
     .btn:not(.nav-link):active,
     .public-navbar .btn-primary:hover {
         transform: none !important;
-    }
-}
-
-/* ============================================================
-   NEXUS initial loading animation (first page of a session)
-   Self-contained: #nx-loader stays display:none unless the layout
-   head script allows it (first visit, motion allowed). The ribbon
-   traces the real logo geometry - logo2.png's alpha channel is used
-   as the mask, so the final visible artwork IS logo2.png.
-   ============================================================ */
-#nx-loader {
-    --nx-load-progress: 0;
-    position: fixed;
-    inset: 0;
-    z-index: 20000;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    background: var(--nexos-navy);
-    opacity: 1;
-    transition: opacity 450ms var(--nx-ease, ease);
-    will-change: opacity;
-    animation: nx-loader-failsafe 0s linear 3.6s forwards;
-}
-
-html:not(.nx-boot-skip) #nx-loader { display: flex; }
-
-#nx-loader.nx-leaving { opacity: 0; }
-
-/* Pure-CSS safety net: never trap the user behind the loader */
-@keyframes nx-loader-failsafe {
-    to { visibility: hidden; }
-}
-
-.nx-loader-inner {
-    position: relative;
-    width: 153px;  /* logo2.png ratio 1652x952 at 88px height */
-    height: 88px;
-    animation: nx-loader-in 600ms var(--nx-ease, ease) both;
-}
-
-@keyframes nx-loader-in {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Layer 1 - faint silhouette of the exact same artwork */
-.nx-logo-ghost {
-    position: absolute;
-    inset: 0;
-    background: url("../logo2.png") center / contain no-repeat;
-    filter: brightness(0) invert(1) opacity(.13);
-}
-
-/* Layer 2 - the full-colour logo, revealed through its own alpha mask */
-.nx-logo-fill {
-    position: absolute;
-    inset: 0;
-    background: url("../logo2.png") center / contain no-repeat;
-    -webkit-mask-image: url("../logo2.png");
-    -webkit-mask-size: contain;
-    -webkit-mask-position: center;
-    -webkit-mask-repeat: no-repeat;
-    mask-image: url("../logo2.png");
-    mask-size: contain;
-    mask-position: center;
-    mask-repeat: no-repeat;
-}
-
-/* The ribbon: a blue/cyan light band sweeping across the masked logo */
-.nx-logo-fill::before {
-    content: "";
-    position: absolute;
-    inset: -8%;
-    background: linear-gradient(105deg,
-        rgba(11, 31, 58, 0) 40%,
-        rgba(32, 196, 255, .28) 48%,
-        rgba(255, 255, 255, .96) 52%,
-        rgba(32, 196, 255, .28) 56%,
-        rgba(11, 31, 58, 0) 64%);
-    transform: translateX(-115%);
-    animation: nx-ribbon-sweep 2s cubic-bezier(.45, 0, .55, 1) 250ms forwards;
-    will-change: transform;
-}
-
-@keyframes nx-ribbon-sweep {
-    to { transform: translateX(115%); }
-}
-
-/* Layer 3 - soft glow breathing where the ribbon passes */
-.nx-logo-glow {
-    position: absolute;
-    inset: -18%;
-    background: url("../logo2.png") center / contain no-repeat;
-    -webkit-mask-image: url("../logo2.png");
-    -webkit-mask-size: contain;
-    -webkit-mask-position: center;
-    -webkit-mask-repeat: no-repeat;
-    mask-image: url("../logo2.png");
-    mask-size: contain;
-    mask-position: center;
-    mask-repeat: no-repeat;
-    filter: blur(6px) brightness(1.6) saturate(1.25);
-    opacity: 0;
-    animation: nx-glow-pulse 2s ease-in-out 250ms;
-    pointer-events: none;
-}
-
-@keyframes nx-glow-pulse {
-    0% { opacity: 0; }
-    12% { opacity: .85; }
-    45% { opacity: .4; }
-    70% { opacity: .8; }
-    100% { opacity: 0; }
-}
-
-/* Wordmark settles under the finished logo */
-.nx-loader-word {
-    position: absolute;
-    left: 50%;
-    bottom: -44px;
-    transform: translateX(-50%);
-    color: #fff;
-    font-family: var(--nexos-font-head, "Manrope", "Segoe UI", system-ui, sans-serif);
-    font-weight: 800;
-    font-size: .95rem;
-    letter-spacing: .42em;
-    text-indent: .42em;
-    text-transform: uppercase;
-    white-space: nowrap;
-    opacity: 0;
-    animation: nx-word-in 600ms var(--nx-ease, ease) 1.55s forwards;
-}
-
-@keyframes nx-word-in {
-    from { opacity: 0; transform: translateX(-50%) translateY(6px); }
-    to { opacity: .92; transform: translateX(-50%) translateY(0); }
-}
-
-/* Thin progress line driven by the real document load (JS) */
-.nx-loader-bar {
-    position: absolute;
-    left: 50%;
-    bottom: -70px;
-    transform: translateX(-50%);
-    width: 180px;
-    height: 2px;
-    border-radius: 2px;
-    background: rgba(255, 255, 255, .1);
-    overflow: hidden;
-    opacity: 0;
-    animation: nx-bar-in 400ms ease 300ms forwards;
-}
-
-.nx-loader-bar::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(90deg, var(--nexos-primary, #1677ff), var(--nexos-accent, #20c4ff));
-    transform: scaleX(var(--nx-load-progress, 0));
-    transform-origin: left;
-    transition: transform .25s ease-out;
-}
-
-@keyframes nx-bar-in { to { opacity: 1; } }
-
-/* Reduced motion: no ribbon, no glow - a quiet static mark.
-   (The layout head script also skips the loader entirely.) */
-@media (prefers-reduced-motion: reduce) {
-    .nx-logo-fill::before { animation: none; opacity: 0; }
-
-    .nx-logo-glow { animation: none; opacity: 0; }
-
-    .nx-logo-fill { animation: nx-instant-reveal 300ms ease-out both; }
-
-    .nx-loader-inner { animation-duration: 200ms; }
-
-    #nx-loader { transition-duration: 300ms; }
-
-    @keyframes nx-instant-reveal {
-        from { opacity: 0; }
-        to { opacity: 1; }
     }
 }
 
@@ -9159,3 +8993,189 @@ a.pager__btn:focus-visible {
     .stat-tile__value { font-size: 1.5rem; }
 }
 
+/* ============================================================
+   Admin payments page
+   ============================================================ */
+.pay-toolbar { margin-bottom: 0; }
+
+.pay-cell {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: .3rem;
+}
+
+.pay-receipt {
+    font-weight: 700;
+    color: var(--nexos-ink);
+    font-variant-numeric: tabular-nums;
+}
+
+.pay-method {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .25rem .65rem;
+    border-radius: 999px;
+    background: var(--nexos-primary-soft);
+    color: var(--nexos-primary);
+    font-size: .78rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.pay-method .svg-icon { width: 14px; height: 14px; }
+
+.pay-amount {
+    font-weight: 700;
+    color: var(--nexos-ink);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+/* Phones: the payments table becomes a stack of labelled cards, so no
+   column is ever cut off and the page needs no horizontal scrolling. */
+@media (max-width: 767.98px) {
+    .pay-toolbar .toolbar__select { flex-basis: 100%; max-width: none; }
+
+    .pay-toolbar .btn { flex: 1 1 auto; justify-content: center; }
+
+    .pay-table,
+    .pay-table tbody,
+    .pay-table tr,
+    .pay-table td { display: block; width: 100%; }
+
+    .pay-table thead { display: none; }
+
+    .pay-table tbody tr {
+        margin-bottom: .85rem;
+        padding: .35rem .95rem .55rem;
+        border: 1px solid var(--nexos-line);
+        border-radius: var(--nexos-radius);
+        background: #fff;
+        box-shadow: var(--nexos-shadow-sm);
+    }
+
+    .pay-table tbody tr:last-child { margin-bottom: 0; }
+    .pay-table tbody tr:hover { background: #fff; }
+
+    .pay-table tbody td {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: .55rem 0;
+        border-bottom: 1px solid var(--nexos-line);
+        text-align: right;
+    }
+
+    .pay-table tbody td:first-child { padding-top: 0; }
+
+    .pay-table tbody td:last-child {
+        padding-bottom: 0;
+        border-bottom: 0;
+    }
+
+    .pay-table tbody td::before {
+        content: attr(data-label);
+        flex: 0 0 auto;
+        color: var(--nexos-muted);
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        text-align: left;
+    }
+
+    .pay-table .pay-cell { align-items: flex-end; }
+
+    .pay-table .person { justify-content: flex-end; }
+
+    .pay-table .person__body {
+        align-items: flex-end;
+        text-align: right;
+    }
+}
+
+
+/* ============================================================
+   Panel parity
+   Retail, Technical and Accounts render inside the same .panel-content
+   shell as Admin, so cards, tables, alerts and empty states already use
+   the shared design system. Only the legacy .stat-card summary tile
+   needs aligning with the Admin .stat-tile. Scoped to .panel-content.
+   ============================================================ */
+
+/* --- Stat cards become admin .stat-tile clones (icon left, label over value) --- */
+.panel-content .stat-card {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 0 1rem;
+    height: 100%;
+    padding: 1.15rem 1.35rem;
+    border-radius: var(--nexos-radius);
+    background: #fff;
+    border: 1px solid var(--nexos-line);
+    box-shadow: var(--nexos-shadow-sm);
+    transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+.panel-content .stat-card::before { display: none; }
+
+.panel-content .stat-card:hover {
+    border-color: var(--nexos-line-strong);
+    box-shadow: var(--nexos-shadow);
+    transform: translateY(-1px);
+}
+
+/* Tiles without an icon drop the empty first column. */
+.panel-content .stat-card:not(:has(.stat-icon)) { grid-template-columns: 1fr; }
+
+.panel-content .stat-card .stat-icon {
+    grid-row: 1 / span 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    margin: 0;
+    background: var(--nexos-primary-soft);
+    color: var(--nexos-primary);
+}
+
+.panel-content .stat-card .stat-icon .svg-icon { width: 24px; height: 24px; }
+
+.panel-content .stat-card .stat-label {
+    grid-column: 2;
+    font-size: .95rem;
+    font-weight: 700;
+    color: var(--nexos-navy);
+    letter-spacing: -.01em;
+    text-transform: none;
+    margin: 0;
+}
+
+.panel-content .stat-card .stat-value {
+    grid-column: 2;
+    font-family: var(--nexos-font-head);
+    font-size: 1.75rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--nexos-navy);
+    font-variant-numeric: tabular-nums;
+}
+
+.panel-content .stat-card:not(:has(.stat-icon)) .stat-label,
+.panel-content .stat-card:not(:has(.stat-icon)) .stat-value { grid-column: auto; }
+
+
+@media (max-width: 767.98px) {
+    .panel-content .stat-card { gap: 0 .8rem; padding: 1rem 1.15rem; }
+    .panel-content .stat-card .stat-icon { width: 44px; height: 44px; }
+}
+
+/* Danger variant of the shared order/bill row chip */
+.order-item__type--danger { background: rgba(220, 38, 38, .12); color: #dc2626; }

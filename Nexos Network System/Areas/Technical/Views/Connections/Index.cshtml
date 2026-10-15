@@ -3,12 +3,23 @@
     ViewData["Title"] = "Connections";
 }
 
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+<nav class="crumbs" aria-label="Breadcrumb">
+    <a asp-area="Technical" asp-controller="Dashboard" asp-action="Index">
+        <svg class="svg-icon" aria-hidden="true"><use href="#i-home-clean" /></svg>
+        <span>Dashboard</span>
+    </a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <span class="crumbs__current" aria-current="page">Connections</span>
+</nav>
+
+<div class="page-header">
     <div>
-        <h1 class="h4 mb-1">Connections</h1>
-        <p class="text-muted mb-0">Install, activate and maintain customer connections.</p>
+        <h1 class="h3">Connections</h1>
+        <p class="page-subtitle">Install, activate and maintain customer connections.</p>
     </div>
-    <a class="btn btn-primary" asp-action="Create">+ Create Connection</a>
+    <div class="page-head__actions">
+        <a class="btn btn-primary" asp-action="Create">+ Create Connection</a>
+    </div>
 </div>
 
 <div class="card mb-3">
@@ -56,7 +67,7 @@
                                 <td>@connection.Plan?.Name</td>
                                 <td>@connection.EquipmentItems.Count</td>
                                 <td>@(connection.ActivatedAt?.ToLocalTime().ToString("dd MMM yyyy") ?? "-")</td>
-                                <td><partial name="_Badge" model="@((object?)connection.Status)" /></td>
+                                <td><partial name="_StatusPill" model="@((object?)connection.Status)" /></td>
                                 <td class="table-actions">
                                     <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@connection.Id">Open</a>
                                 </td>

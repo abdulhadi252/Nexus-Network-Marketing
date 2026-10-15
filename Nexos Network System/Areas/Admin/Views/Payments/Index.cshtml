@@ -2,74 +2,159 @@
 @{
     ViewData["Title"] = "Payments";
     var pageTotal = Model.Items.Sum(p => p.Amount);
+
+    // Initials for the round customer chip, matching the other admin directories.
+    string Initials(Payment payment)
+    {
+        var first = payment.Customer.FirstName.Trim();
+        var last = payment.Customer.LastName.Trim();
+        return ((first.Length > 0 ? first[..1] : string.Empty) + (last.Length > 0 ? last[..1] : string.Empty)).ToUpperInvariant();
+    }
+
+    string MethodLabel(PaymentMethod method) => method switch
+    {
+        PaymentMethod.BankTransfer => "Bank Transfer",
+        _ => method.ToString()
+    };
+
+    string MethodIcon(PaymentMethod method) => method switch
+    {
+        PaymentMethod.Cash => "i-wallet",
+        PaymentMethod.Card => "i-credit-card",
+        PaymentMethod.BankTransfer => "i-payments",
+        PaymentMethod.Cheque => "i-bills",
+        _ => "i-payments"
+    };
 }
 
-<h1 class="h4 mb-1">Payments</h1>
-<p class="text-muted">All recorded payments. Page total: PKR @pageTotal.ToString("N2")</p>
+<nav class="crumbs" aria-label="Breadcrumb">
+    <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+        <svg class="svg-icon" aria-hidden="true"><use href="#i-home-clean" /></svg>
+        <span>Dashboard</span>
+    </a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <span class="crumbs__current" aria-current="page">Payments</span>
+</nav>
 
-<div class="card mb-3">
-    <div class="card-body">
-        <form method="get" class="row g-2">
-            <div class="col-md-4">
-                <input type="text" name="q" value="@ViewData["q"]" class="form-control" placeholder="Receipt number, customer or account" />
-            </div>
-            <div class="col-md-3">
-                <select name="method" class="form-select">
-                    <option value="">All methods</option>
-                    @foreach (var method in Enum.GetValues<PaymentMethod>())
-                    {
-                        <option value="@method" selected="@(ViewData["method"]?.ToString() == method.ToString())">@method</option>
-                    }
-                </select>
-            </div>
-            <div class="col-auto">
-                <button type="submit" class="btn btn-outline-primary">Search</button>
-                <a class="btn btn-outline-secondary" asp-action="Index">Reset</a>
-            </div>
-        </form>
+<div class="page-header">
+    <div>
+        <h1 class="h3">Payments</h1>
+        <p class="page-subtitle">All recorded customer payments, newest first.</p>
+        <p class="page-subtitle__meta">Page total: <strong>PKR @pageTotal.ToString("N2")</strong></p>
+    </div>
+    <div class="page-head__actions">
+        <span class="count-chip">
+            <svg class="svg-icon" aria-hidden="true"><use href="#i-payments" /></svg>
+            @Model.TotalItems payment@(Model.TotalItems == 1 ? string.Empty : "s")
+        </span>
     </div>
 </div>
 
-<div class="card">
+<section class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="toolbar pay-toolbar">
+            <div class="search-bar toolbar__search">
+                <svg class="search-icon svg-icon" aria-hidden="true"><use href="#i-search" /></svg>
+                <label class="visually-hidden" for="paymentSearch">Search payments</label>
+                <input id="paymentSearch" type="search" name="q" value="@ViewData["q"]" class="form-control"
+                       placeholder="Receipt number, customer or account..." />
+            </div>
+
+            <div class="toolbar__select">
+                <label class="visually-hidden" for="paymentMethod">Payment method</label>
+                <select id="paymentMethod" name="method" class="form-select">
+                    <option value="">All methods</option>
+                    @foreach (var method in Enum.GetValues<PaymentMethod>())
+                    {
+                        <option value="@method" selected="@(ViewData["method"]?.ToString() == method.ToString())">@MethodLabel(method)</option>
+                    }
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-outline-primary">
+                <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-search" /></svg>
+                Search
+            </button>
+            <a class="btn btn-outline-secondary" asp-action="Index">
+                <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-refresh" /></svg>
+                Reset
+            </a>
+        </form>
+    </div>
+</section>
+
+<section class="card">
     <div class="card-body">
         @if (Model.Items.Count == 0)
         {
-            <div class="empty-state"><p class="mb-0">No payments match your search.</p></div>
+            <div class="empty-state">
+                <span class="empty-icon"><svg class="svg-icon" aria-hidden="true"><use href="#i-payments" /></svg></span>
+                <p class="empty-title">No payments found</p>
+                <p class="mb-0">Try a different search term or clear the filters.</p>
+            </div>
         }
         else
         {
             <div class="table-responsive">
-                <table class="table table-hover align-middle">
+                @* Every cell carries data-label so the same markup stacks into readable
+                   cards on phones, instead of forcing a horizontal scroll. *@
+                <table class="table align-middle directory__table pay-table">
                     <thead>
                         <tr>
-                            <th>Receipt</th>
-                            <th>Customer</th>
-                            <th>Bill</th>
-                            <th>Date</th>
-                            <th>Method</th>
-                            <th>Amount</th>
-                            <th></th>
+                            <th scope="col">Receipt</th>
+                            <th scope="col">Customer</th>
+                            <th scope="col">Bill</th>
+                            <th scope="col">Date</th>
+                            <th scope="col">Method</th>
+                            <th scope="col" class="text-end">Amount</th>
+                            <th scope="col" class="text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var payment in Model.Items)
                         {
+                            var fullName = $"{payment.Customer.FirstName} {payment.Customer.LastName}".Trim();
+
                             <tr>
-                                <td class="fw-semibold">@payment.ReceiptNumber</td>
-                                <td>@payment.Customer.FirstName @payment.Customer.LastName</td>
-                                <td>@payment.Bill.BillNumber</td>
-                                <td>@payment.PaidAt.ToLocalTime().ToString("dd MMM yyyy")</td>
-                                <td>@payment.Method</td>
-                                <td class="text-price">PKR @payment.Amount.ToString("N2")</td>
-                                <td class="table-actions">
-                                    <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@payment.Id">View</a>
+                                <td data-label="Receipt">
+                                    <span class="pay-cell">
+                                        <span class="pay-receipt">@payment.ReceiptNumber</span>
+                                        <partial name="_StatusPill" model="@((object?)payment.Status)" />
+                                    </span>
+                                </td>
+                                <td data-label="Customer">
+                                    <div class="person">
+                                        <span class="person__avatar" aria-hidden="true">@Initials(payment)</span>
+                                        <span class="person__body">
+                                            <span class="person__name">@fullName</span>
+                                            <span class="person__meta">@payment.Connection.AccountNumber</span>
+                                        </span>
+                                    </div>
+                                </td>
+                                <td data-label="Bill" class="text-body-muted">@payment.Bill.BillNumber</td>
+                                <td data-label="Date" class="text-body-muted">@payment.PaidAt.ToLocalTime().ToString("dd MMM yyyy")</td>
+                                <td data-label="Method">
+                                    <span class="pay-method">
+                                        <svg class="svg-icon" aria-hidden="true"><use href="#@MethodIcon(payment.Method)" /></svg>
+                                        @MethodLabel(payment.Method)
+                                    </span>
+                                </td>
+                                <td data-label="Amount" class="text-end pay-amount">PKR @payment.Amount.ToString("N2")</td>
+                                <td data-label="Actions" class="text-end">
+                                    <div class="row-actions">
+                                        <a class="icon-btn" asp-action="Details" asp-route-id="@payment.Id"
+                                           title="View payment" aria-label="View payment @payment.ReceiptNumber">
+                                            <svg class="svg-icon" aria-hidden="true"><use href="#i-eye" /></svg>
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
+
             <partial name="_Pagination" model="Model" />
         }
     </div>
-</div>
+</section>

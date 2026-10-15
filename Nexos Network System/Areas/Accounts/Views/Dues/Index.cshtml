@@ -8,8 +8,21 @@
     var today = DateOnly.FromDateTime(DateTime.UtcNow);
 }
 
-<h1 class="h4 mb-1">Outstanding Dues</h1>
-<p class="text-muted">Track unpaid and partially paid bills with their due dates.</p>
+<nav class="crumbs" aria-label="Breadcrumb">
+    <a asp-area="Accounts" asp-controller="Dashboard" asp-action="Index">
+        <svg class="svg-icon" aria-hidden="true"><use href="#i-home-clean" /></svg>
+        <span>Dashboard</span>
+    </a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <span class="crumbs__current" aria-current="page">Outstanding Dues</span>
+</nav>
+
+<div class="page-header">
+    <div>
+        <h1 class="h3">Outstanding Dues</h1>
+        <p class="page-subtitle">Track unpaid and partially paid bills with their due dates.</p>
+    </div>
+</div>
 
 <div class="row g-3 mb-3">
     <div class="col-md-4">

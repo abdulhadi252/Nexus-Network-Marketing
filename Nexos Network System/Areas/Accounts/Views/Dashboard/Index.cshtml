@@ -1,153 +1,167 @@
 @model DashboardStatsViewModel
 @{
     ViewData["Title"] = "Accounts Dashboard";
+
+    var dueBills = Model.DueBillsList;
+    var recentPayments = Model.RecentPayments;
 }
 
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+<div class="dash-head">
     <div>
-        <h1 class="h4 mb-1">Accounts Dashboard</h1>
-        <p class="text-muted mb-0">Billing, payments and outstanding dues.</p>
+        <h1>Accounts Dashboard</h1>
+        <p>Welcome back, @Model.GreetingName! Billing, payments and outstanding dues.</p>
     </div>
-    <div class="d-flex gap-2">
-        <a class="btn btn-outline-primary" asp-controller="Bills" asp-action="Generate">+ Generate Bill</a>
-        <a class="btn btn-primary" asp-controller="Payments" asp-action="Create">+ Record Payment</a>
-    </div>
-</div>
-
-<div class="row g-3 mb-4">
-    <div class="col-6 col-xl-3">
-        <div class="stat-card card">
-            <span class="stat-icon"><svg class="svg-icon"><use href="#i-bills" /></svg></span>
-            <div class="stat-label">Total Bills</div>
-            <div class="stat-value">@Model.TotalBills</div>
-        </div>
-    </div>
-    <div class="col-6 col-xl-3">
-        <div class="stat-card card">
-            <span class="stat-icon"><svg class="svg-icon"><use href="#i-feasibility" /></svg></span>
-            <div class="stat-label">Paid Bills</div>
-            <div class="stat-value">@Model.PaidBills</div>
-        </div>
-    </div>
-    <div class="col-6 col-xl-3">
-        <div class="stat-card card">
-            <span class="stat-icon"><svg class="svg-icon"><use href="#i-clock" /></svg></span>
-            <div class="stat-label">Unpaid Bills</div>
-            <div class="stat-value">@Model.DueBills</div>
-        </div>
-    </div>
-    <div class="col-6 col-xl-3">
-        <div class="stat-card card">
-            <span class="stat-icon"><svg class="svg-icon"><use href="#i-percent" /></svg></span>
-            <div class="stat-label">Partially Paid</div>
-            <div class="stat-value">@Model.PartiallyPaidBills</div>
-        </div>
-    </div>
-    <div class="col-6 col-xl-3">
-        <div class="stat-card card">
-            <span class="stat-icon"><svg class="svg-icon"><use href="#i-wallet" /></svg></span>
-            <div class="stat-label">Payments Received</div>
-            <div class="stat-value">PKR @Model.PaymentsReceived.ToString("N2")</div>
-        </div>
-    </div>
-    <div class="col-6 col-xl-3">
-        <div class="stat-card card">
-            <span class="stat-icon"><svg class="svg-icon"><use href="#i-dues" /></svg></span>
-            <div class="stat-label">Outstanding Amount</div>
-            <div class="stat-value">PKR @Model.OutstandingAmount.ToString("N2")</div>
-        </div>
-    </div>
-    <div class="col-6 col-xl-3">
-        <div class="stat-card card">
-            <span class="stat-icon"><svg class="svg-icon"><use href="#i-customers" /></svg></span>
-            <div class="stat-label">Customers</div>
-            <div class="stat-value">@Model.TotalCustomers</div>
-        </div>
-    </div>
-    <div class="col-6 col-xl-3">
-        <div class="stat-card card">
-            <span class="stat-icon"><svg class="svg-icon"><use href="#i-connections" /></svg></span>
-            <div class="stat-label">Active Connections</div>
-            <div class="stat-value">@Model.ActiveConnections</div>
-        </div>
+    <div class="dash-period" title="Reporting period">
+        <svg class="svg-icon"><use href="#i-calendar" /></svg>
+        <span>@Model.PeriodLabel</span>
     </div>
 </div>
 
+@* ---------------------------------------------------------------- KPI cards *@
+<div class="row g-3 mb-3">
+    <div class="col-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--blue"><svg class="svg-icon"><use href="#i-bills" /></svg></span>
+                <span class="kpi-card__label">Total Bills</span>
+            </div>
+            <div class="kpi-card__value">@Model.TotalBills.ToString("N0")</div>
+        </article>
+    </div>
+    <div class="col-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--green"><svg class="svg-icon"><use href="#i-check-circle" /></svg></span>
+                <span class="kpi-card__label">Paid Bills</span>
+            </div>
+            <div class="kpi-card__value">@Model.PaidBills.ToString("N0")</div>
+        </article>
+    </div>
+    <div class="col-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--orange"><svg class="svg-icon"><use href="#i-clock" /></svg></span>
+                <span class="kpi-card__label">Unpaid Bills</span>
+            </div>
+            <div class="kpi-card__value">@Model.DueBills.ToString("N0")</div>
+        </article>
+    </div>
+    <div class="col-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--purple"><svg class="svg-icon"><use href="#i-percent" /></svg></span>
+                <span class="kpi-card__label">Partially Paid</span>
+            </div>
+            <div class="kpi-card__value">@Model.PartiallyPaidBills.ToString("N0")</div>
+        </article>
+    </div>
+    <div class="col-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--cyan"><svg class="svg-icon"><use href="#i-wallet" /></svg></span>
+                <span class="kpi-card__label">Payments Received</span>
+            </div>
+            <div class="kpi-card__value">PKR @Model.PaymentsReceived.ToString("N0")</div>
+        </article>
+    </div>
+    <div class="col-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--orange"><svg class="svg-icon"><use href="#i-dues" /></svg></span>
+                <span class="kpi-card__label">Outstanding Amount</span>
+            </div>
+            <div class="kpi-card__value">PKR @Model.OutstandingAmount.ToString("N0")</div>
+        </article>
+    </div>
+    <div class="col-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--blue"><svg class="svg-icon"><use href="#i-customers" /></svg></span>
+                <span class="kpi-card__label">Customers</span>
+            </div>
+            <div class="kpi-card__value">@Model.TotalCustomers.ToString("N0")</div>
+        </article>
+    </div>
+    <div class="col-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--navy"><svg class="svg-icon"><use href="#i-connections" /></svg></span>
+                <span class="kpi-card__label">Active Connections</span>
+            </div>
+            <div class="kpi-card__value">@Model.ActiveConnections.ToString("N0")</div>
+        </article>
+    </div>
+</div>
+
+@* ---------------------------------------------------------------- Billing queues *@
 <div class="row g-3">
-    <div class="col-lg-6">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Bills With Outstanding Dues</span>
-                <a class="btn btn-sm btn-outline-primary" asp-controller="Dues" asp-action="Index">Dues report</a>
-            </div>
-            <div class="card-body p-0">
-                @if (Model.DueBillsList.Count == 0)
+    <div class="col-xl-6">
+        <section class="dash-card h-100">
+            <header class="dash-card__head">
+                <span class="dash-card__icon"><svg class="svg-icon"><use href="#i-dues" /></svg></span>
+                <div class="dash-card__heading">
+                    <h2 class="dash-card__title">Bills With Outstanding Dues</h2>
+                    <p class="dash-card__sub">Oldest due date first</p>
+                </div>
+                <a class="btn btn-sm btn-outline-primary order-card__cta ms-auto"
+                   asp-controller="Dues" asp-action="Index">
+                    Dues Report
+                </a>
+            </header>
+            <div class="dash-card__body dash-card__body--flush">
+                @if (dueBills.Count == 0)
                 {
-                    <div class="empty-state"><p class="mb-0">No outstanding dues. Everything is collected.</p></div>
+                    <div class="empty-state">
+                        <span class="empty-icon"><svg class="svg-icon" aria-hidden="true"><use href="#i-check-circle" /></svg></span>
+                        <p class="empty-title">All collected</p>
+                        <p class="mb-0">No outstanding dues. Everything is collected.</p>
+                    </div>
                 }
                 else
                 {
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead><tr><th>Bill</th><th>Customer</th><th>Due date</th><th>Due</th><th></th></tr></thead>
-                            <tbody>
-                                @foreach (var bill in Model.DueBillsList)
-                                {
-                                    var overdue = bill.DueDate < DateOnly.FromDateTime(DateTime.UtcNow);
-                                    <tr class="@(overdue ? "table-warning" : "")">
-                                        <td class="fw-semibold">@bill.BillNumber</td>
-                                        <td>@bill.Customer.FirstName @bill.Customer.LastName</td>
-                                        <td>
-                                            @bill.DueDate.ToString("dd MMM yyyy")
-                                            @if (overdue)
-                                            {
-                                                <span class="badge bg-danger ms-1">Overdue</span>
-                                            }
-                                        </td>
-                                        <td class="text-price">PKR @bill.DueAmount.ToString("N2")</td>
-                                        <td class="table-actions">
-                                            <a class="btn btn-outline-primary" asp-controller="Payments" asp-action="Create" asp-route-billId="@bill.Id">Collect</a>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
+                    <ul class="order-list">
+                        @foreach (var bill in dueBills)
+                        {
+                            <partial name="_BillRow" model="bill" />
+                        }
+                    </ul>
                 }
             </div>
-        </div>
+        </section>
     </div>
-    <div class="col-lg-6">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Recent Payments</span>
-                <a class="btn btn-sm btn-outline-primary" asp-controller="Payments" asp-action="Index">View all</a>
-            </div>
-            <div class="card-body p-0">
-                @if (Model.RecentPayments.Count == 0)
+
+    <div class="col-xl-6">
+        <section class="dash-card h-100">
+            <header class="dash-card__head">
+                <span class="dash-card__icon"><svg class="svg-icon"><use href="#i-wallet" /></svg></span>
+                <div class="dash-card__heading">
+                    <h2 class="dash-card__title">Recent Payments</h2>
+                    <p class="dash-card__sub">Newest receipts first</p>
+                </div>
+                <a class="btn btn-sm btn-outline-primary order-card__cta ms-auto"
+                   asp-controller="Payments" asp-action="Index">
+                    View All
+                </a>
+            </header>
+            <div class="dash-card__body dash-card__body--flush">
+                @if (recentPayments.Count == 0)
                 {
-                    <div class="empty-state"><p class="mb-0">No payments recorded yet.</p></div>
+                    <div class="empty-state">
+                        <span class="empty-icon"><svg class="svg-icon" aria-hidden="true"><use href="#i-wallet" /></svg></span>
+                        <p class="empty-title">No payments recorded yet.</p>
+                        <a class="btn btn-sm btn-primary" asp-controller="Payments" asp-action="Create">Record the first payment</a>
+                    </div>
                 }
                 else
                 {
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead><tr><th>Receipt</th><th>Customer</th><th>Date</th><th>Amount</th></tr></thead>
-                            <tbody>
-                                @foreach (var payment in Model.RecentPayments)
-                                {
-                                    <tr>
-                                        <td class="fw-semibold">@payment.ReceiptNumber</td>
-                                        <td>@payment.Customer.FirstName @payment.Customer.LastName</td>
-                                        <td>@payment.PaidAt.ToLocalTime().ToString("dd MMM yyyy")</td>
-                                        <td class="text-price">PKR @payment.Amount.ToString("N2")</td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
+                    <ul class="order-list">
+                        @foreach (var payment in recentPayments)
+                        {
+                            <partial name="_PaymentRow" model="payment" />
+                        }
+                    </ul>
                 }
             </div>
-        </div>
+        </section>
     </div>
 </div>

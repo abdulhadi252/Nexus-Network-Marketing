@@ -1,147 +1,167 @@
 @model DashboardStatsViewModel
 @{
     ViewData["Title"] = "Technical Dashboard";
+
+    var feasibilityQueue = Model.PendingFeasibilityList;
+    var installationQueue = Model.PendingConnectionsList;
 }
 
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+<div class="dash-head">
     <div>
-        <h1 class="h4 mb-1">Technical Dashboard</h1>
-        <p class="text-muted mb-0">Feasibility checks, installations and equipment in the field.</p>
+        <h1>Technical Dashboard</h1>
+        <p>Welcome back, @Model.GreetingName! Feasibility checks, installations and equipment in the field.</p>
     </div>
-    <div class="d-flex gap-2">
-        <a class="btn btn-outline-primary" asp-controller="Feasibility" asp-action="Create">+ Feasibility Report</a>
-        <a class="btn btn-primary" asp-controller="Connections" asp-action="Create">+ Create Connection</a>
-    </div>
-</div>
-
-<div class="row g-3 mb-4">
-    <div class="col-6 col-xl-3">
-        <div class="stat-card card">
-            <span class="stat-icon"><svg class="svg-icon"><use href="#i-clock" /></svg></span>
-            <div class="stat-label">Orders Awaiting Action</div>
-            <div class="stat-value">@Model.PendingOrders</div>
-        </div>
-    </div>
-    <div class="col-6 col-xl-3">
-        <div class="stat-card card">
-            <span class="stat-icon"><svg class="svg-icon"><use href="#i-search" /></svg></span>
-            <div class="stat-label">Pending Feasibility</div>
-            <div class="stat-value">@Model.PendingFeasibility</div>
-        </div>
-    </div>
-    <div class="col-6 col-xl-3">
-        <div class="stat-card card">
-            <span class="stat-icon"><svg class="svg-icon"><use href="#i-feasibility" /></svg></span>
-            <div class="stat-label">Approved Feasibility</div>
-            <div class="stat-value">@Model.ApprovedFeasibility</div>
-        </div>
-    </div>
-    <div class="col-6 col-xl-3">
-        <div class="stat-card card">
-            <span class="stat-icon"><svg class="svg-icon"><use href="#i-equipment" /></svg></span>
-            <div class="stat-label">Pending Connections</div>
-            <div class="stat-value">@Model.PendingConnections</div>
-        </div>
-    </div>
-    <div class="col-6 col-xl-3">
-        <div class="stat-card card">
-            <span class="stat-icon"><svg class="svg-icon"><use href="#i-connections" /></svg></span>
-            <div class="stat-label">Active Connections</div>
-            <div class="stat-value">@Model.ActiveConnections</div>
-        </div>
-    </div>
-    <div class="col-6 col-xl-3">
-        <div class="stat-card card">
-            <span class="stat-icon"><svg class="svg-icon"><use href="#i-products" /></svg></span>
-            <div class="stat-label">Equipment Units</div>
-            <div class="stat-value">@Model.TotalEquipment</div>
-        </div>
-    </div>
-    <div class="col-6 col-xl-3">
-        <div class="stat-card card">
-            <span class="stat-icon"><svg class="svg-icon"><use href="#i-stock" /></svg></span>
-            <div class="stat-label">Available Equipment</div>
-            <div class="stat-value">@Model.AvailableEquipment</div>
-        </div>
-    </div>
-    <div class="col-6 col-xl-3">
-        <div class="stat-card card">
-            <span class="stat-icon"><svg class="svg-icon"><use href="#i-x-circle" /></svg></span>
-            <div class="stat-label">Not Feasible Orders</div>
-            <div class="stat-value">@Model.NotFeasibleCount</div>
-        </div>
+    <div class="dash-period" title="Reporting period">
+        <svg class="svg-icon"><use href="#i-calendar" /></svg>
+        <span>@Model.PeriodLabel</span>
     </div>
 </div>
 
+@* ---------------------------------------------------------------- KPI cards *@
+<div class="row g-3 mb-3">
+    <div class="col-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--orange"><svg class="svg-icon"><use href="#i-clock" /></svg></span>
+                <span class="kpi-card__label">Orders Awaiting Action</span>
+            </div>
+            <div class="kpi-card__value">@Model.PendingOrders.ToString("N0")</div>
+        </article>
+    </div>
+    <div class="col-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--blue"><svg class="svg-icon"><use href="#i-feasibility" /></svg></span>
+                <span class="kpi-card__label">Pending Feasibility</span>
+            </div>
+            <div class="kpi-card__value">@Model.PendingFeasibility.ToString("N0")</div>
+        </article>
+    </div>
+    <div class="col-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--green"><svg class="svg-icon"><use href="#i-check-circle" /></svg></span>
+                <span class="kpi-card__label">Approved Feasibility</span>
+            </div>
+            <div class="kpi-card__value">@Model.ApprovedFeasibility.ToString("N0")</div>
+        </article>
+    </div>
+    <div class="col-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--purple"><svg class="svg-icon"><use href="#i-x-circle" /></svg></span>
+                <span class="kpi-card__label">Not Feasible Orders</span>
+            </div>
+            <div class="kpi-card__value">@Model.NotFeasibleCount.ToString("N0")</div>
+        </article>
+    </div>
+    <div class="col-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--orange"><svg class="svg-icon"><use href="#i-connections" /></svg></span>
+                <span class="kpi-card__label">Pending Connections</span>
+            </div>
+            <div class="kpi-card__value">@Model.PendingConnections.ToString("N0")</div>
+        </article>
+    </div>
+    <div class="col-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--green"><svg class="svg-icon"><use href="#i-broadband" /></svg></span>
+                <span class="kpi-card__label">Active Connections</span>
+            </div>
+            <div class="kpi-card__value">@Model.ActiveConnections.ToString("N0")</div>
+        </article>
+    </div>
+    <div class="col-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--navy"><svg class="svg-icon"><use href="#i-products" /></svg></span>
+                <span class="kpi-card__label">Equipment Units</span>
+            </div>
+            <div class="kpi-card__value">@Model.TotalEquipment.ToString("N0")</div>
+        </article>
+    </div>
+    <div class="col-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--cyan"><svg class="svg-icon"><use href="#i-stock" /></svg></span>
+                <span class="kpi-card__label">Available Equipment</span>
+            </div>
+            <div class="kpi-card__value">@Model.AvailableEquipment.ToString("N0")</div>
+        </article>
+    </div>
+</div>
+
+@* ---------------------------------------------------------------- Work queues *@
 <div class="row g-3">
-    <div class="col-lg-6">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Orders Needing Feasibility</span>
-                <a class="btn btn-sm btn-outline-primary" asp-controller="Feasibility" asp-action="Index">All reports</a>
-            </div>
-            <div class="card-body p-0">
-                @if (Model.PendingFeasibilityList.Count == 0)
+    <div class="col-xl-6">
+        <section class="dash-card h-100">
+            <header class="dash-card__head">
+                <span class="dash-card__icon"><svg class="svg-icon"><use href="#i-feasibility" /></svg></span>
+                <div class="dash-card__heading">
+                    <h2 class="dash-card__title">Orders Needing Feasibility</h2>
+                    <p class="dash-card__sub">Site checks still to be recorded</p>
+                </div>
+                <a class="btn btn-sm btn-outline-primary order-card__cta ms-auto"
+                   asp-controller="Feasibility" asp-action="Index">
+                    All Reports
+                </a>
+            </header>
+            <div class="dash-card__body dash-card__body--flush">
+                @if (feasibilityQueue.Count == 0)
                 {
-                    <div class="empty-state"><p class="mb-0">No orders are waiting for a feasibility check.</p></div>
+                    <div class="empty-state">
+                        <span class="empty-icon"><svg class="svg-icon" aria-hidden="true"><use href="#i-check-circle" /></svg></span>
+                        <p class="empty-title">Nothing waiting</p>
+                        <p class="mb-0">No orders are waiting for a feasibility check.</p>
+                    </div>
                 }
                 else
                 {
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead><tr><th>Order</th><th>Customer</th><th>Status</th><th></th></tr></thead>
-                            <tbody>
-                                @foreach (var report in Model.PendingFeasibilityList)
-                                {
-                                    <tr>
-                                        <td class="fw-semibold">@report.Order.OrderNumber</td>
-                                        <td>@report.Order.Customer.FirstName @report.Order.Customer.LastName</td>
-                                        <td><partial name="_Badge" model="@((object?)report.Status)" /></td>
-                                        <td class="table-actions">
-                                            <a class="btn btn-outline-primary" asp-controller="Feasibility" asp-action="Edit" asp-route-id="@report.Id">Update</a>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
+                    <ul class="order-list">
+                        @foreach (var report in feasibilityQueue)
+                        {
+                            <partial name="_OrderRow" model="report.Order" />
+                        }
+                    </ul>
                 }
             </div>
-        </div>
+        </section>
     </div>
-    <div class="col-lg-6">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Pending Connections (Installation)</span>
-                <a class="btn btn-sm btn-outline-primary" asp-controller="Connections" asp-action="Index" asp-route-status="Pending">All connections</a>
-            </div>
-            <div class="card-body p-0">
-                @if (Model.PendingConnectionsList.Count == 0)
+
+    <div class="col-xl-6">
+        <section class="dash-card h-100">
+            <header class="dash-card__head">
+                <span class="dash-card__icon"><svg class="svg-icon"><use href="#i-connections" /></svg></span>
+                <div class="dash-card__heading">
+                    <h2 class="dash-card__title">Pending Connections</h2>
+                    <p class="dash-card__sub">Awaiting installation</p>
+                </div>
+                <a class="btn btn-sm btn-outline-primary order-card__cta ms-auto"
+                   asp-controller="Connections" asp-action="Index" asp-route-status="Pending">
+                    All Connections
+                </a>
+            </header>
+            <div class="dash-card__body dash-card__body--flush">
+                @if (installationQueue.Count == 0)
                 {
-                    <div class="empty-state"><p class="mb-0">No connections are pending installation.</p></div>
+                    <div class="empty-state">
+                        <span class="empty-icon"><svg class="svg-icon" aria-hidden="true"><use href="#i-check-circle" /></svg></span>
+                        <p class="empty-title">Nothing pending</p>
+                        <p class="mb-0">No connections are pending installation.</p>
+                    </div>
                 }
                 else
                 {
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead><tr><th>Account</th><th>Customer</th><th>Plan</th><th></th></tr></thead>
-                            <tbody>
-                                @foreach (var connection in Model.PendingConnectionsList)
-                                {
-                                    <tr>
-                                        <td class="fw-semibold">@connection.AccountNumber</td>
-                                        <td>@connection.Customer.FirstName @connection.Customer.LastName</td>
-                                        <td>@connection.Plan?.Name</td>
-                                        <td class="table-actions">
-                                            <a class="btn btn-outline-secondary" asp-controller="Connections" asp-action="Details" asp-route-id="@connection.Id">Open</a>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
+                    <ul class="order-list">
+                        @foreach (var connection in installationQueue)
+                        {
+                            <partial name="_ConnectionRow" model="connection" />
+                        }
+                    </ul>
                 }
             </div>
-        </div>
+        </section>
     </div>
 </div>

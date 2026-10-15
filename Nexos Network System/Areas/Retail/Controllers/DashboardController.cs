@@ -26,8 +26,15 @@ public class DashboardController(ApplicationDbContext db) : Controller
         var shopCityId = await db.RetailShops.Where(s => s.Id == retailShopId.Value)
             .Select(s => s.CityId)
             .FirstAsync();
+
+        // The headline figures describe the current calendar month, matching the admin panel.
+        var monthStart = MonthlySeries.StartOfMonth(DateTimeOffset.UtcNow);
+
         var model = new DashboardStatsViewModel
         {
+            GreetingName = await User.GetGreetingNameAsync(db),
+            PeriodLabel = $"{monthStart:d MMM yyyy} - {monthStart.AddMonths(1).AddDays(-1):d MMM yyyy}",
+
             TotalCustomers = await db.Customers.CountAsync(c => c.Addresses.Any(a => a.CityId == shopCityId)),
             TotalOrders = await db.Orders.CountAsync(o => o.RetailShopId == retailShopId.Value),
             PendingOrders = await db.Orders.CountAsync(o => o.RetailShopId == retailShopId.Value &&
@@ -43,8 +50,10 @@ public class DashboardController(ApplicationDbContext db) : Controller
             RecentOrders = await db.Orders
                 .Include(o => o.Customer)
                 .Include(o => o.Plan)
+                .Include(o => o.Items)
                 .Where(o => o.RetailShopId == retailShopId.Value)
                 .OrderByDescending(o => o.SubmittedAt)
+                .ThenByDescending(o => o.Id)
                 .Take(8)
                 .ToListAsync()
         };

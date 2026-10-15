@@ -3,8 +3,21 @@
     ViewData["Title"] = "Edit Feasibility";
 }
 
-<h1 class="h4 mb-1">Update Feasibility - @Model.OrderNumber</h1>
-<p class="text-muted">The order status is updated automatically when you change the result.</p>
+<nav class="crumbs" aria-label="Breadcrumb">
+    <a asp-area="Technical" asp-controller="Dashboard" asp-action="Index">
+        <svg class="svg-icon" aria-hidden="true"><use href="#i-home-clean" /></svg>
+        <span>Dashboard</span>
+    </a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <span class="crumbs__current" aria-current="page">Feasibility</span>
+</nav>
+
+<div class="page-header">
+    <div>
+        <h1 class="h3">Update Feasibility - @Model.OrderNumber</h1>
+        <p class="page-subtitle">The order status is updated automatically when you change the result.</p>
+    </div>
+</div>
 
 <div class="card">
     <div class="card-body">

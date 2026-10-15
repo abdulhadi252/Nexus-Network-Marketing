@@ -46,6 +46,65 @@
         var (min, max) = ChartGeometry.NiceRange(metric.Trend);
         return ChartGeometry.AreaPath(metric.Trend, sparkWidth, sparkHeight, min, max, 4d);
     }
+
+    // ---------------------------------------------------------------
+    // Recent-orders helpers. Every value on an order row is derived from
+    // the order itself, so the list stays correct as soon as the data
+    // changes; nothing here is hard-coded per row.
+    // ---------------------------------------------------------------
+    var recentOrders = Model.RecentOrders;
+    var recentOrderValue = recentOrders.Sum(order => order.Items.Sum(item => item.Quantity * item.UnitPrice));
+
+    string OrderTypeLabel(ConnectionType type) => type switch
+    {
+        ConnectionType.DialUp => "Dial-Up",
+        ConnectionType.Broadband => "Broadband",
+        ConnectionType.Telephone => "Telephone",
+        _ => type.ToString()
+    };
+
+    string OrderTypeIcon(ConnectionType type) => type switch
+    {
+        ConnectionType.DialUp => "i-signal",
+        ConnectionType.Broadband => "i-broadband",
+        ConnectionType.Telephone => "i-phone",
+        _ => "i-connections"
+    };
+
+    // Stable per-order avatar tint: the same order always keeps the same colour,
+    // even as newer orders push it down the list.
+    string OrderAvatarTone(int orderId) => (orderId % 5) switch
+    {
+        0 => "person__avatar--blue",
+        1 => "person__avatar--purple",
+        2 => "person__avatar--teal",
+        3 => "person__avatar--indigo",
+        _ => "person__avatar--pink"
+    };
+
+    string OrderInitials(Customer customer)
+    {
+        var first = string.IsNullOrWhiteSpace(customer.FirstName) ? string.Empty : customer.FirstName.Trim()[..1];
+        var last = string.IsNullOrWhiteSpace(customer.LastName) ? string.Empty : customer.LastName.Trim()[..1];
+        var initials = (first + last).ToUpperInvariant();
+        return initials.Length == 0 ? "?" : initials;
+    }
+
+    // "2h ago" style stamp, falling back to the calendar date once an order
+    // is more than a week old.
+    string OrderAge(DateTimeOffset submittedAt)
+    {
+        var local = submittedAt.ToLocalTime();
+        var elapsed = DateTimeOffset.Now - local;
+        if (elapsed < TimeSpan.Zero) elapsed = TimeSpan.Zero;
+
+        if (elapsed.TotalMinutes < 1) return "just now";
+        if (elapsed.TotalMinutes < 60) return $"{(int)elapsed.TotalMinutes}m ago";
+        if (elapsed.TotalHours < 24) return $"{(int)elapsed.TotalHours}h ago";
+        if (elapsed.TotalDays < 2) return "yesterday";
+        if (elapsed.TotalDays < 7) return $"{(int)elapsed.TotalDays}d ago";
+        return local.ToString("dd MMM yyyy");
+    }
 }
 
 <div class="dash-head">
@@ -259,53 +318,99 @@
 <section class="dash-card mb-3">
     <header class="dash-card__head">
         <span class="dash-card__icon"><svg class="svg-icon"><use href="#i-orders" /></svg></span>
-        <h2 class="dash-card__title">Recent Orders</h2>
-        <a class="btn btn-sm btn-outline-primary ms-auto" asp-controller="Orders" asp-action="Index">
-            View All <svg class="svg-icon"><use href="#i-arrow-right" /></svg>
+        <div class="dash-card__heading">
+            <h2 class="dash-card__title">Recent Orders</h2>
+            <p class="dash-card__sub">
+                @if (recentOrders.Count == 0)
+                {
+                    <text>No orders placed yet</text>
+                }
+                else if (recentOrders.Count >= Model.TotalOrders)
+                {
+                    <text>All @recentOrders.Count.ToString("N0") orders &middot; newest first</text>
+                }
+                else
+                {
+                    <text>Newest @recentOrders.Count.ToString("N0") of @Model.TotalOrders.ToString("N0") orders</text>
+                }
+            </p>
+        </div>
+        <a class="btn btn-sm btn-outline-primary order-card__cta ms-auto" asp-controller="Orders" asp-action="Index">
+            View All
         </a>
     </header>
     <div class="dash-card__body dash-card__body--flush">
-        @if (Model.RecentOrders.Count == 0)
+        @if (recentOrders.Count == 0)
         {
-            <div class="empty-state"><p class="mb-0">No orders have been placed yet.</p></div>
+            <div class="empty-state">
+                <div class="empty-icon"><svg class="svg-icon"><use href="#i-orders" /></svg></div>
+                <p class="empty-title">No orders have been placed yet.</p>
+                <p class="mb-0">New customer orders will appear here as soon as they arrive.</p>
+            </div>
         }
         else
         {
-            <div class="table-responsive">
-                <table class="table align-middle mb-0 dash-table">
-                    <thead>
-                        <tr>
-                            <th>Order #</th>
-                            <th>Customer</th>
-                            <th>Type</th>
-                            <th>Status</th>
-                            <th>Amount</th>
-                            <th>Date</th>
-                            <th><span class="visually-hidden">Actions</span></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var order in Model.RecentOrders)
-                        {
-                            var orderTotal = order.Items.Sum(item => item.Quantity * item.UnitPrice);
-                            <tr>
-                                <td class="fw-semibold">@order.OrderNumber</td>
-                                <td>@order.Customer.FirstName @order.Customer.LastName</td>
-                                <td>@order.ConnectionType</td>
-                                <td><partial name="_Badge" model="@((object?)order.Status)" /></td>
-                                <td class="text-price">@(order.Items.Count == 0 ? "—" : $"PKR {orderTotal:N2}")</td>
-                                <td>@order.SubmittedAt.ToLocalTime().ToString("dd MMM yyyy")</td>
-                                <td class="dash-table__action">
-                                    <a asp-controller="Orders" asp-action="Details" asp-route-id="@order.Id"
-                                       aria-label="Open order @order.OrderNumber">
-                                        <svg class="svg-icon"><use href="#i-arrow-right" /></svg>
-                                    </a>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+            <div class="order-list__scroll">
+                <ul class="order-list">
+                    @foreach (var order in recentOrders)
+                    {
+                        var orderTotal = order.Items.Sum(item => item.Quantity * item.UnitPrice);
+                        var hasItems = order.Items.Count > 0;
+                        var customerName = $"{order.Customer.FirstName} {order.Customer.LastName}".Trim();
+                        var submittedLocal = order.SubmittedAt.ToLocalTime();
+                        <li>
+                            <a class="order-item" asp-controller="Orders" asp-action="Details" asp-route-id="@order.Id"
+                               aria-label="Open order @order.OrderNumber for @customerName">
+                                <span class="order-item__avatar @OrderAvatarTone(order.Id)" aria-hidden="true">@OrderInitials(order.Customer)</span>
+
+                                <span class="order-item__body">
+                                    <span class="order-item__top">
+                                        <span class="order-item__number">@order.OrderNumber</span>
+                                        <span class="order-item__type">
+                                            <svg class="svg-icon" aria-hidden="true"><use href="#@OrderTypeIcon(order.ConnectionType)" /></svg>
+                                            @OrderTypeLabel(order.ConnectionType)
+                                        </span>
+                                    </span>
+                                    <span class="order-item__sub">
+                                        <span class="order-item__customer">@customerName</span>
+                                        <span class="order-item__dot" aria-hidden="true"></span>
+                                        <span class="order-item__plan">@(string.IsNullOrWhiteSpace(order.Plan?.Name) ? "No plan selected" : order.Plan!.Name)</span>
+                                    </span>
+                                </span>
+
+                                <span class="order-item__status">
+                                    <partial name="_StatusPill" model="@((object?)order.Status)" />
+                                </span>
+
+                                <span class="order-item__amount">
+                                    <span class="order-item__price @(hasItems ? string.Empty : "order-item__price--muted")">
+                                        @(hasItems ? $"PKR {orderTotal:N0}" : "—")
+                                    </span>
+                                    <span class="order-item__age" title="@submittedLocal.ToString("dd MMM yyyy, HH:mm")">
+                                        <svg class="svg-icon" aria-hidden="true"><use href="#i-clock" /></svg>
+                                        @OrderAge(order.SubmittedAt)
+                                    </span>
+                                </span>
+
+                                <span class="order-item__go" aria-hidden="true">
+                                    <svg class="svg-icon"><use href="#i-arrow-right" /></svg>
+                                </span>
+                            </a>
+                        </li>
+                    }
+                </ul>
             </div>
+
+            <footer class="order-list__foot">
+                <span class="order-list__foot-note">
+                    <svg class="svg-icon" aria-hidden="true"><use href="#i-refresh" /></svg>
+                    Last order @OrderAge(recentOrders[0].SubmittedAt)
+                </span>
+                <span class="order-list__foot-total">
+                    Total order value
+                    <strong>PKR @recentOrderValue.ToString("N0")</strong>
+                </span>
+            </footer>
         }
     </div>
 </section>

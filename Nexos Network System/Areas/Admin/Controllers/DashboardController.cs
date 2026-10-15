@@ -184,12 +184,16 @@ public class DashboardController(ApplicationDbContext db) : Controller
             TotalCustomers = totalCustomers,
             ActiveConnections = activeConnections,
             PendingOrders = pendingOrders,
+            TotalOrders = await db.Orders.CountAsync(),
 
+            // Every order, newest first - the dashboard card lists them all, so the
+            // order list stays complete without a separate round-trip.
             RecentOrders = await db.Orders
                 .Include(o => o.Customer)
+                .Include(o => o.Plan)
                 .Include(o => o.Items)
                 .OrderByDescending(o => o.SubmittedAt)
-                .Take(6)
+                .ThenByDescending(o => o.Id)
                 .ToListAsync()
         };
 

@@ -16,20 +16,20 @@
         <div class="card p-4">
             <h6 class="mb-3">Payment</h6>
             <dl class="row detail-list mb-0">
-                <dt class="col-6">Receipt number</dt>
-                <dd class="col-6">@Model.ReceiptNumber</dd>
-                <dt class="col-6">Amount</dt>
-                <dd class="col-6 text-price">PKR @Model.Amount.ToString("N2")</dd>
-                <dt class="col-6">Paid at</dt>
-                <dd class="col-6">@Model.PaidAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</dd>
-                <dt class="col-6">Method</dt>
-                <dd class="col-6">@Model.Method</dd>
-                <dt class="col-6">Reference</dt>
-                <dd class="col-6">@(Model.PaymentReference ?? "-")</dd>
-                <dt class="col-6">Recorded by</dt>
-                <dd class="col-6">@(Model.RecordedByEmployee is null ? "-" : $"{Model.RecordedByEmployee.FirstName} {Model.RecordedByEmployee.LastName}")</dd>
-                <dt class="col-6">Notes</dt>
-                <dd class="col-6">@(Model.Notes ?? "-")</dd>
+                <dt class="col-sm-6">Receipt number</dt>
+                <dd class="col-sm-6">@Model.ReceiptNumber</dd>
+                <dt class="col-sm-6">Amount</dt>
+                <dd class="col-sm-6 text-price">PKR @Model.Amount.ToString("N2")</dd>
+                <dt class="col-sm-6">Paid at</dt>
+                <dd class="col-sm-6">@Model.PaidAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</dd>
+                <dt class="col-sm-6">Method</dt>
+                <dd class="col-sm-6">@Model.Method</dd>
+                <dt class="col-sm-6">Reference</dt>
+                <dd class="col-sm-6">@(Model.PaymentReference ?? "-")</dd>
+                <dt class="col-sm-6">Recorded by</dt>
+                <dd class="col-sm-6">@(Model.RecordedByEmployee is null ? "-" : $"{Model.RecordedByEmployee.FirstName} {Model.RecordedByEmployee.LastName}")</dd>
+                <dt class="col-sm-6">Notes</dt>
+                <dd class="col-sm-6">@(Model.Notes ?? "-")</dd>
             </dl>
         </div>
     </div>
@@ -37,20 +37,20 @@
         <div class="card p-4 mb-3">
             <h6 class="mb-3">Related Records</h6>
             <dl class="row detail-list mb-0">
-                <dt class="col-5">Customer</dt>
-                <dd class="col-7">@Model.Customer.FirstName @Model.Customer.LastName (@Model.Customer.Email)</dd>
-                <dt class="col-5">Connection</dt>
-                <dd class="col-7">
+                <dt class="col-sm-5">Customer</dt>
+                <dd class="col-sm-7">@Model.Customer.FirstName @Model.Customer.LastName (@Model.Customer.Email)</dd>
+                <dt class="col-sm-5">Connection</dt>
+                <dd class="col-sm-7">
                     <a asp-controller="Connections" asp-action="Details" asp-route-id="@Model.ConnectionId">@Model.Connection.AccountNumber</a>
                 </dd>
-                <dt class="col-5">Bill</dt>
-                <dd class="col-7">
+                <dt class="col-sm-5">Bill</dt>
+                <dd class="col-sm-7">
                     <a asp-controller="Bills" asp-action="Details" asp-route-id="@Model.BillId">@Model.Bill.BillNumber</a>
                 </dd>
-                <dt class="col-5">Bill status</dt>
-                <dd class="col-7"><partial name="_Badge" model="@((object?)Model.Bill.Status)" /></dd>
-                <dt class="col-5">Bill due after payment</dt>
-                <dd class="col-7 text-price">PKR @Model.Bill.DueAmount.ToString("N2")</dd>
+                <dt class="col-sm-5">Bill status</dt>
+                <dd class="col-sm-7"><partial name="_Badge" model="@((object?)Model.Bill.Status)" /></dd>
+                <dt class="col-sm-5">Bill due after payment</dt>
+                <dd class="col-sm-7 text-price">PKR @Model.Bill.DueAmount.ToString("N2")</dd>
             </dl>
         </div>
     </div>

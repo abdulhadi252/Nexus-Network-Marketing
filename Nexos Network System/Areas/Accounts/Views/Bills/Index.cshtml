@@ -5,12 +5,23 @@
     var payableBillIds = ViewBag.PayableBillIds as HashSet<int> ?? new HashSet<int>();
 }
 
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+<nav class="crumbs" aria-label="Breadcrumb">
+    <a asp-area="Accounts" asp-controller="Dashboard" asp-action="Index">
+        <svg class="svg-icon" aria-hidden="true"><use href="#i-home-clean" /></svg>
+        <span>Dashboard</span>
+    </a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <span class="crumbs__current" aria-current="page">Bills</span>
+</nav>
+
+<div class="page-header">
     <div>
-        <h1 class="h4 mb-1">Bills</h1>
-        <p class="text-muted mb-0">Manage generated bills. Current outstanding: PKR @totalDue.ToString("N2")</p>
+        <h1 class="h3">Bills</h1>
+        <p class="page-subtitle">Manage generated bills. Current outstanding: PKR @totalDue.ToString("N2")</p>
     </div>
-    <a class="btn btn-primary" asp-action="Generate">+ Generate Bill</a>
+    <div class="page-head__actions">
+        <a class="btn btn-primary" asp-action="Generate">+ Generate Bill</a>
+    </div>
 </div>
 
 <div class="card mb-3">
@@ -60,7 +71,7 @@
                                 <td class="text-price">PKR @bill.TotalAmount.ToString("N2")</td>
                                 <td class="text-price">PKR @bill.PaidAmount.ToString("N2")</td>
                                 <td class="text-price">PKR @bill.DueAmount.ToString("N2")</td>
-                                <td><partial name="_Badge" model="@((object?)bill.Status)" /></td>
+                                <td><partial name="_StatusPill" model="@((object?)bill.Status)" /></td>
                                 <td class="table-actions">
                                     <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@bill.Id">View</a>
                                     @if (payableBillIds.Contains(bill.Id))

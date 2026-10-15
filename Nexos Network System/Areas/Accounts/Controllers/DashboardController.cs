@@ -16,8 +16,14 @@ public class DashboardController(ApplicationDbContext db) : Controller
     {
         ViewData["PanelName"] = "Accounts Panel";
 
+        // The headline figures describe the current calendar month, matching the admin panel.
+        var monthStart = MonthlySeries.StartOfMonth(DateTimeOffset.UtcNow);
+
         var model = new DashboardStatsViewModel
         {
+            GreetingName = await User.GetGreetingNameAsync(db),
+            PeriodLabel = $"{monthStart:d MMM yyyy} - {monthStart.AddMonths(1).AddDays(-1):d MMM yyyy}",
+
             TotalBills = await db.Bills.CountAsync(),
             PaidBills = await db.Bills.LatestBillPerConnection().CountAsync(b => b.Status == BillStatus.Paid),
             PartiallyPaidBills = await db.Bills.LatestBillPerConnection().CountAsync(b => b.Status == BillStatus.PartiallyPaid),

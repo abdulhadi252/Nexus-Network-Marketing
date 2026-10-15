@@ -4,12 +4,23 @@
     var outstanding = Model.Bills.SumLatestOutstanding();
 }
 
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+<nav class="crumbs" aria-label="Breadcrumb">
+    <a asp-area="Accounts" asp-controller="Dashboard" asp-action="Index">
+        <svg class="svg-icon" aria-hidden="true"><use href="#i-home-clean" /></svg>
+        <span>Dashboard</span>
+    </a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <span class="crumbs__current" aria-current="page">Customers</span>
+</nav>
+
+<div class="page-header">
     <div>
-        <h1 class="h4 mb-1">@Model.FirstName @Model.LastName</h1>
-        <p class="text-muted mb-0">@Model.Email &middot; @Model.PrimaryContactNumber</p>
+        <h1 class="h3">@Model.FirstName @Model.LastName</h1>
+        <p class="page-subtitle">@Model.Email &middot; @Model.PrimaryContactNumber</p>
     </div>
-    <a class="btn btn-outline-secondary" asp-action="Index">Back to customers</a>
+    <div class="page-head__actions">
+        <a class="btn btn-outline-secondary" asp-action="Index">Back to customers</a>
+    </div>
 </div>
 
 <div class="row g-3 mb-3">
@@ -53,7 +64,7 @@
                                     <tr>
                                         <td class="fw-semibold">@connection.AccountNumber</td>
                                         <td>@connection.Plan?.Name</td>
-                                        <td><partial name="_Badge" model="@((object?)connection.Status)" /></td>
+                                        <td><partial name="_StatusPill" model="@((object?)connection.Status)" /></td>
                                     </tr>
                                 }
                             </tbody>
@@ -80,7 +91,7 @@
                                     <tr>
                                         <td>@bill.BillNumber</td>
                                         <td class="text-price">PKR @bill.DueAmount.ToString("N2")</td>
-                                        <td><partial name="_Badge" model="@((object?)bill.Status)" /></td>
+                                        <td><partial name="_StatusPill" model="@((object?)bill.Status)" /></td>
                                         <td class="table-actions">
                                             <a class="btn btn-outline-secondary" asp-controller="Bills" asp-action="Details" asp-route-id="@bill.Id">View</a>
                                         </td>

@@ -4,12 +4,23 @@
     var pendingOrders = ViewBag.PendingOrders as List<Order> ?? new List<Order>();
 }
 
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+<nav class="crumbs" aria-label="Breadcrumb">
+    <a asp-area="Technical" asp-controller="Dashboard" asp-action="Index">
+        <svg class="svg-icon" aria-hidden="true"><use href="#i-home-clean" /></svg>
+        <span>Dashboard</span>
+    </a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <span class="crumbs__current" aria-current="page">Feasibility Reports</span>
+</nav>
+
+<div class="page-header">
     <div>
-        <h1 class="h4 mb-1">Feasibility Reports</h1>
-        <p class="text-muted mb-0">Site checks recorded by the technical team.</p>
+        <h1 class="h3">Feasibility Reports</h1>
+        <p class="page-subtitle">Site checks recorded by the technical team.</p>
     </div>
-    <a class="btn btn-primary" asp-action="Create">+ New Feasibility Check</a>
+    <div class="page-head__actions">
+        <a class="btn btn-primary" asp-action="Create">+ New Feasibility Check</a>
+    </div>
 </div>
 
 @if (pendingOrders.Count > 0)
@@ -72,7 +83,7 @@
                             <tr>
                                 <td class="fw-semibold">@report.Order.OrderNumber</td>
                                 <td>@report.Order.Customer.FirstName @report.Order.Customer.LastName</td>
-                                <td><partial name="_Badge" model="@((object?)report.Status)" /></td>
+                                <td><partial name="_StatusPill" model="@((object?)report.Status)" /></td>
                                 <td>@(report.DistanceMeters.HasValue ? $"{report.DistanceMeters} m" : "-")</td>
                                 <td>@(report.TechnicalEmployee is null ? "-" : $"{report.TechnicalEmployee.FirstName} {report.TechnicalEmployee.LastName}")</td>
                                 <td>@(report.CheckedAt?.ToLocalTime().ToString("dd MMM yyyy") ?? "-")</td>

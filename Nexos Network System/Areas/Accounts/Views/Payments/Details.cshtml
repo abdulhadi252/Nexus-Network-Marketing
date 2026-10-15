@@ -3,12 +3,21 @@
     ViewData["Title"] = "Payment Details";
 }
 
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+<nav class="crumbs" aria-label="Breadcrumb">
+    <a asp-area="Accounts" asp-controller="Dashboard" asp-action="Index">
+        <svg class="svg-icon" aria-hidden="true"><use href="#i-home-clean" /></svg>
+        <span>Dashboard</span>
+    </a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <span class="crumbs__current" aria-current="page">Payments</span>
+</nav>
+
+<div class="page-header">
     <div>
-        <h1 class="h4 mb-1">Receipt @Model.ReceiptNumber</h1>
-        <p class="text-muted mb-0"><partial name="_Badge" model="@((object?)Model.Status)" /></p>
+        <h1 class="h3">Receipt @Model.ReceiptNumber</h1>
+        <p class="page-subtitle"><partial name="_StatusPill" model="@((object?)Model.Status)" /></p>
     </div>
-    <div class="d-flex gap-2">
+    <div class="page-head__actions">
         <a class="btn btn-outline-primary" asp-controller="Bills" asp-action="Details" asp-route-id="@Model.BillId">Open bill</a>
         <a class="btn btn-outline-secondary" asp-action="Index">Back to payments</a>
     </div>
@@ -53,7 +62,7 @@
                 <dt class="col-5">Due</dt>
                 <dd class="col-7 text-price">PKR @Model.Bill.DueAmount.ToString("N2")</dd>
                 <dt class="col-5">Status</dt>
-                <dd class="col-7"><partial name="_Badge" model="@((object?)Model.Bill.Status)" /></dd>
+                <dd class="col-7"><partial name="_StatusPill" model="@((object?)Model.Bill.Status)" /></dd>
             </dl>
         </div>
     </div>

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Nexos_Network_System.Data;
+using Nexos_Network_System.Helpers;
 using Nexos_Network_System.Models.Enums;
 using Nexos_Network_System.ViewModels;
 
@@ -15,8 +16,14 @@ public class DashboardController(ApplicationDbContext db) : Controller
     {
         ViewData["PanelName"] = "Technical Panel";
 
+        // The headline figures describe the current calendar month, matching the admin panel.
+        var monthStart = MonthlySeries.StartOfMonth(DateTimeOffset.UtcNow);
+
         var model = new DashboardStatsViewModel
         {
+            GreetingName = await User.GetGreetingNameAsync(db),
+            PeriodLabel = $"{monthStart:d MMM yyyy} - {monthStart.AddMonths(1).AddDays(-1):d MMM yyyy}",
+
             PendingOrders = await db.Orders.CountAsync(o => o.Status == OrderStatus.Pending || o.Status == OrderStatus.FeasibilityPending),
             PendingFeasibility = await db.FeasibilityReports.CountAsync(f => f.Status == FeasibilityStatus.Pending),
             ApprovedFeasibility = await db.FeasibilityReports.CountAsync(f => f.Status == FeasibilityStatus.Feasible),

@@ -16,6 +16,15 @@
     var isActive = employee?.IsActive ?? customer?.IsActive ?? true;
     var isEmployee = employee is not null;
 
+    // Monogram for the avatar: the first letter of the first name
+    // (Sufiyan -> S, Aroob -> A, Ahmed -> A). Accounts without a panel record
+    // fall back to the display name, then to the username.
+    var firstName = employee?.FirstName ?? customer?.FirstName;
+    var nameSource = string.IsNullOrWhiteSpace(firstName) ? displayName : firstName;
+    var avatarInitial = string.IsNullOrWhiteSpace(nameSource)
+        ? "?"
+        : nameSource.Trim()[..1].ToUpperInvariant();
+
     // The Identity fallback (accounts without a panel role) renders this view read-only,
     // so the panel breadcrumb and self-service actions are hidden there.
     var area = ViewContext.RouteData.Values["area"]?.ToString();
@@ -41,9 +50,7 @@
 </div>
 
 <section class="profile-hero">
-    <span class="profile-hero__avatar" aria-hidden="true">
-        <svg class="svg-icon"><use href="#i-user" /></svg>
-    </span>
+    <span class="profile-hero__avatar" aria-hidden="true">@avatarInitial</span>
 
     <div class="profile-hero__body">
         <h2 class="profile-hero__name">@displayName</h2>

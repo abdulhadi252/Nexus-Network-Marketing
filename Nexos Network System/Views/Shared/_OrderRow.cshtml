@@ -1,0 +1,101 @@
+@model Order
+@{
+    // One row of the shared "recent orders" list used by the panel dashboards.
+    // Mirrors the Admin dashboard row exactly, and every value is derived from
+    // the order itself so the list stays correct as soon as the data changes.
+
+    var orderTotal = Model.Items.Sum(item => item.Quantity * item.UnitPrice);
+    var hasItems = Model.Items.Count > 0;
+    var customerName = $"{Model.Customer.FirstName} {Model.Customer.LastName}".Trim();
+    var submittedLocal = Model.SubmittedAt.ToLocalTime();
+
+    string TypeLabel(ConnectionType type) => type switch
+    {
+        ConnectionType.DialUp => "Dial-Up",
+        ConnectionType.Broadband => "Broadband",
+        ConnectionType.Telephone => "Telephone",
+        _ => type.ToString()
+    };
+
+    string TypeIcon(ConnectionType type) => type switch
+    {
+        ConnectionType.DialUp => "i-signal",
+        ConnectionType.Broadband => "i-broadband",
+        ConnectionType.Telephone => "i-phone",
+        _ => "i-connections"
+    };
+
+    // Stable per-order avatar tint: the same order always keeps the same colour.
+    string AvatarTone(int orderId) => (orderId % 5) switch
+    {
+        0 => "person__avatar--blue",
+        1 => "person__avatar--purple",
+        2 => "person__avatar--teal",
+        3 => "person__avatar--indigo",
+        _ => "person__avatar--pink"
+    };
+
+    string Initials(Customer customer)
+    {
+        var first = string.IsNullOrWhiteSpace(customer.FirstName) ? string.Empty : customer.FirstName.Trim()[..1];
+        var last = string.IsNullOrWhiteSpace(customer.LastName) ? string.Empty : customer.LastName.Trim()[..1];
+        var letters = (first + last).ToUpperInvariant();
+        return letters.Length == 0 ? "?" : letters;
+    }
+
+    string Age(DateTimeOffset submittedAt)
+    {
+        var local = submittedAt.ToLocalTime();
+        var elapsed = DateTimeOffset.Now - local;
+        if (elapsed < TimeSpan.Zero)
+        {
+            elapsed = TimeSpan.Zero;
+        }
+
+        if (elapsed.TotalMinutes < 1) return "just now";
+        if (elapsed.TotalMinutes < 60) return $"{(int)elapsed.TotalMinutes}m ago";
+        if (elapsed.TotalHours < 24) return $"{(int)elapsed.TotalHours}h ago";
+        if (elapsed.TotalDays < 2) return "yesterday";
+        if (elapsed.TotalDays < 7) return $"{(int)elapsed.TotalDays}d ago";
+        return local.ToString("dd MMM yyyy");
+    }
+}
+<li>
+    <a class="order-item" asp-controller="Orders" asp-action="Details" asp-route-id="@Model.Id"
+       aria-label="Open order @Model.OrderNumber for @customerName">
+        <span class="order-item__avatar @AvatarTone(Model.Id)" aria-hidden="true">@Initials(Model.Customer)</span>
+
+        <span class="order-item__body">
+            <span class="order-item__top">
+                <span class="order-item__number">@Model.OrderNumber</span>
+                <span class="order-item__type">
+                    <svg class="svg-icon" aria-hidden="true"><use href="#@TypeIcon(Model.ConnectionType)" /></svg>
+                    @TypeLabel(Model.ConnectionType)
+                </span>
+            </span>
+            <span class="order-item__sub">
+                <span class="order-item__customer">@customerName</span>
+                <span class="order-item__dot" aria-hidden="true"></span>
+                <span class="order-item__plan">@(string.IsNullOrWhiteSpace(Model.Plan?.Name) ? "No plan selected" : Model.Plan!.Name)</span>
+            </span>
+        </span>
+
+        <span class="order-item__status">
+            <partial name="_StatusPill" model="@((object?)Model.Status)" />
+        </span>
+
+        <span class="order-item__amount">
+            <span class="order-item__price @(hasItems ? string.Empty : "order-item__price--muted")">
+                @(hasItems ? $"PKR {orderTotal:N0}" : "—")
+            </span>
+            <span class="order-item__age" title="@submittedLocal.ToString("dd MMM yyyy, HH:mm")">
+                <svg class="svg-icon" aria-hidden="true"><use href="#i-clock" /></svg>
+                @Age(Model.SubmittedAt)
+            </span>
+        </span>
+
+        <span class="order-item__go" aria-hidden="true">
+            <svg class="svg-icon"><use href="#i-arrow-right" /></svg>
+        </span>
+    </a>
+</li>

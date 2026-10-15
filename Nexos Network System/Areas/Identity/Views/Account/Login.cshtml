@@ -16,31 +16,8 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <script>
-        // NEXUS boot loader gate: decide before first paint whether the
-        // intro animation may play (first page of a session, motion allowed).
-        (function () {
-            try {
-                if (sessionStorage.getItem("nx-boot-skip") ||
-                    window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-                    document.documentElement.classList.add("nx-boot-skip");
-                }
-            } catch (e) {
-                document.documentElement.classList.add("nx-boot-skip");
-            }
-        })();
-    </script>
 </head>
 <body class="lg-body">
-    <div id="nx-loader" aria-hidden="true">
-        <div class="nx-loader-inner">
-            <span class="nx-logo-ghost"></span>
-            <span class="nx-logo-fill"></span>
-            <span class="nx-logo-glow"></span>
-            <span class="nx-loader-word">NEXUS</span>
-            <span class="nx-loader-bar"></span>
-        </div>
-    </div>
     <partial name="_Icons" />
 
     <div class="lg-page">

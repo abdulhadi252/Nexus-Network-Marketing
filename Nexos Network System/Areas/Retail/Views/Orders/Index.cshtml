@@ -3,12 +3,21 @@
     ViewData["Title"] = "Orders";
 }
 
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+<nav class="crumbs" aria-label="Breadcrumb">
+    <a asp-area="Retail" asp-controller="Dashboard" asp-action="Index">
+        <svg class="svg-icon" aria-hidden="true"><use href="#i-home-clean" /></svg>
+        <span>Dashboard</span>
+    </a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <span class="crumbs__current" aria-current="page">Orders</span>
+</nav>
+
+<div class="page-header">
     <div>
-        <h1 class="h4 mb-1">Orders</h1>
-        <p class="text-muted mb-0">Orders placed at your branch and their current progress.</p>
+        <h1 class="h3">Orders</h1>
+        <p class="page-subtitle">Orders placed at your branch and their current progress.</p>
     </div>
-    <div class="d-flex gap-2">
+    <div class="page-head__actions">
         <a class="btn btn-outline-primary" asp-action="Track">Track Order</a>
         <a class="btn btn-primary" asp-action="Create">+ New Order</a>
     </div>
@@ -67,7 +76,7 @@
                                 <td>@order.ConnectionType</td>
                                 <td>@(order.Plan?.Name ?? "-")</td>
                                 <td>@order.SubmittedAt.ToLocalTime().ToString("dd MMM yyyy")</td>
-                                <td><partial name="_Badge" model="@((object?)order.Status)" /></td>
+                                <td><partial name="_StatusPill" model="@((object?)order.Status)" /></td>
                                 <td class="table-actions">
                                     <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@order.Id">View</a>
                                 </td>

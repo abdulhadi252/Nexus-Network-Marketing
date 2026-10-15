@@ -3,18 +3,25 @@
     ViewData["Title"] = "Bill Details";
 }
 
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+<nav class="crumbs" aria-label="Breadcrumb">
+    <a asp-area="Accounts" asp-controller="Dashboard" asp-action="Index">
+        <svg class="svg-icon" aria-hidden="true"><use href="#i-home-clean" /></svg>
+        <span>Dashboard</span>
+    </a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <span class="crumbs__current" aria-current="page">Bills</span>
+</nav>
+
+<div class="page-header">
     <div>
-        <h1 class="h4 mb-1">@Model.BillNumber</h1>
-        <p class="text-muted mb-0">
-            @Model.Customer.FirstName @Model.Customer.LastName &middot; @Model.Connection.AccountNumber &middot;
-            <partial name="_Badge" model="@((object?)Model.Status)" />
-        </p>
+        <h1 class="h3">@Model.BillNumber</h1>
+        <p class="page-subtitle">@Model.Customer.FirstName @Model.Customer.LastName &middot; @Model.Connection.AccountNumber &middot;
+            <partial name="_StatusPill" model="@((object?)Model.Status)" /></p>
     </div>
-    <div class="d-flex gap-2">
+    <div class="page-head__actions">
         @if (ViewBag.CanRecordPayment == true)
         {
-            <a class="btn btn-primary" asp-controller="Payments" asp-action="Create" asp-route-billId="@Model.Id">+ Record Payment</a>
+        <a class="btn btn-primary" asp-controller="Payments" asp-action="Create" asp-route-billId="@Model.Id">+ Record Payment</a>
         }
         <a class="btn btn-outline-secondary" asp-action="Index">Back to bills</a>
     </div>

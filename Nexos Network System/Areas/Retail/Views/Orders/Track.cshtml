@@ -4,8 +4,21 @@
     var searchTerm = ViewData["SearchTerm"] as string;
 }
 
-<h1 class="h4 mb-1">Track Order</h1>
-<p class="text-muted">Enter a full order number to check its current status.</p>
+<nav class="crumbs" aria-label="Breadcrumb">
+    <a asp-area="Retail" asp-controller="Dashboard" asp-action="Index">
+        <svg class="svg-icon" aria-hidden="true"><use href="#i-home-clean" /></svg>
+        <span>Dashboard</span>
+    </a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <span class="crumbs__current" aria-current="page">Track Order</span>
+</nav>
+
+<div class="page-header">
+    <div>
+        <h1 class="h3">Track Order</h1>
+        <p class="page-subtitle">Enter a full order number to check its current status.</p>
+    </div>
+</div>
 
 <div class="card mb-3">
     <div class="card-body">
@@ -43,7 +56,7 @@
                         @Model.ConnectionType &middot; submitted @Model.SubmittedAt.ToLocalTime().ToString("dd MMM yyyy")
                     </p>
                 </div>
-                <partial name="_Badge" model="@((object?)Model.Status)" />
+                <partial name="_StatusPill" model="@((object?)Model.Status)" />
             </div>
             <hr />
             <dl class="row detail-list mb-3">

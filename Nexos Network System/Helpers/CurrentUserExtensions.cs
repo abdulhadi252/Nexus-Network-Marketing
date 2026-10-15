@@ -23,6 +23,30 @@ public static class CurrentUserExtensions
         : user.IsInRole("Customer") ? "Customer"
         : null;
 
+    /// <summary>
+    /// First name used by the panel dashboard greeting. Prefers the account's display name
+    /// and falls back to the e-mail local part, so the greeting is never blank.
+    /// </summary>
+    public static async Task<string> GetGreetingNameAsync(this ClaimsPrincipal user, ApplicationDbContext db, CancellationToken cancellationToken = default)
+    {
+        var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        var fullName = string.IsNullOrWhiteSpace(userId)
+            ? null
+            : await db.Users
+                .AsNoTracking()
+                .Where(u => u.Id == userId)
+                .Select(u => u.FullName)
+                .FirstOrDefaultAsync(cancellationToken);
+
+        var source = string.IsNullOrWhiteSpace(fullName) ? user.GetEmail() : fullName;
+        if (string.IsNullOrWhiteSpace(source))
+        {
+            return "there";
+        }
+
+        return source.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries)[0];
+    }
+
     /// <summary>Resolves the Employee record that belongs to the signed in user (matched on email).</summary>
     public static async Task<Employee?> GetEmployeeAsync(this ClaimsPrincipal user, ApplicationDbContext db, CancellationToken cancellationToken = default)
     {

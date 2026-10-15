@@ -1,0 +1,76 @@
+@model Payment
+@{
+    // One row of the shared "payments" list, matching the order/connection rows.
+
+    var customerName = $"{Model.Customer.FirstName} {Model.Customer.LastName}".Trim();
+    var paidLocal = Model.PaidAt.ToLocalTime();
+
+    string MethodLabel(PaymentMethod method) => method switch
+    {
+        PaymentMethod.BankTransfer => "Bank Transfer",
+        _ => method.ToString()
+    };
+
+    string MethodIcon(PaymentMethod method) => method switch
+    {
+        PaymentMethod.Cash => "i-wallet",
+        PaymentMethod.Card => "i-credit-card",
+        PaymentMethod.BankTransfer => "i-payments",
+        PaymentMethod.Cheque => "i-bills",
+        _ => "i-payments"
+    };
+
+    string AvatarTone(int id) => (id % 5) switch
+    {
+        0 => "person__avatar--blue",
+        1 => "person__avatar--purple",
+        2 => "person__avatar--teal",
+        3 => "person__avatar--indigo",
+        _ => "person__avatar--pink"
+    };
+
+    string Initials(Customer customer)
+    {
+        var first = string.IsNullOrWhiteSpace(customer.FirstName) ? string.Empty : customer.FirstName.Trim()[..1];
+        var last = string.IsNullOrWhiteSpace(customer.LastName) ? string.Empty : customer.LastName.Trim()[..1];
+        var letters = (first + last).ToUpperInvariant();
+        return letters.Length == 0 ? "?" : letters;
+    }
+}
+<li>
+    <a class="order-item" asp-controller="Payments" asp-action="Details" asp-route-id="@Model.Id"
+       aria-label="Open payment @Model.ReceiptNumber from @customerName">
+        <span class="order-item__avatar @AvatarTone(Model.Id)" aria-hidden="true">@Initials(Model.Customer)</span>
+
+        <span class="order-item__body">
+            <span class="order-item__top">
+                <span class="order-item__number">@Model.ReceiptNumber</span>
+                <span class="order-item__type">
+                    <svg class="svg-icon" aria-hidden="true"><use href="#@MethodIcon(Model.Method)" /></svg>
+                    @MethodLabel(Model.Method)
+                </span>
+            </span>
+            <span class="order-item__sub">
+                <span class="order-item__customer">@customerName</span>
+                <span class="order-item__dot" aria-hidden="true"></span>
+                <span class="order-item__plan">@Model.Bill.BillNumber</span>
+            </span>
+        </span>
+
+        <span class="order-item__status">
+            <partial name="_StatusPill" model="@((object?)Model.Status)" />
+        </span>
+
+        <span class="order-item__amount">
+            <span class="order-item__price">PKR @Model.Amount.ToString("N0")</span>
+            <span class="order-item__age" title="@paidLocal.ToString("dd MMM yyyy, HH:mm")">
+                <svg class="svg-icon" aria-hidden="true"><use href="#i-calendar" /></svg>
+                @paidLocal.ToString("dd MMM yyyy")
+            </span>
+        </span>
+
+        <span class="order-item__go" aria-hidden="true">
+            <svg class="svg-icon"><use href="#i-arrow-right" /></svg>
+        </span>
+    </a>
+</li>

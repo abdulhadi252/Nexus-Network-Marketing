@@ -4,21 +4,28 @@
     var address = Model.Customer.Addresses.OrderByDescending(a => a.IsPrimary).FirstOrDefault();
 }
 
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+<nav class="crumbs" aria-label="Breadcrumb">
+    <a asp-area="Technical" asp-controller="Dashboard" asp-action="Index">
+        <svg class="svg-icon" aria-hidden="true"><use href="#i-home-clean" /></svg>
+        <span>Dashboard</span>
+    </a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <span class="crumbs__current" aria-current="page">Orders</span>
+</nav>
+
+<div class="page-header">
     <div>
-        <h1 class="h4 mb-1">Order @Model.OrderNumber</h1>
-        <p class="text-muted mb-0">
-            @Model.ConnectionType &middot; <partial name="_Badge" model="@((object?)Model.Status)" />
-        </p>
+        <h1 class="h3">Order @Model.OrderNumber</h1>
+        <p class="page-subtitle">@Model.ConnectionType &middot; <partial name="_StatusPill" model="@((object?)Model.Status)" /></p>
     </div>
-    <div class="d-flex gap-2">
+    <div class="page-head__actions">
         @if (Model.FeasibilityReport is null)
         {
-            <a class="btn btn-primary" asp-controller="Feasibility" asp-action="Create" asp-route-orderId="@Model.Id">+ Feasibility Check</a>
+        <a class="btn btn-primary" asp-controller="Feasibility" asp-action="Create" asp-route-orderId="@Model.Id">+ Feasibility Check</a>
         }
         else if (Model.Connection is null && Model.Status == OrderStatus.Feasible)
         {
-            <a class="btn btn-primary" asp-controller="Connections" asp-action="Create" asp-route-orderId="@Model.Id">+ Create Connection</a>
+        <a class="btn btn-primary" asp-controller="Connections" asp-action="Create" asp-route-orderId="@Model.Id">+ Create Connection</a>
         }
         <a class="btn btn-outline-secondary" asp-action="Index">Back to orders</a>
     </div>
@@ -76,7 +83,7 @@
             {
                 <dl class="row detail-list mb-0">
                     <dt class="col-5">Status</dt>
-                    <dd class="col-7"><partial name="_Badge" model="@((object?)Model.Status)" /></dd>
+                    <dd class="col-7"><partial name="_StatusPill" model="@((object?)Model.Status)" /></dd>
                     <dt class="col-5">Verified by</dt>
                     <dd class="col-7">@(Model.VerifiedByEmployee is null ? "-" : $"{Model.VerifiedByEmployee.FirstName} {Model.VerifiedByEmployee.LastName}")</dd>
                     <dt class="col-5">Verified at</dt>
@@ -101,7 +108,7 @@
             {
                 <dl class="row detail-list mb-0">
                     <dt class="col-5">Result</dt>
-                    <dd class="col-7"><partial name="_Badge" model="@((object?)Model.FeasibilityReport.Status)" /></dd>
+                    <dd class="col-7"><partial name="_StatusPill" model="@((object?)Model.FeasibilityReport.Status)" /></dd>
                     <dt class="col-5">Distance</dt>
                     <dd class="col-7">@(Model.FeasibilityReport.DistanceMeters.HasValue ? $"{Model.FeasibilityReport.DistanceMeters} m" : "-")</dd>
                     <dt class="col-5">Server available</dt>
@@ -129,7 +136,7 @@
                     <dt class="col-5">Account number</dt>
                     <dd class="col-7 fw-semibold">@Model.Connection.AccountNumber</dd>
                     <dt class="col-5">Status</dt>
-                    <dd class="col-7"><partial name="_Badge" model="@((object?)Model.Connection.Status)" /></dd>
+                    <dd class="col-7"><partial name="_StatusPill" model="@((object?)Model.Connection.Status)" /></dd>
                     <dt class="col-5">Installed</dt>
                     <dd class="col-7">@(Model.Connection.InstalledAt?.ToLocalTime().ToString("dd MMM yyyy") ?? "-")</dd>
                 </dl>
