@@ -3,15 +3,28 @@
     ViewData["Title"] = "My Equipment";
 }
 
-<h1 class="h4 mb-1">My Equipment</h1>
-<p class="text-muted">Equipment assigned to your connection. Replacement charges apply for lost or damaged items.</p>
+<nav class="crumbs" aria-label="Breadcrumb">
+    <a asp-area="Customer" asp-controller="Dashboard" asp-action="Index">
+        <svg class="svg-icon" aria-hidden="true"><use href="#i-home-clean" /></svg>
+        <span>Dashboard</span>
+    </a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <span class="crumbs__current" aria-current="page">My Equipment</span>
+</nav>
+
+<div class="page-header">
+    <div>
+        <h1 class="h3">My Equipment</h1>
+        <p class="page-subtitle">Equipment assigned to your connection. Replacement charges apply for lost or damaged items.</p>
+    </div>
+</div>
 
 <div class="card">
     <div class="card-body">
         @if (Model.Count == 0)
         {
             <div class="empty-state">
-                <div class="empty-icon">&#128230;</div>
+                <span class="empty-icon"><svg class="svg-icon" aria-hidden="true"><use href="#i-equipment" /></svg></span>
                 <p class="mb-0">No equipment is currently assigned to your connection.</p>
             </div>
         }
@@ -31,7 +44,7 @@
                                 <td>@(equipment.SerialNumber ?? "-")</td>
                                 <td>@equipment.Connection?.AccountNumber</td>
                                 <td>@(equipment.AssignedAt?.ToLocalTime().ToString("dd MMM yyyy") ?? "-")</td>
-                                <td><partial name="_Badge" model="@((object?)equipment.Status)" /></td>
+                                <td><partial name="_StatusPill" model="@((object?)equipment.Status)" /></td>
                                 <td class="text-price">@(equipment.ReplacementCharge.HasValue ? $"PKR {equipment.ReplacementCharge.Value:N2}" : "-")</td>
                             </tr>
                         }

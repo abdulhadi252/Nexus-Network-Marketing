@@ -26,6 +26,18 @@ public class VendorsController(ApplicationDbContext db) : Controller
         }
 
         var result = await PagedResult<Vendor>.CreateAsync(query.OrderBy(v => v.Name), page);
+
+        // Sparkline KPI tiles above the directory, Messages-page style.
+        var vendors = await db.Vendors.AsNoTracking()
+            .Include(v => v.Products)
+            .Include(v => v.EquipmentItems)
+            .ToListAsync();
+
+        ViewData["KpiTotal"] = AdminKpi.Static(vendors.Count, "vendors on record");
+        ViewData["KpiActive"] = AdminKpi.Static(vendors.Count(v => v.IsActive), "active vendors");
+        ViewData["KpiProducts"] = AdminKpi.Static(vendors.Sum(v => v.Products.Count), "catalogue products");
+        ViewData["KpiEquipment"] = AdminKpi.Static(vendors.Sum(v => v.EquipmentItems.Count), "equipment items");
+
         return View(result);
     }
 

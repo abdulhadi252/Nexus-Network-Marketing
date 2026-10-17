@@ -57,6 +57,19 @@ public class OrdersController(ApplicationDbContext db, IOrderService orderServic
         }
 
         var paged = await PagedResult<Order>.CreateAsync(query.OrderByDescending(o => o.SubmittedAt), page);
+
+        // KPI tiles above the list use the same six-month monthly series the
+        // dashboard sparklines draw from, so every admin list reads the same.
+        var allOrders = db.Orders.AsNoTracking();
+        var submitted = allOrders.Select(o => o.SubmittedAt);
+        var pendingCount = await allOrders.CountAsync(o => o.Status == OrderStatus.Pending || o.Status == OrderStatus.FeasibilityPending);
+        var liveCount = await allOrders.CountAsync(o => o.Status == OrderStatus.ConnectionProvided || o.Status == OrderStatus.Feasible);
+
+        ViewData["TotalOrders"] = await AdminKpi.CountAsync(submitted, db, "Total Orders");
+        ViewData["PendingOrders"] = new BillMetric { Value = pendingCount, Foot = "Pending Orders", ShowFootArrow = false };
+        ViewData["CompletedOrders"] = new BillMetric { Value = liveCount, Foot = "Live Services", ShowFootArrow = true, FootRises = true };
+        ViewData["ThisMonthOrders"] = new BillMetric { Value = paged.TotalItems, Foot = "Matching Filters", ShowFootArrow = false };
+
         return View(paged);
     }
 

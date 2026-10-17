@@ -28,6 +28,17 @@ public class ProductsController(ApplicationDbContext db) : Controller
         }
 
         var result = await PagedResult<Product>.CreateAsync(query.OrderBy(p => p.Name), page);
+
+        // Sparkline KPI tiles above the directory, Messages-page style.
+        var all = await db.Products.AsNoTracking()
+            .Include(p => p.Stock)
+            .ToListAsync();
+
+        ViewData["KpiTotal"] = AdminKpi.Static(all.Count, "products");
+        ViewData["KpiActive"] = AdminKpi.Static(all.Count(p => p.IsActive), "active products");
+        ViewData["KpiLow"] = AdminKpi.Static(all.Count(p => p.Stock != null && p.Stock.QuantityOnHand <= p.Stock.ReorderLevel), "low stock");
+        ViewData["KpiOnHand"] = AdminKpi.Static(all.Where(p => p.Stock != null).Sum(p => p.Stock!.QuantityOnHand), "units on hand");
+
         return View(result);
     }
 

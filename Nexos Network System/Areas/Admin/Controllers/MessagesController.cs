@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Nexos_Network_System.Data;
 using Nexos_Network_System.Helpers;
+using Nexos_Network_System.Interfaces;
 using Nexos_Network_System.Models;
 using Nexos_Network_System.ViewModels;
 using Nexos_Network_System.Areas.Admin.ViewModels;
@@ -11,7 +12,10 @@ namespace Nexos_Network_System.Areas.Admin.Controllers;
 
 [Area("Admin")]
 [Authorize(Roles = "Admin")]
-public class MessagesController(ApplicationDbContext db) : Controller
+public class MessagesController(
+    ApplicationDbContext db,
+    IEmailSender emailSender,
+    ILogger<MessagesController> logger) : Controller
 {
     public async Task<IActionResult> Index(
         string? query,
@@ -133,9 +137,103 @@ public class MessagesController(ApplicationDbContext db) : Controller
         return View(vm);
     }
 
+    public async Task<IActionResult> Details(int id)
+    {
+        ViewData["PanelName"] = "Admin Panel";
+
+        var message = await db.ContactMessages
+            .AsNoTracking()
+            .FirstOrDefaultAsync(m => m.Id == id);
+
+        if (message is null)
+        {
+            return NotFound();
+        }
+
+        return View(message);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Reply(int id)
+    {
+        ViewData["PanelName"] = "Admin Panel";
+
+        var message = await db.ContactMessages
+            .AsNoTracking()
+            .FirstOrDefaultAsync(m => m.Id == id);
+
+        if (message is null)
+        {
+            return NotFound();
+        }
+
+        return View(new ReplyMessageViewModel
+        {
+            MessageId = message.Id,
+            SenderName = message.Name,
+            SenderEmail = message.Email,
+            OriginalSubject = message.Subject,
+            OriginalMessage = message.Message,
+            SubmittedAt = message.SubmittedAt,
+            Subject = ReplySubject(message.Subject)
+        });
+    }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ToggleRead(int id, bool unreadOnly = false, int page = 1)
+    public async Task<IActionResult> Reply(int id, ReplyMessageViewModel model)
+    {
+        ViewData["PanelName"] = "Admin Panel";
+
+        var message = await db.ContactMessages.FirstOrDefaultAsync(m => m.Id == id);
+        if (message is null)
+        {
+            return NotFound();
+        }
+
+        // The sender details come from the stored message, never from the posted form.
+        model.MessageId = message.Id;
+        model.SenderName = message.Name;
+        model.SenderEmail = message.Email;
+        model.OriginalSubject = message.Subject;
+        model.OriginalMessage = message.Message;
+        model.SubmittedAt = message.SubmittedAt;
+
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        try
+        {
+            await emailSender.SendAsync(new OutboundEmail(
+                message.Email,
+                message.Name,
+                model.Subject.Trim(),
+                model.Body.Trim()));
+        }
+        catch (EmailSendException ex)
+        {
+            logger.LogError(ex, "Replying to contact message {MessageId} failed", message.Id);
+            ModelState.AddModelError(string.Empty, ex.Message);
+            return View(model);
+        }
+
+        message.Status = ContactMessageStatus.Replied;
+        message.IsRead = true;
+        await db.SaveChangesAsync();
+
+        TempData["Success"] = $"Reply sent to {message.Email}.";
+        return RedirectToAction(nameof(Details), new { id = message.Id });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ToggleRead(
+        int id,
+        bool unreadOnly = false,
+        int page = 1,
+        bool returnToDetails = false)
     {
         var message = await db.ContactMessages.FirstOrDefaultAsync(m => m.Id == id);
         if (message is null)
@@ -147,6 +245,25 @@ public class MessagesController(ApplicationDbContext db) : Controller
         await db.SaveChangesAsync();
 
         TempData["Success"] = message.IsRead ? "Message marked as read." : "Message marked as unread.";
+
+        // Called from the details page? Stay there instead of jumping back to the list.
+        if (returnToDetails)
+        {
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
         return RedirectToAction(nameof(Index), new { unreadOnly, page });
+    }
+
+    /// <summary>
+    /// Prefixes the reply subject with "Re: " unless it is already a reply.
+    /// </summary>
+    private static string ReplySubject(string subject)
+    {
+        var trimmed = subject.Trim();
+
+        return trimmed.StartsWith("Re:", StringComparison.OrdinalIgnoreCase)
+            ? trimmed
+            : $"Re: {trimmed}";
     }
 }

@@ -1,0 +1,101 @@
+@using Nexos_Network_System.Areas.Admin.ViewModels
+@model ReplyMessageViewModel
+@{
+    ViewData["Title"] = "Reply to message";
+}
+
+<nav class="crumbs" aria-label="Breadcrumb">
+    <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+        <svg class="svg-icon" aria-hidden="true"><use href="#i-home-clean" /></svg>
+        <span>Admin</span>
+    </a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <a asp-action="Index">Messages</a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <a asp-action="Details" asp-route-id="@Model.MessageId">Message #@Model.MessageId</a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <span class="crumbs__current" aria-current="page">Reply</span>
+</nav>
+
+<div class="page-header">
+    <div>
+        <h1 class="h4">Reply to @Model.SenderName</h1>
+        <p class="page-subtitle">
+            The reply is emailed straight to <strong>@Model.SenderEmail</strong> and the message is marked as replied.
+        </p>
+    </div>
+    <div class="page-head__actions">
+        <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@Model.MessageId">
+            <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-chevron-left" /></svg>
+            Back to message
+        </a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="card p-4 h-100">
+            <h6 class="mb-3">Original message</h6>
+            <dl class="row detail-list mb-3">
+                <dt class="col-5">From</dt>
+                <dd class="col-7">@Model.SenderName</dd>
+                <dt class="col-5">Email</dt>
+                <dd class="col-7"><a href="mailto:@Model.SenderEmail">@Model.SenderEmail</a></dd>
+                <dt class="col-5">Received</dt>
+                <dd class="col-7">@Model.SubmittedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</dd>
+                <dt class="col-5">Subject</dt>
+                <dd class="col-7">@Model.OriginalSubject</dd>
+            </dl>
+            <p class="mb-0 text-body" style="white-space: pre-line;">@Model.OriginalMessage</p>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <span class="d-inline-flex align-items-center gap-2">
+                    <svg class="svg-icon" aria-hidden="true"><use href="#i-envelope" /></svg>
+                    Your reply
+                </span>
+            </div>
+            <div class="card-body">
+                <form asp-action="Reply" asp-route-id="@Model.MessageId" method="post" class="row g-3">
+                    <input type="hidden" asp-for="MessageId" />
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small mb-0"></div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">To</label>
+                        <input class="form-control" value="@Model.SenderEmail" readonly />
+                        <div class="form-text">Taken from the submitted message and cannot be changed.</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Subject" class="form-label"></label>
+                        <input asp-for="Subject" class="form-control" />
+                        <span asp-validation-for="Subject" class="field-validation-error"></span>
+                    </div>
+
+                    <div class="col-12">
+                        <label asp-for="Body" class="form-label"></label>
+                        <textarea asp-for="Body" class="form-control" rows="9"
+                                  placeholder="Write the reply that will be emailed to @Model.SenderEmail"></textarea>
+                        <span asp-validation-for="Body" class="field-validation-error"></span>
+                    </div>
+
+                    <div class="col-12 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-envelope" /></svg>
+                            Send reply
+                        </button>
+                        <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@Model.MessageId">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

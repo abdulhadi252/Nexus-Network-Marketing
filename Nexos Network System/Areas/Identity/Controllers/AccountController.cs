@@ -28,7 +28,7 @@ public class AccountController(
     {
         if (User.Identity?.IsAuthenticated == true)
         {
-            return RedirectToAction(nameof(Profile));
+            return RedirectToPanelHome(User.GetPanelAreaName());
         }
 
         return View(new LoginViewModel { ReturnUrl = returnUrl });
@@ -73,7 +73,7 @@ public class AccountController(
         var result = await SignInManager.PasswordSignInAsync(user, model.Password, model.RememberMe, lockoutOnFailure: true);
         if (result.Succeeded)
         {
-            return RedirectToLocal(model.ReturnUrl) ?? RedirectToAction(nameof(Profile));
+            return RedirectToLocal(model.ReturnUrl) ?? RedirectToPanelHome(roles.GetPanelAreaName());
         }
 
         ModelState.AddModelError(string.Empty, result.IsLockedOut
@@ -137,7 +137,7 @@ public class AccountController(
     {
         if (User.Identity?.IsAuthenticated == true)
         {
-            return RedirectToAction(nameof(Profile));
+            return RedirectToPanelHome(User.GetPanelAreaName());
         }
 
         await LoadRegistrationCitiesAsync();
@@ -151,7 +151,7 @@ public class AccountController(
     {
         if (User.Identity?.IsAuthenticated == true)
         {
-            return RedirectToAction(nameof(Profile));
+            return RedirectToPanelHome(User.GetPanelAreaName());
         }
 
         if (!ModelState.IsValid)
@@ -256,4 +256,14 @@ public class AccountController(
 
         return null;
     }
+
+    /// <summary>
+    /// Sends a signed-in user straight to their own panel dashboard (/Admin/Dashboard,
+    /// /Customer/Dashboard, ...) so opening a panel never lands on the profile page.
+    /// Accounts without a panel role fall back to the read-only account profile summary.
+    /// </summary>
+    private IActionResult RedirectToPanelHome(string? panelArea) =>
+        panelArea is null
+            ? RedirectToAction(nameof(Profile))
+            : RedirectToAction("Index", "Dashboard", new { area = panelArea });
 }

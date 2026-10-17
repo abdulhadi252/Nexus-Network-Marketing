@@ -58,49 +58,27 @@
 </div>
 
 @* ---------------------------------------------------------------- Summary tiles *@
+@{
+    var kpiEmpTotal = (BillMetric?)ViewData["kpiTotal"];
+    var kpiEmpActive = (BillMetric?)ViewData["kpiActive"];
+    var kpiEmpRoles = (BillMetric?)ViewData["kpiRoles"];
+}
 <div class="row g-3 mb-3">
     <div class="col-12 col-sm-6 col-xl-3">
-        <article class="kpi-card">
-            <div class="kpi-card__top">
-                <span class="kpi-card__icon kpi-card__icon--blue"><svg class="svg-icon" aria-hidden="true"><use href="#i-employees" /></svg></span>
-                <span class="kpi-card__label">Total Employees</span>
-            </div>
-            <div class="kpi-card__value">@Model.TotalEmployees.ToString("N0")</div>
-            <div class="kpi-card__foot">
-                <span class="kpi-trend kpi-trend--up">↑ 0 this week</span>
-            </div>
-        </article>
+        <partial name="_AdminKpiRow" model='(kpiEmpTotal, "Total Employees", "#i-employees", "blue", "on staff")' />
     </div>
 
     <div class="col-12 col-sm-6 col-xl-3">
-        <article class="kpi-card">
-            <div class="kpi-card__top">
-                <span class="kpi-card__icon kpi-card__icon--green"><svg class="svg-icon" aria-hidden="true"><use href="#i-user" /></svg></span>
-                <span class="kpi-card__label">Active Employees</span>
-            </div>
-            <div class="kpi-card__value">@Model.ActiveEmployees.ToString("N0")</div>
-            <div class="kpi-card__foot">
-                <span class="kpi-trend kpi-trend--up">↑ 0 this week</span>
-            </div>
-        </article>
+        <partial name="_AdminKpiRow" model='(kpiEmpActive, "Active Employees", "#i-user", "green", "working today")' />
     </div>
 
     <div class="col-12 col-sm-6 col-xl-3">
-        <article class="kpi-card">
-            <div class="kpi-card__top">
-                <span class="kpi-card__icon kpi-card__icon--purple"><svg class="svg-icon" aria-hidden="true"><use href="#i-shield" /></svg></span>
-                <span class="kpi-card__label">Staff Roles</span>
-            </div>
-            <div class="kpi-card__value">@Model.StaffRoles.ToString("N0")</div>
-            <div class="kpi-card__foot">
-                <span class="kpi-trend kpi-trend--up">↑ 0 this week</span>
-            </div>
-        </article>
+        <partial name="_AdminKpiRow" model='(kpiEmpRoles, "Staff Roles", "#i-shield", "purple", "distinct roles")' />
     </div>
 </div>
 
 @* ---------------------------------------------------------------- Search + role filter *@
-<div class="card mb-3">
+<section class="card mb-3">
     <div class="card-body">
         <form method="get" class="toolbar mb-0">
             <div class="search-bar toolbar__search">
@@ -131,7 +109,7 @@
             </a>
         </form>
     </div>
-</div>
+</section>
 
 @* ---------------------------------------------------------------- Employee directory *@
 <section class="card directory">

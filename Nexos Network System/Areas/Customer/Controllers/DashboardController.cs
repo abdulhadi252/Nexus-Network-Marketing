@@ -23,6 +23,9 @@ public class DashboardController(ApplicationDbContext db) : Controller
             return View(new CustomerDashboardViewModel());
         }
 
+        // The headline figures describe the current calendar month, matching the other panels.
+        var monthStart = MonthlySeries.StartOfMonth(DateTimeOffset.UtcNow);
+
         var connections = await db.Connections
             .Include(c => c.Plan)
             .Include(c => c.City)
@@ -33,31 +36,48 @@ public class DashboardController(ApplicationDbContext db) : Controller
             .ToListAsync();
 
         var currentBill = await db.Bills
+            .Include(b => b.Customer)
             .Include(b => b.Connection)
             .AsNoTracking()
             .Where(b => b.CustomerId == customerId.Value)
             .OrderByDescending(b => b.GeneratedAt)
+            .ThenByDescending(b => b.Id)
             .FirstOrDefaultAsync();
 
         var model = new CustomerDashboardViewModel
         {
+            GreetingName = await User.GetGreetingNameAsync(db),
+            PeriodLabel = $"{monthStart:d MMM yyyy} - {monthStart.AddMonths(1).AddDays(-1):d MMM yyyy}",
+
             Connections = connections,
             CurrentBill = currentBill,
             OutstandingAmount = await db.Bills.LatestBillPerConnection()
                 .Where(b => b.CustomerId == customerId.Value && b.DueAmount > 0)
                 .SumAsync(b => (decimal?)b.DueAmount) ?? 0m,
+            PendingOrders = await db.Orders.CountAsync(o => o.CustomerId == customerId.Value &&
+                (o.Status == OrderStatus.Pending || o.Status == OrderStatus.FeasibilityPending)),
+            PaymentsMade = await db.Payments
+                .Where(p => p.CustomerId == customerId.Value && p.Status == PaymentStatus.Recorded)
+                .SumAsync(p => (decimal?)p.Amount) ?? 0m,
+
+            // The shared order row renders the customer and plan, so both are loaded with the order.
             RecentOrders = await db.Orders
+                .Include(o => o.Customer)
                 .Include(o => o.Plan)
+                .Include(o => o.Items)
                 .AsNoTracking()
                 .Where(o => o.CustomerId == customerId.Value)
                 .OrderByDescending(o => o.SubmittedAt)
+                .ThenByDescending(o => o.Id)
                 .Take(5)
                 .ToListAsync(),
             RecentPayments = await db.Payments
                 .Include(p => p.Bill)
+                .Include(p => p.Connection)
                 .AsNoTracking()
                 .Where(p => p.CustomerId == customerId.Value)
                 .OrderByDescending(p => p.PaidAt)
+                .ThenByDescending(p => p.Id)
                 .Take(5)
                 .ToListAsync()
         };

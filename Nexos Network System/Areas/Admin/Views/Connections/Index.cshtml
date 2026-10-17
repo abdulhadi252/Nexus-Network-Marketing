@@ -54,61 +54,27 @@
 </div>
 
 @* ---------------------------------------------------------------- Summary tiles *@
+@{
+    var kpiTotalConn = (BillMetric?)ViewData["kpiTotal"];
+    var kpiActiveConn = (BillMetric?)ViewData["kpiActive"];
+    var kpiSuspendedConn = (BillMetric?)ViewData["kpiSuspended"];
+    var kpiPendingConn = (BillMetric?)ViewData["kpiPending"];
+}
 <div class="row g-3 mb-3">
     <div class="col-12 col-sm-6 col-xl-3">
-        <article class="kpi-card">
-            <div class="kpi-card__top">
-                <span class="kpi-card__icon kpi-card__icon--blue"><svg class="svg-icon" aria-hidden="true"><use href="#i-wifi" /></svg></span>
-                <span class="kpi-card__label">Total Connections</span>
-            </div>
-            <div class="kpi-card__value">@Model.TotalConnections.ToString("N0")</div>
-            <div class="kpi-card__foot">
-                <span class="kpi-trend kpi-trend--up">↑ +12%</span>
-                <span class="kpi-trend__caption">vs. last month</span>
-            </div>
-        </article>
+        <partial name="_AdminKpiRow" model='(kpiTotalConn, "Total Connections", "#i-wifi", "blue", "on record")' />
     </div>
 
     <div class="col-12 col-sm-6 col-xl-3">
-        <article class="kpi-card">
-            <div class="kpi-card__top">
-                <span class="kpi-card__icon kpi-card__icon--blue"><svg class="svg-icon" aria-hidden="true"><use href="#i-people" /></svg></span>
-                <span class="kpi-card__label">Active</span>
-            </div>
-            <div class="kpi-card__value">@Model.ActiveConnections.ToString("N0")</div>
-            <div class="kpi-card__foot">
-                <span class="kpi-trend kpi-trend--up">↑ +8%</span>
-                <span class="kpi-trend__caption">vs. last month</span>
-            </div>
-        </article>
+        <partial name="_AdminKpiRow" model='(kpiActiveConn, "Active", "#i-people", "green", "live services")' />
     </div>
 
     <div class="col-12 col-sm-6 col-xl-3">
-        <article class="kpi-card">
-            <div class="kpi-card__top">
-                <span class="kpi-card__icon kpi-card__icon--orange"><svg class="svg-icon" aria-hidden="true"><use href="#i-bolt" /></svg></span>
-                <span class="kpi-card__label">Suspended</span>
-            </div>
-            <div class="kpi-card__value">@Model.SuspendedConnections.ToString("N0")</div>
-            <div class="kpi-card__foot">
-                <span class="kpi-trend kpi-trend--down">↓ +3%</span>
-                <span class="kpi-trend__caption">vs. last month</span>
-            </div>
-        </article>
+        <partial name="_AdminKpiRow" model='(kpiSuspendedConn, "Suspended", "#i-bolt", "orange", "temporarily down")' />
     </div>
 
     <div class="col-12 col-sm-6 col-xl-3">
-        <article class="kpi-card">
-            <div class="kpi-card__top">
-                <span class="kpi-card__icon kpi-card__icon--blue"><svg class="svg-icon" aria-hidden="true"><use href="#i-clock" /></svg></span>
-                <span class="kpi-card__label">Pending</span>
-            </div>
-            <div class="kpi-card__value">@Model.PendingConnections.ToString("N0")</div>
-            <div class="kpi-card__foot">
-                <span class="kpi-trend kpi-trend--up">↓ -5%</span>
-                <span class="kpi-trend__caption">vs. last month</span>
-            </div>
-        </article>
+        <partial name="_AdminKpiRow" model='(kpiPendingConn, "Pending", "#i-clock", "purple", "awaiting install")' />
     </div>
 </div>
 

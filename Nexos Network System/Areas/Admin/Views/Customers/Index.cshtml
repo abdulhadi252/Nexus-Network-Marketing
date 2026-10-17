@@ -65,39 +65,38 @@
     </div>
 </div>
 
-<div class="row g-3 mb-3">
-    <div class="col-12 col-md-4">
-        <article class="stat-tile">
-            <span class="stat-tile__icon"><svg class="svg-icon" aria-hidden="true"><use href="#i-people" /></svg></span>
-            <span class="stat-tile__body">
-                <span class="stat-tile__label">Total Customers</span>
-                <span class="stat-tile__value">@Model.TotalCustomers.ToString("N0")</span>
-            </span>
-        </article>
+@{
+    var kpiTotalCustomers = (BillMetric?)ViewData["TotalCustomers"];
+    var kpiActiveConn = (BillMetric?)ViewData["ActiveConnections"];
+    var kpiPendingOrd = (BillMetric?)ViewData["PendingOrders"];
+    var kpiServiceCities = (BillMetric?)ViewData["ServiceCities"];
+}
+@if (kpiTotalCustomers is not null && kpiActiveConn is not null && kpiPendingOrd is not null && kpiServiceCities is not null)
+{
+    <div class="row g-3 mb-3">
+        <div class="col-12 col-md-3">
+            <partial name="_AdminKpiRow" model='(kpiTotalCustomers, "Total Customers", "#i-people", "blue", "vs. last 30 days")' />
+        </div>
+        <div class="col-12 col-md-3">
+            <partial name="_AdminKpiRow" model='(kpiActiveConn, "Active Connections", "#i-broadband", "green", "live services")' />
+        </div>
+        <div class="col-12 col-md-3">
+            <partial name="_AdminKpiRow" model='(kpiPendingOrd, "Orders Waiting", "#i-clock", "orange", "in the pipeline")' />
+        </div>
+        <div class="col-12 col-md-3">
+            <partial name="_AdminKpiRow" model='(kpiServiceCities, "Service Cities", "#i-location-pin", "purple", "coverage areas")' />
+        </div>
     </div>
-    <div class="col-12 col-md-4">
-        <article class="stat-tile">
-            <span class="stat-tile__icon"><svg class="svg-icon" aria-hidden="true"><use href="#i-broadband" /></svg></span>
-            <span class="stat-tile__body">
-                <span class="stat-tile__label">Active Connections</span>
-                <span class="stat-tile__value">@Model.ActiveConnections.ToString("N0")</span>
-            </span>
-        </article>
-    </div>
-    <div class="col-12 col-md-4">
-        <article class="stat-tile">
-            <span class="stat-tile__icon"><svg class="svg-icon" aria-hidden="true"><use href="#i-location-pin" /></svg></span>
-            <span class="stat-tile__body">
-                <span class="stat-tile__label">Service Cities</span>
-                <span class="stat-tile__value">@Model.ServiceCities.ToString("N0")</span>
-            </span>
-        </article>
-    </div>
-</div>
+}
 
 <section class="card directory">
     <div class="card-body">
-        <h2 class="directory__title">Customer Directory</h2>
+        <header class="directory__head">
+            <span class="directory__head-icon">
+                <svg class="svg-icon" aria-hidden="true"><use href="#i-people" /></svg>
+            </span>
+            <h2 class="directory__title">Customer Directory</h2>
+        </header>
 
         <form method="get" class="toolbar directory__toolbar">
             <div class="search-bar directory__search">

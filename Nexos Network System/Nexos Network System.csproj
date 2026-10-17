@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Nexos_Network_System</RootNamespace>
+    <UserSecretsId>d744893b-0531-4753-9c30-d99f11fe4bc6</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,6 +23,6 @@
     </PackageReference>
   </ItemGroup>
 	
-  <ProjectExtensions><VisualStudio><UserProperties appsettings_1json__JsonSchema="https://www.schemastore.org/ava.json" /></VisualStudio></ProjectExtensions>
+  <ProjectExtensions><VisualStudio><UserProperties appsettings_1json__JsonSchema="https://www.schemastore.org/azure-devops-extension-manifest-1.0.json" /></VisualStudio></ProjectExtensions>
 
 </Project>

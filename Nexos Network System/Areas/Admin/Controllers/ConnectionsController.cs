@@ -69,6 +69,14 @@ public class ConnectionsController(ApplicationDbContext db, IConnectionService c
             ConnectionType = connectionType
         };
 
+        // Sparkline KPI tiles above the directory, Messages-page style.
+        var allConnections = await db.Connections.AsNoTracking().ToListAsync();
+
+        ViewData["kpiTotal"] = AdminKpi.Static(totalConnections, "connections");
+        ViewData["kpiActive"] = AdminKpi.Static(activeConnections, "active services");
+        ViewData["kpiPending"] = AdminKpi.Static(pendingConnections, "awaiting install");
+        ViewData["kpiSuspended"] = AdminKpi.Static(suspendedConnections, "suspended or closed");
+
         return View(model);
     }
 

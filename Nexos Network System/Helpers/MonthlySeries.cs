@@ -88,6 +88,7 @@ public static class MonthlySeries
     public static List<double> Tail(IReadOnlyList<int> values, int count) =>
         values.Skip(Math.Max(values.Count - count, 0)).Select(value => (double)value).ToList();
 
+
     /// <inheritdoc cref="Tail(IReadOnlyList{int}, int)"/>
     public static List<double> Tail(IReadOnlyList<double> values, int count) =>
         values.Skip(Math.Max(values.Count - count, 0)).ToList();

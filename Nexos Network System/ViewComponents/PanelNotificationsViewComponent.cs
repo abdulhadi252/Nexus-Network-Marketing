@@ -105,7 +105,10 @@ public class PanelNotificationsViewComponent(ApplicationDbContext db) : ViewComp
                     return View(new PanelNotificationsViewModel());
                 }
 
-                var unpaidBills = await db.Bills.CountAsync(b => b.CustomerId == customerId.Value && b.DueAmount > 0);
+                // Scoped to the latest bill per connection, exactly like the dashboard's outstanding
+                // figure, so the bell and the page it points at always agree.
+                var unpaidBills = await db.Bills.LatestBillPerConnection()
+                    .CountAsync(b => b.CustomerId == customerId.Value && b.DueAmount > 0);
                 var pendingOrders = await db.Orders.CountAsync(o => o.CustomerId == customerId.Value &&
                     (o.Status == OrderStatus.Pending || o.Status == OrderStatus.FeasibilityPending));
 

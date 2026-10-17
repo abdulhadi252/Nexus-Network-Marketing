@@ -4,10 +4,20 @@
     var totalPaid = Model.Sum(p => p.Amount);
 }
 
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+<nav class="crumbs" aria-label="Breadcrumb">
+    <a asp-area="Customer" asp-controller="Dashboard" asp-action="Index">
+        <svg class="svg-icon" aria-hidden="true"><use href="#i-home-clean" /></svg>
+        <span>Dashboard</span>
+    </a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <span class="crumbs__current" aria-current="page">Payment History</span>
+</nav>
+
+<div class="page-header">
     <div>
-        <h1 class="h4 mb-1">Payment History</h1>
-        <p class="text-muted mb-0">Total paid to date: <strong>PKR @totalPaid.ToString("N2")</strong></p>
+        <h1 class="h3">Payment History</h1>
+        <p class="page-subtitle">Every payment recorded against your account, newest first.</p>
+        <p class="page-subtitle__meta">Total paid to date: <strong>PKR @totalPaid.ToString("N2")</strong></p>
     </div>
 </div>
 
@@ -16,7 +26,7 @@
         @if (Model.Count == 0)
         {
             <div class="empty-state">
-                <div class="empty-icon">&#128176;</div>
+                <span class="empty-icon"><svg class="svg-icon" aria-hidden="true"><use href="#i-wallet" /></svg></span>
                 <p class="mb-0">No payments recorded yet.</p>
             </div>
         }

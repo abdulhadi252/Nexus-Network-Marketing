@@ -35,6 +35,15 @@ public class StockController(ApplicationDbContext db, IStockService stockService
         }
 
         var result = await PagedResult<Stock>.CreateAsync(query.OrderBy(s => s.Product.Name), page);
+
+        // Sparkline KPI tiles above the list, Messages-page style.
+        var allStock = await db.StockItems.AsNoTracking().ToListAsync();
+
+        ViewData["kpiSkus"] = AdminKpi.Static(allStock.Count, "stocked products");
+        ViewData["kpiLow"] = AdminKpi.Static(allStock.Count(s => s.QuantityOnHand <= s.ReorderLevel), "low stock items");
+        ViewData["kpiOnHand"] = AdminKpi.Static(allStock.Sum(s => s.QuantityOnHand), "units on hand");
+        ViewData["kpiReserved"] = AdminKpi.Static(allStock.Sum(s => s.QuantityReserved), "units reserved");
+
         return View(result);
     }
 

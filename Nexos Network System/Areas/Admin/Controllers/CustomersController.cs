@@ -51,17 +51,29 @@ public class CustomersController(ApplicationDbContext db) : Controller
             query.OrderBy(c => c.LastName).ThenBy(c => c.FirstName), page);
 
         // The tiles summarise the whole register, so they are counted independently of the filters.
+        var createdAt = db.Customers.Select(c => c.CreatedAt);
+        var newCities = await db.CustomerAddresses.Select(a => a.CityId).Distinct().CountAsync();
+        var connections = await db.Connections.CountAsync(c => c.Status == ConnectionStatus.Active);
+        var allOrders = db.Orders.AsNoTracking();
+        var pendingOrders = await allOrders.CountAsync(o => o.Status == OrderStatus.Pending || o.Status == OrderStatus.FeasibilityPending);
+
         var model = new CustomerIndexViewModel
         {
             Customers = customers,
             TotalCustomers = await db.Customers.CountAsync(),
-            ActiveConnections = await db.Connections.CountAsync(c => c.Status == ConnectionStatus.Active),
-            ServiceCities = await db.CustomerAddresses.Select(a => a.CityId).Distinct().CountAsync(),
+            ActiveConnections = connections,
+            ServiceCities = newCities,
             Query = q,
             IsActive = isActive,
             CityId = cityId,
             Cities = await db.Cities.AsNoTracking().OrderBy(c => c.Name).ToListAsync()
         };
+
+        // Sparkline KPI tiles above the directory, Messages-page style.
+        ViewData["TotalCustomers"] = await AdminKpi.CountAsync(createdAt, db, "vs. last 30 days");
+        ViewData["ActiveConnections"] = new BillMetric { Value = connections, Foot = "Active Connections", ShowFootArrow = false };
+        ViewData["PendingOrders"] = new BillMetric { Value = pendingOrders, Foot = "Orders Waiting", ShowFootArrow = false };
+        ViewData["ServiceCities"] = new BillMetric { Value = newCities, Foot = "Service Cities", ShowFootArrow = false };
 
         return View(model);
     }

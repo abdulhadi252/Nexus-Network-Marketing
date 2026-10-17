@@ -1,19 +1,81 @@
 @model PagedResult<Order>
 @{
     ViewData["Title"] = "Orders";
+    var kpiOrdersTotal = (BillMetric?)ViewData["TotalOrders"];
+    var kpiOrdersPending = (BillMetric?)ViewData["PendingOrders"];
+    var kpiOrdersCompleted = (BillMetric?)ViewData["CompletedOrders"];
+    var kpiOrdersFiltered = (BillMetric?)ViewData["ThisMonthOrders"];
+
+    string StatusClass(OrderStatus status) => status switch
+    {
+        OrderStatus.ConnectionProvided or OrderStatus.Feasible => "status-pill--positive",
+        OrderStatus.Pending or OrderStatus.FeasibilityPending or OrderStatus.AwaitingCustomerInformation => "status-pill--warning",
+        OrderStatus.VerifiedByRetail => "status-pill--info",
+        OrderStatus.RetailRejected or OrderStatus.NotFeasible or OrderStatus.Cancelled => "status-pill--danger",
+        _ => "status-pill--neutral"
+    };
 }
 
-<h1 class="h4 mb-1">Orders</h1>
-<p class="text-muted">All service orders with filtering by status, type and date range.</p>
+<nav class="crumbs" aria-label="Breadcrumb">
+    <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+        <svg class="svg-icon" aria-hidden="true"><use href="#i-home-clean" /></svg>
+        <span>Dashboard</span>
+    </a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <span class="crumbs__current" aria-current="page">Orders</span>
+</nav>
 
-<div class="card mb-3">
+<div class="page-header">
+    <div>
+        <h1 class="h3">Orders</h1>
+        <p class="page-subtitle">All service orders with filtering by status, type and date range.</p>
+    </div>
+    <div class="page-head__actions">
+        <span class="count-chip">
+            <svg class="svg-icon" aria-hidden="true"><use href="#i-orders" /></svg>
+            @Model.TotalItems order@(Model.TotalItems == 1 ? string.Empty : "s")
+        </span>
+    </div>
+</div>
+
+@if (kpiOrdersTotal is not null && kpiOrdersPending is not null && kpiOrdersCompleted is not null && kpiOrdersFiltered is not null)
+{
+    <div class="row g-3 mb-3">
+        <div class="col-12 col-md-3">
+            <partial name="_AdminKpiRow" model='(kpiOrdersTotal, "Total Orders", "#i-orders", "blue", "vs. last 30 days")' />
+        </div>
+        <div class="col-12 col-md-3">
+            <partial name="_AdminKpiRow" model='(kpiOrdersPending, "Pending Orders", "#i-clock", "orange", "awaiting action")' />
+        </div>
+        <div class="col-12 col-md-3">
+            <partial name="_AdminKpiRow" model='(kpiOrdersCompleted, "Completed", "#i-check-circle", "green", "vs. last 30 days")' />
+        </div>
+        <div class="col-12 col-md-3">
+            <partial name="_AdminKpiRow" model='(kpiOrdersFiltered, "Matching Filters", "#i-filter", "purple", "current selection")' />
+        </div>
+    </div>
+}
+
+<section class="card directory">
     <div class="card-body">
-        <form method="get" class="row g-2">
-            <div class="col-md-3">
-                <input type="text" name="Query" value="@Context.Request.Query["Query"]" class="form-control" placeholder="Order number or customer" />
+        <header class="directory__head">
+            <span class="directory__head-icon">
+                <svg class="svg-icon" aria-hidden="true"><use href="#i-orders" /></svg>
+            </span>
+            <h2 class="directory__title">Order Register</h2>
+        </header>
+
+        <form method="get" class="toolbar directory__toolbar mb-0">
+            <div class="search-bar directory__search">
+                <svg class="search-icon svg-icon" aria-hidden="true"><use href="#i-search" /></svg>
+                <label class="visually-hidden" for="orderSearch">Search orders</label>
+                <input id="orderSearch" type="search" name="Query" value="@Context.Request.Query["Query"]"
+                       class="form-control" placeholder="Order number or customer..." />
             </div>
-            <div class="col-md-2">
-                <select name="Status" class="form-select">
+
+            <div class="toolbar__select">
+                <label class="visually-hidden" for="orderStatus">Status</label>
+                <select id="orderStatus" name="Status" class="form-select">
                     <option value="">All statuses</option>
                     @foreach (var status in Enum.GetValues<OrderStatus>())
                     {
@@ -21,8 +83,10 @@
                     }
                 </select>
             </div>
-            <div class="col-md-2">
-                <select name="ConnectionType" class="form-select">
+
+            <div class="toolbar__select">
+                <label class="visually-hidden" for="orderType">Connection type</label>
+                <select id="orderType" name="ConnectionType" class="form-select">
                     <option value="">All types</option>
                     @foreach (var type in Enum.GetValues<ConnectionType>())
                     {
@@ -30,29 +94,41 @@
                     }
                 </select>
             </div>
-            <div class="col-md-2">
-                <input type="date" name="From" value="@Context.Request.Query["From"]" class="form-control" title="From date" />
-            </div>
-            <div class="col-md-2">
-                <input type="date" name="To" value="@Context.Request.Query["To"]" class="form-control" title="To date" />
-            </div>
-            <div class="col-md-1 d-grid">
-                <button type="submit" class="btn btn-outline-primary">Filter</button>
-            </div>
-        </form>
-    </div>
-</div>
 
-<div class="card">
-    <div class="card-body">
+            <div class="toolbar__select">
+                <label class="visually-hidden" for="orderFrom">From date</label>
+                <input id="orderFrom" type="date" name="From" value="@Context.Request.Query["From"]" class="form-control" title="From date" />
+            </div>
+
+            <div class="toolbar__select">
+                <label class="visually-hidden" for="orderTo">To date</label>
+                <input id="orderTo" type="date" name="To" value="@Context.Request.Query["To"]" class="form-control" title="To date" />
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-search" /></svg>
+                Filter
+            </button>
+            <a class="btn btn-outline-secondary" asp-action="Index">
+                <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-refresh" /></svg>
+                Reset
+            </a>
+        </form>
+
         @if (Model.Items.Count == 0)
         {
-            <div class="empty-state"><p class="mb-0">No orders match the selected filters.</p></div>
+            <div class="empty-state">
+                <span class="empty-icon">
+                    <svg class="svg-icon" aria-hidden="true"><use href="#i-orders" /></svg>
+                </span>
+                <p class="empty-title">No orders found</p>
+                <p class="mb-0">Try a different search term or clear the filters.</p>
+            </div>
         }
         else
         {
             <div class="table-responsive">
-                <table class="table table-hover align-middle">
+                <table class="table table-hover align-middle directory__table">
                     <thead>
                         <tr>
                             <th>Order</th>
@@ -62,7 +138,7 @@
                             <th>Shop</th>
                             <th>Submitted</th>
                             <th>Status</th>
-                            <th></th>
+                            <th class="text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -70,18 +146,38 @@
                         {
                             <tr>
                                 <td class="fw-semibold">@order.OrderNumber</td>
-                                <td>@order.Customer.FirstName @order.Customer.LastName</td>
+                                <td>
+                                    <div class="person">
+                                        <span class="person__avatar person__avatar--blue" aria-hidden="true">
+                                            @(string.Concat((order.Customer.FirstName.Trim() is { Length: > 0 } f ? f[..1] : ""),
+                                                (order.Customer.LastName.Trim() is { Length: > 0 } l ? l[..1] : "")).ToUpperInvariant())
+                                        </span>
+                                        <span class="person__body">
+                                            <span class="person__name">@order.Customer.FirstName @order.Customer.LastName</span>
+                                        </span>
+                                    </div>
+                                </td>
                                 <td>@order.ConnectionType</td>
                                 <td>@(order.Plan?.Name ?? "-")</td>
                                 <td>@(order.RetailShop?.Name ?? "-")</td>
-                                <td>@order.SubmittedAt.ToLocalTime().ToString("dd MMM yyyy")</td>
-                                <td><partial name="_Badge" model="@((object?)order.Status)" /></td>
-                                <td class="table-actions">
-                                    <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@order.Id">View</a>
-                                    @if (order.Connection is not null)
-                                    {
-                                        <a class="btn btn-outline-primary" asp-controller="Connections" asp-action="Details" asp-route-id="@order.Connection.Id">Connection</a>
-                                    }
+                                <td class="text-body-muted">@order.SubmittedAt.ToLocalTime().ToString("dd MMM yyyy")</td>
+                                <td>
+                                    <span class="status-pill @StatusClass(order.Status)">
+                                        <span class="status-pill__dot" aria-hidden="true"></span>@order.Status
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <div class="row-actions">
+                                        <a class="icon-btn" asp-action="Details" asp-route-id="@order.Id" aria-label="View order @order.OrderNumber">
+                                            <svg class="svg-icon" aria-hidden="true"><use href="#i-eye" /></svg>
+                                        </a>
+                                        @if (order.Connection is not null)
+                                        {
+                                            <a class="icon-btn" asp-controller="Connections" asp-action="Details" asp-route-id="@order.Connection.Id" aria-label="View connection">
+                                                <svg class="svg-icon" aria-hidden="true"><use href="#i-connections" /></svg>
+                                            </a>
+                                        }
+                                    </div>
                                 </td>
                             </tr>
                         }
@@ -91,4 +187,4 @@
             <partial name="_Pagination" model="Model" />
         }
     </div>
-</div>
+</section>

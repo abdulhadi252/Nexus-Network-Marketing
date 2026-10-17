@@ -1,38 +1,97 @@
 @model PagedResult<RetailShop>
 @{
     ViewData["Title"] = "Retail Shops";
+    var kpiTotal = (BillMetric?)ViewData["KpiTotal"];
+    var kpiActive = (BillMetric?)ViewData["KpiActive"];
+    var kpiEmployees = (BillMetric?)ViewData["KpiEmployees"];
+    var kpiOrders = (BillMetric?)ViewData["KpiOrders"];
 }
 
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+<nav class="crumbs" aria-label="Breadcrumb">
+    <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+        <svg class="svg-icon" aria-hidden="true"><use href="#i-home-clean" /></svg>
+        <span>Dashboard</span>
+    </a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <span class="crumbs__current" aria-current="page">Retail Shops</span>
+</nav>
+
+<div class="page-header">
     <div>
-        <h1 class="h4 mb-1">Retail Shops</h1>
-        <p class="text-muted mb-0">Branches where customers are registered and orders are placed.</p>
+        <h1 class="h3">Retail Shops</h1>
+        <p class="page-subtitle">Branches where customers are registered and orders are placed.</p>
     </div>
-    <a class="btn btn-primary" asp-action="Create">+ New Shop</a>
+    <div class="page-head__actions">
+        <span class="count-chip">
+            <svg class="svg-icon" aria-hidden="true"><use href="#i-shops" /></svg>
+            @Model.TotalItems shop@(Model.TotalItems == 1 ? string.Empty : "s")
+        </span>
+        <a class="btn btn-primary" asp-action="Create">
+            <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-plus" /></svg>
+            New Shop
+        </a>
+    </div>
 </div>
 
-<div class="card">
+@if (kpiTotal is not null && kpiActive is not null && kpiEmployees is not null && kpiOrders is not null)
+{
+    <div class="row g-3 mb-3">
+        <div class="col-12 col-md-3">
+            <partial name="_AdminKpiRow" model='(kpiTotal, "Retail Shops", "#i-shops", "blue", "on record")' />
+        </div>
+        <div class="col-12 col-md-3">
+            <partial name="_AdminKpiRow" model='(kpiActive, "Active Branches", "#i-check-circle", "green", "serving customers")' />
+        </div>
+        <div class="col-12 col-md-3">
+            <partial name="_AdminKpiRow" model='(kpiEmployees, "Branch Staff", "#i-employees", "purple", "across shops")' />
+        </div>
+        <div class="col-12 col-md-3">
+            <partial name="_AdminKpiRow" model='(kpiOrders, "Orders Booked", "#i-orders", "orange", "all branches")' />
+        </div>
+    </div>
+}
+
+<section class="card directory">
     <div class="card-body">
-        <form method="get" class="row g-2 mb-3">
-            <div class="col-sm-6 col-md-4">
-                <input type="text" name="q" value="@ViewData["q"]" class="form-control" placeholder="Search shop name or phone..." />
+        <header class="directory__head">
+            <span class="directory__head-icon">
+                <svg class="svg-icon" aria-hidden="true"><use href="#i-shops" /></svg>
+            </span>
+            <h2 class="directory__title">Shop Register</h2>
+        </header>
+
+        <form method="get" class="toolbar directory__toolbar mb-0">
+            <div class="search-bar directory__search">
+                <svg class="search-icon svg-icon" aria-hidden="true"><use href="#i-search" /></svg>
+                <label class="visually-hidden" for="shopSearch">Search shops</label>
+                <input id="shopSearch" type="search" name="q" value="@ViewData["q"]" class="form-control" placeholder="Search shop name or phone..." />
             </div>
-            <div class="col-auto">
-                <button type="submit" class="btn btn-outline-primary">Search</button>
-                <a class="btn btn-outline-secondary" asp-action="Index">Reset</a>
-            </div>
+            <button type="submit" class="btn btn-primary">
+                <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-search" /></svg>
+                Search
+            </button>
+            <a class="btn btn-outline-secondary" asp-action="Index">
+                <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-refresh" /></svg>
+                Reset
+            </a>
         </form>
 
         @if (Model.Items.Count == 0)
         {
-            <div class="empty-state"><p class="mb-0">No shops found.</p></div>
+            <div class="empty-state">
+                <span class="empty-icon">
+                    <svg class="svg-icon" aria-hidden="true"><use href="#i-shops" /></svg>
+                </span>
+                <p class="empty-title">No shops found</p>
+                <p class="mb-0">Try a different search term or clear the filters.</p>
+            </div>
         }
         else
         {
             <div class="table-responsive">
-                <table class="table table-hover align-middle">
+                <table class="table table-hover align-middle directory__table">
                     <thead>
-                        <tr><th>Name</th><th>City</th><th>Contact</th><th>Employees</th><th>Status</th><th></th></tr>
+                        <tr><th>Name</th><th>City</th><th>Contact</th><th>Employees</th><th>Status</th><th class="text-end">Actions</th></tr>
                     </thead>
                     <tbody>
                         @foreach (var shop in Model.Items)
@@ -42,11 +101,24 @@
                                 <td>@shop.City?.Name</td>
                                 <td>@shop.ContactNumber</td>
                                 <td>@shop.Employees.Count</td>
-                                <td><partial name="_Badge" model="@((object?)(shop.IsActive ? "Active" : "Inactive"))" /></td>
-                                <td class="table-actions">
-                                    <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@shop.Id">View</a>
-                                    <a class="btn btn-outline-primary" asp-action="Edit" asp-route-id="@shop.Id">Edit</a>
-                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@shop.Id">Delete</a>
+                                <td>
+                                    <span class="status-pill @(shop.IsActive ? "status-pill--positive" : "status-pill--neutral")">
+                                        <span class="status-pill__dot" aria-hidden="true"></span>
+                                        @(shop.IsActive ? "Active" : "Inactive")
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <div class="row-actions">
+                                        <a class="icon-btn" asp-action="Details" asp-route-id="@shop.Id" aria-label="View shop @shop.Name">
+                                            <svg class="svg-icon" aria-hidden="true"><use href="#i-eye" /></svg>
+                                        </a>
+                                        <a class="icon-btn" asp-action="Edit" asp-route-id="@shop.Id" aria-label="Edit shop @shop.Name">
+                                            <svg class="svg-icon" aria-hidden="true"><use href="#i-edit" /></svg>
+                                        </a>
+                                        <a class="icon-btn text-danger" asp-action="Delete" asp-route-id="@shop.Id" aria-label="Delete shop @shop.Name">
+                                            <svg class="svg-icon" aria-hidden="true"><use href="#i-x-circle" /></svg>
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         }
@@ -56,4 +128,4 @@
             <partial name="_Pagination" model="Model" />
         }
     </div>
-</div>
+</section>

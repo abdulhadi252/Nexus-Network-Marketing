@@ -26,6 +26,18 @@ public class PlansController(ApplicationDbContext db) : Controller
         }
 
         var result = await PagedResult<Plan>.CreateAsync(query.OrderBy(p => p.ConnectionType).ThenBy(p => p.RecurringCharge), page);
+
+        // Sparkline KPI tiles above the directory, Messages-page style.
+        var allPlans = await db.Plans.AsNoTracking()
+            .Include(p => p.Connections)
+            .Include(p => p.Orders)
+            .ToListAsync();
+
+        ViewData["KpiTotal"] = AdminKpi.Static(allPlans.Count, "service plans");
+        ViewData["KpiActive"] = AdminKpi.Static(allPlans.Count(p => p.IsActive), "active plans");
+        ViewData["KpiConnections"] = AdminKpi.Static(allPlans.Sum(p => p.Connections.Count), "plan connections");
+        ViewData["KpiOrders"] = AdminKpi.Static(allPlans.Sum(p => p.Orders.Count), "orders on plans");
+
         return View(result);
     }
 

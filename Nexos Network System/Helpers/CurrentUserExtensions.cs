@@ -24,6 +24,21 @@ public static class CurrentUserExtensions
         : null;
 
     /// <summary>
+    /// Role-name equivalent of <see cref="GetPanelAreaName(ClaimsPrincipal)"/>. Used straight after
+    /// a sign-in, when the freshly issued role claims are not yet present on the current request.
+    /// </summary>
+    public static string? GetPanelAreaName(this IEnumerable<string> roles)
+    {
+        var set = roles as ISet<string> ?? new HashSet<string>(roles, StringComparer.Ordinal);
+        return set.Contains("Admin") ? "Admin"
+            : set.Contains("Retail") ? "Retail"
+            : set.Contains("Technical") ? "Technical"
+            : set.Contains("Accounts") ? "Accounts"
+            : set.Contains("Customer") ? "Customer"
+            : null;
+    }
+
+    /// <summary>
     /// First name used by the panel dashboard greeting. Prefers the account's display name
     /// and falls back to the e-mail local part, so the greeting is never blank.
     /// </summary>

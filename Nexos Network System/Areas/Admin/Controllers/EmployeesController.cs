@@ -56,6 +56,11 @@ public class EmployeesController(ApplicationDbContext db, UserManager<Applicatio
             Role = role
         };
 
+        // Sparkline KPI tiles above the directory, Messages-page style.
+        ViewData["kpiTotal"] = AdminKpi.Static(totalEmployees, "total employees");
+        ViewData["kpiActive"] = AdminKpi.Static(activeEmployees, "active employees");
+        ViewData["kpiRoles"] = AdminKpi.Static(staffRoles, "staff roles");
+
         return View(model);
     }
 

@@ -27,6 +27,18 @@ public class RetailShopsController(ApplicationDbContext db) : Controller
         }
 
         var result = await PagedResult<RetailShop>.CreateAsync(query.OrderBy(s => s.Name), page);
+
+        // Sparkline KPI tiles above the directory, Messages-page style.
+        var shops = await db.RetailShops.AsNoTracking()
+            .Include(s => s.Employees)
+            .Include(s => s.Orders)
+            .ToListAsync();
+
+        ViewData["KpiTotal"] = AdminKpi.Static(shops.Count, "retail shops");
+        ViewData["KpiActive"] = AdminKpi.Static(shops.Count(s => s.IsActive), "active branches");
+        ViewData["KpiEmployees"] = AdminKpi.Static(shops.Sum(s => s.Employees.Count), "branch staff");
+        ViewData["KpiOrders"] = AdminKpi.Static(shops.Sum(s => s.Orders.Count), "orders booked");
+
         return View(result);
     }
 

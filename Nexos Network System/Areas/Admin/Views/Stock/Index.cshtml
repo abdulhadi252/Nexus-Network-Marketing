@@ -2,40 +2,92 @@
 @{
     ViewData["Title"] = "Stock";
     var lowOnly = (bool)(ViewData["lowOnly"] ?? false);
+    var kpiSkus = (BillMetric?)ViewData["kpiSkus"];
+    var kpiLow = (BillMetric?)ViewData["kpiLow"];
+    var kpiOnHand = (BillMetric?)ViewData["kpiOnHand"];
+    var kpiReserved = (BillMetric?)ViewData["kpiReserved"];
 }
 
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+<nav class="crumbs" aria-label="Breadcrumb">
+    <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+        <svg class="svg-icon" aria-hidden="true"><use href="#i-home-clean" /></svg>
+        <span>Dashboard</span>
+    </a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <span class="crumbs__current" aria-current="page">Stock</span>
+</nav>
+
+<div class="page-header">
     <div>
-        <h1 class="h4 mb-1">Stock</h1>
-        <p class="text-muted mb-0">Current quantities, reservations and reorder levels per product.</p>
+        <h1 class="h3">Stock</h1>
+        <p class="page-subtitle">Current quantities, reservations and reorder levels per product.</p>
     </div>
-    <a class="btn @(lowOnly ? "btn-primary" : "btn-outline-danger")" asp-action="Index" asp-route-lowOnly="true">Low Stock Only</a>
+    <div class="page-head__actions">
+        <a class="btn @(lowOnly ? "btn-primary" : "btn-outline-danger")" asp-action="Index" asp-route-lowOnly="true">
+            <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-filter" /></svg>
+            Low Stock Only
+        </a>
+    </div>
 </div>
 
-<div class="card">
+@if (kpiSkus is not null && kpiLow is not null && kpiOnHand is not null && kpiReserved is not null)
+{
+    <div class="row g-3 mb-3">
+        <div class="col-12 col-md-3">
+            <partial name="_AdminKpiRow" model='(kpiSkus, "Stocked Products", "#i-stock", "blue", "tracked skus")' />
+        </div>
+        <div class="col-12 col-md-3">
+            <partial name="_AdminKpiRow" model='(kpiLow, "Low Stock Items", "#i-clock", "orange", "need reorder")' />
+        </div>
+        <div class="col-12 col-md-3">
+            <partial name="_AdminKpiRow" model='(kpiOnHand, "Units On Hand", "#i-package", "purple", "total quantity")' />
+        </div>
+        <div class="col-12 col-md-3">
+            <partial name="_AdminKpiRow" model='(kpiReserved, "Units Reserved", "#i-orders", "cyan", "held for orders")' />
+        </div>
+    </div>
+}
+
+<section class="card directory">
     <div class="card-body">
-        <form method="get" class="row g-2 mb-3">
+        <header class="directory__head">
+            <span class="directory__head-icon">
+                <svg class="svg-icon" aria-hidden="true"><use href="#i-stock" /></svg>
+            </span>
+            <h2 class="directory__title">Stock Levels</h2>
+        </header>
+
+        <form method="get" class="toolbar directory__toolbar mb-0">
             <input type="hidden" name="lowOnly" value="@(lowOnly ? "true" : "false")" />
-            <div class="col-sm-6 col-md-4">
-                <input type="text" name="q" value="@ViewData["q"]" class="form-control" placeholder="Search product..." />
+            <div class="search-bar directory__search">
+                <svg class="search-icon svg-icon" aria-hidden="true"><use href="#i-search" /></svg>
+                <label class="visually-hidden" for="stockSearch">Search stock</label>
+                <input id="stockSearch" type="search" name="q" value="@ViewData["q"]" class="form-control" placeholder="Search product..." />
             </div>
-            <div class="col-auto">
-                <button type="submit" class="btn btn-outline-primary">Search</button>
-                <a class="btn btn-outline-secondary" asp-action="Index">Reset</a>
-            </div>
+            <button type="submit" class="btn btn-primary">
+                <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-search" /></svg>
+                Search
+            </button>
+            <a class="btn btn-outline-secondary" asp-action="Index">
+                <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-refresh" /></svg>
+                Reset
+            </a>
         </form>
 
         @if (Model.Items.Count == 0)
         {
             <div class="empty-state">
-                <div class="empty-icon">&#128230;</div>
-                <p class="mb-0">@(lowOnly ? "No products are below their reorder level." : "No stock records found.")</p>
+                <span class="empty-icon">
+                    <svg class="svg-icon" aria-hidden="true"><use href="#i-stock" /></svg>
+                </span>
+                <p class="empty-title">@(lowOnly ? "No low-stock products" : "No stock records found")</p>
+                <p class="mb-0">@(lowOnly ? "Every product is above its reorder level." : "Try a different search term or clear the filters.")</p>
             </div>
         }
         else
         {
             <div class="table-responsive">
-                <table class="table table-hover align-middle">
+                <table class="table table-hover align-middle directory__table">
                     <thead>
                         <tr>
                             <th>Product</th>
@@ -45,7 +97,7 @@
                             <th>Available</th>
                             <th>Reorder level</th>
                             <th>Last updated</th>
-                            <th></th>
+                            <th class="text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -65,10 +117,16 @@
                                         <span class="badge bg-danger ms-1">Low</span>
                                     }
                                 </td>
-                                <td>@stock.LastUpdatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
-                                <td class="table-actions">
-                                    <a class="btn btn-outline-primary" asp-action="Adjust" asp-route-id="@stock.ProductId">Adjust</a>
-                                    <a class="btn btn-outline-secondary" asp-action="Movements" asp-route-id="@stock.ProductId">History</a>
+                                <td class="text-body-muted">@stock.LastUpdatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
+                                <td class="text-end">
+                                    <div class="row-actions">
+                                        <a class="icon-btn" asp-action="Adjust" asp-route-id="@stock.ProductId" aria-label="Adjust stock for @stock.Product.Name">
+                                            <svg class="svg-icon" aria-hidden="true"><use href="#i-edit" /></svg>
+                                        </a>
+                                        <a class="icon-btn" asp-action="Movements" asp-route-id="@stock.ProductId" aria-label="Stock history for @stock.Product.Name">
+                                            <svg class="svg-icon" aria-hidden="true"><use href="#i-clock" /></svg>
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         }
@@ -78,4 +136,4 @@
             <partial name="_Pagination" model="Model" />
         }
     </div>
-</div>
+</section>

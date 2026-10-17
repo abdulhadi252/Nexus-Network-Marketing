@@ -412,32 +412,32 @@
                                 </td>
                                 <td class="text-end">
                                     <div class="row-actions">
-                                        <button class="icon-btn" type="button" title="Reply"
-                                                data-bs-toggle="tooltip" data-bs-placement="top"
-                                                data-bs-title="Reply to @message.Name">
-                                            <svg class="svg-icon" aria-hidden="true"><use href="#i-arrow-right" /></svg>
-                                        </button>
-                                        <div class="dropdown">
-                                            <button class="icon-btn" type="button"
-                                                    data-bs-toggle="dropdown" data-bs-display="static"
-                                                    aria-expanded="false" title="More actions"
-                                                    aria-label="More actions for @message.Name">
-                                                <svg class="svg-icon" aria-hidden="true"><use href="#i-more-vertical" /></svg>
+                                        <a class="icon-btn" asp-action="Details" asp-route-id="@message.Id"
+                                           title="Message details"
+                                           aria-label="Message details for @message.Name"
+                                           data-bs-toggle="tooltip" data-bs-placement="top"
+                                           data-bs-title="Message details">
+                                            <svg class="svg-icon" aria-hidden="true"><use href="#i-info" /></svg>
+                                        </a>
+                                        <a class="icon-btn" asp-action="Reply" asp-route-id="@message.Id"
+                                           title="Reply"
+                                           aria-label="Reply to @message.Name"
+                                           data-bs-toggle="tooltip" data-bs-placement="top"
+                                           data-bs-title="Reply to @message.Name">
+                                            <svg class="svg-icon" aria-hidden="true"><use href="#i-envelope" /></svg>
+                                        </a>
+                                        @* ToggleRead is a POST action, so it needs a real form - a plain link returns 404. *@
+                                        <form asp-action="ToggleRead" asp-route-id="@message.Id"
+                                              asp-route-unreadOnly="false" asp-route-page="@Model.Messages.Page"
+                                              method="post" class="d-inline">
+                                            <button type="submit" class="icon-btn"
+                                                    title="@(message.IsRead ? "Mark unread" : "Mark read")"
+                                                    aria-label="@(message.IsRead ? "Mark unread" : "Mark read") for @message.Name"
+                                                    data-bs-toggle="tooltip" data-bs-placement="top"
+                                                    data-bs-title="@(message.IsRead ? "Mark unread" : "Mark read")">
+                                                <svg class="svg-icon" aria-hidden="true"><use href="@(message.IsRead ? "#i-eye-off" : "#i-eye")" /></svg>
                                             </button>
-                                            <ul class="dropdown-menu dropdown-menu-end">
-                                                <li><a class="dropdown-item" asp-action="Details" asp-route-id="@message.Id">View details</a></li>
-                                                <li><a class="dropdown-item" asp-action="Reply" asp-route-id="@message.Id">Reply</a></li>
-                                                <li><hr class="dropdown-divider" /></li>
-                                                <li>
-                                                    <a class="dropdown-item text-danger"
-                                                       asp-action="ToggleRead" asp-route-id="@message.Id"
-                                                       asp-route-unreadOnly="false" asp-route-page="@Model.Messages.Page"
-                                                       asp-route-status="@Model.Status">
-                                                        @(message.IsRead ? "Mark unread" : "Mark read")
-                                                    </a>
-                                                </li>
-                                            </ul>
-                                        </div>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>

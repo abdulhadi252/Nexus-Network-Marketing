@@ -47,6 +47,10 @@ builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IStockService, StockService>();
 builder.Services.AddScoped<IAdminSearchService, AdminSearchService>();
 
+// Contact-message replies go out through Resend; the API key stays in
+// Email:ApiKey / the RESEND_API_KEY environment variable, never in the repo.
+builder.Services.AddHttpClient<IEmailSender, ResendEmailSender>();
+
 var app = builder.Build();
 
 await DbSeeder.EnsureDatabaseAsync(app);
@@ -86,6 +90,14 @@ app.MapStaticAssets();
 app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}");
+
+// Anything else inside an existing panel area (/Accounts/Index, a stale bookmark,
+// a mistyped path) opens that panel's dashboard instead of a dead 404. Routes above
+// win first, so a genuine NotFound() - e.g. /Accounts/Payments/Details/999 - still 404s.
+app.MapControllerRoute(
+    name: "panel-fallback",
+    pattern: "{area:exists}/{**path}",
+    defaults: new { controller = "Dashboard", action = "Index" });
 
 app.MapControllerRoute(
     name: "default",

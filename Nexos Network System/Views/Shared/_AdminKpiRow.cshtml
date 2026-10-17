@@ -1,0 +1,47 @@
+@using Nexos_Network_System.Helpers
+@using Nexos_Network_System.ViewModels
+@* One row tile in the Messages-page KPI style: icon + label, big value,
+   trend line and a server-rendered sparkline drawn from the live series.
+   metric:  BillMetric behind the tile
+   label:   tile caption next to the icon, for example "Total Customers"
+   icon:    SVG symbol id, for example "#i-people"
+   tone:    icon + spark colour: blue | cyan | green | orange | purple | navy
+   caption: small text under the trend, for example "vs. last 30 days"
+   Arrow direction follows FootRises; red/green tone follows FootIsBad. *@
+@model (Nexos_Network_System.ViewModels.BillMetric metric, string label, string icon, string tone, string caption)
+
+@{
+    const double sparkWidth = 120d;
+    const double sparkHeight = 44d;
+    var (min, max) = ChartGeometry.NiceRange(Model.metric.Trend);
+    var trendTone = Model.metric.FootIsBad ? "down" : "up";
+}
+
+<article class="kpi-card">
+    <div class="kpi-card__top">
+        <span class="kpi-card__icon kpi-card__icon--@Model.tone">
+            <svg class="svg-icon" aria-hidden="true"><use href="@Model.icon" /></svg>
+        </span>
+        <span class="kpi-card__label">@Model.label</span>
+    </div>
+    <div class="kpi-card__value">
+        @(Model.metric.Value % 1 == 0
+            ? Model.metric.Value.ToString("N0")
+            : "PKR " + Model.metric.Value.ToString("N2"))
+    </div>
+    <div class="kpi-card__foot">
+        <div class="kpi-card__trend">
+            <span class="kpi-trend kpi-trend--@trendTone">
+                @(Model.metric.FootRises ? "↑" : "↓") @Model.metric.Foot
+            </span>
+            <span class="kpi-trend__caption">@Model.caption</span>
+        </div>
+        @if (Model.metric.HasTrend)
+        {
+            <svg class="kpi-spark" viewBox="0 0 120 44" preserveAspectRatio="none" aria-hidden="true">
+                <path class="kpi-spark__area kpi-spark__area--@Model.tone" d="@ChartGeometry.AreaPath(Model.metric.Trend, sparkWidth, sparkHeight, min, max, 4d)" />
+                <polyline class="kpi-spark__line kpi-spark__line--@Model.tone" points="@ChartGeometry.LinePoints(Model.metric.Trend, sparkWidth, sparkHeight, min, max, 4d)" />
+            </svg>
+        }
+    </div>
+</article>

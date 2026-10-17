@@ -1,0 +1,114 @@
+@model ContactMessage
+@{
+    ViewData["Title"] = "Message Details";
+
+    var initials = string.Concat(
+        Model.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Take(2)
+            .Select(n => n.Length > 0 ? n[..1].ToUpperInvariant() : string.Empty));
+
+    var avatarColor = Model.Name.ToLowerInvariant() switch
+    {
+        var n when n.StartsWith("a") => "person__avatar--blue",
+        var n when n.StartsWith("s") => "person__avatar--purple",
+        var n when n.StartsWith("u") => "person__avatar--teal",
+        var n when n.StartsWith("m") => "person__avatar--pink",
+        _ => "person__avatar--indigo"
+    };
+
+    var statusLabel = Model.Status switch
+    {
+        ContactMessageStatus.New when !Model.IsRead => "Unread",
+        ContactMessageStatus.Pending when !Model.IsRead => "Pending",
+        ContactMessageStatus.Replied => "Replied",
+        _ when Model.IsRead => "Read",
+        _ => "New"
+    };
+
+    var statusClass = Model.Status switch
+    {
+        ContactMessageStatus.Replied => "status-pill--positive",
+        ContactMessageStatus.Pending when !Model.IsRead => "status-pill--warning",
+        _ when Model.IsRead => "status-pill--neutral",
+        _ => "status-pill--info"
+    };
+}
+
+<nav class="crumbs" aria-label="Breadcrumb">
+    <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+        <svg class="svg-icon" aria-hidden="true"><use href="#i-home-clean" /></svg>
+        <span>Admin</span>
+    </a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <a asp-action="Index">Messages</a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <span class="crumbs__current" aria-current="page">Message #@Model.Id</span>
+</nav>
+
+<div class="page-header">
+    <div class="person">
+        <span class="person__avatar @avatarColor" aria-hidden="true" style="width:48px;height:48px;border-radius:12px;font-size:1.05rem;">@initials</span>
+        <span class="person__body">
+            <h1 class="h4 mb-1">@Model.Subject</h1>
+            <p class="page-subtitle">
+                <a class="person__meta" href="mailto:@Model.Email">@Model.Email</a>
+                <span class="status-pill @statusClass ms-2">
+                    <span class="status-pill__dot" aria-hidden="true"></span>
+                    @statusLabel
+                </span>
+            </p>
+        </span>
+    </div>
+    <div class="page-head__actions">
+        <form asp-action="ToggleRead" asp-route-id="@Model.Id" asp-route-returnToDetails="true" method="post" class="d-inline">
+            <button type="submit" class="btn btn-outline-secondary">
+                <svg class="svg-icon btn-icon" aria-hidden="true"><use href="@(Model.IsRead ? "#i-eye-off" : "#i-eye")" /></svg>
+                @(Model.IsRead ? "Mark unread" : "Mark read")
+            </button>
+        </form>
+        <a class="btn btn-primary" asp-action="Reply" asp-route-id="@Model.Id">
+            <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-envelope" /></svg>
+            Reply
+        </a>
+        <a class="btn btn-outline-secondary" asp-action="Index">
+            <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-chevron-left" /></svg>
+            Back to messages
+        </a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-5">
+        <div class="card p-4 h-100">
+            <h6 class="mb-3">Sender</h6>
+            <dl class="row detail-list mb-0">
+                <dt class="col-sm-5">Name</dt>
+                <dd class="col-sm-7">@Model.Name</dd>
+                <dt class="col-sm-5">Email</dt>
+                <dd class="col-sm-7"><a href="mailto:@Model.Email">@Model.Email</a></dd>
+                <dt class="col-sm-5">Received</dt>
+                <dd class="col-sm-7">@Model.SubmittedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</dd>
+                <dt class="col-sm-5">Status</dt>
+                <dd class="col-sm-7">
+                    <span class="status-pill @statusClass">
+                        <span class="status-pill__dot" aria-hidden="true"></span>
+                        @statusLabel
+                    </span>
+                </dd>
+            </dl>
+        </div>
+    </div>
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header">
+                <span class="d-inline-flex align-items-center gap-2">
+                    <svg class="svg-icon" aria-hidden="true"><use href="#i-messages" /></svg>
+                    Message
+                </span>
+            </div>
+            <div class="card-body">
+                <p class="mb-0 text-body" style="white-space: pre-line;">@Model.Message</p>
+            </div>
+        </div>
+    </div>
+</div>

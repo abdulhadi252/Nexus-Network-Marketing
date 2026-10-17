@@ -1,0 +1,71 @@
+@using Nexos_Network_System.ViewModels
+@model Nexos_Network_System.Models.Payment
+@{
+    // Table row for the redesigned admin Payments page.
+    // (Purana _PaymentRow.cshtml touch nahi kiya, doosri pages me use ho raha ho to chalta rahe.)
+    var customerName = $"{Model.Customer.FirstName} {Model.Customer.LastName}".Trim();
+    var paidLocal = Model.PaidAt.ToLocalTime();
+    var kind = PaymentUi.StatusKind(Model.Status);
+}
+<tr>
+    <td data-label="Receipt">
+        <div class="pay-receipt">
+            <strong>@Model.ReceiptNumber</strong>
+            <button type="button" class="pay-copy" data-copy="@Model.ReceiptNumber" title="Copy receipt number" aria-label="Copy receipt number @Model.ReceiptNumber">
+                <svg class="pay-ico"><use href="#pi-copy" /></svg>
+            </button>
+        </div>
+        <span class="pay-muted">#@Model.Id</span>
+    </td>
+
+    <td data-label="Customer">
+        <div class="pay-customer">
+            <span class="pay-av @PaymentUi.AvatarTone(Model.CustomerId)" aria-hidden="true">@PaymentUi.Initials(Model.Customer)</span>
+            <div>
+                <strong>@customerName</strong>
+                <span class="pay-muted">Customer #@Model.CustomerId</span>
+            </div>
+        </div>
+    </td>
+
+    <td data-label="Bill / Account">
+        <strong class="pay-bill">@Model.Bill.BillNumber</strong>
+        <span class="pay-muted">Connection #@Model.ConnectionId</span>
+    </td>
+
+    <td data-label="Method">
+        <div class="pay-method">
+            <span class="pay-method__ico"><svg class="pay-ico"><use href="#@PaymentUi.MethodIcon(Model.Method)" /></svg></span>
+            <div>
+                <strong>@PaymentUi.MethodLabel(Model.Method)</strong>
+                <span class="pay-muted">@(string.IsNullOrWhiteSpace(Model.PaymentReference) ? "No reference" : Model.PaymentReference)</span>
+            </div>
+        </div>
+    </td>
+
+    <td data-label="Date">
+        <div class="pay-date">
+            <svg class="pay-ico"><use href="#pi-calendar" /></svg>
+            <div>
+                <strong>@paidLocal.ToString("dd MMM yyyy")</strong>
+                <span class="pay-muted">@paidLocal.ToString("hh:mm tt")</span>
+            </div>
+        </div>
+    </td>
+
+    <td data-label="Amount" class="pay-amount">PKR @Model.Amount.ToString("N2")</td>
+
+    <td data-label="Status">
+        <span class="pay-pill pay-pill--@kind">
+            <svg class="pay-ico"><use href="#@PaymentUi.StatusIcon(kind)" /></svg>
+            @PaymentUi.StatusLabel(Model.Status)
+        </span>
+    </td>
+
+    <td data-label="Actions" class="pay-actions">
+        <a class="pay-kebab" asp-controller="Payments" asp-action="Details" asp-route-id="@Model.Id"
+           title="View payment details" aria-label="View details of @Model.ReceiptNumber">
+            <svg class="pay-ico"><use href="#pi-more" /></svg>
+        </a>
+    </td>
+</tr>
