@@ -15,7 +15,7 @@
 <div class="page-header">
     <div>
         <h1 class="h3">Orders</h1>
-        <p class="page-subtitle">All orders with their feasibility and connection status.</p>
+        <p class="page-subtitle">Jobs retail has forwarded to technical, with their site check and connection status.</p>
     </div>
 </div>
 
@@ -40,7 +40,7 @@
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
                     <thead>
-                        <tr><th>Order</th><th>Customer</th><th>Type</th><th>Plan</th><th>Feasibility</th><th>Connection</th><th>Status</th><th></th></tr>
+                        <tr><th>Order</th><th>Customer</th><th>Type</th><th>Plan</th><th>Assigned to</th><th>Site check</th><th>Connection</th><th>Status</th><th></th></tr>
                     </thead>
                     <tbody>
                         @foreach (var order in Model.Items)
@@ -50,6 +50,7 @@
                                 <td>@order.Customer.FirstName @order.Customer.LastName</td>
                                 <td>@order.ConnectionType</td>
                                 <td>@(order.Plan?.Name ?? "-")</td>
+                                <td>@(order.FeasibilityReport?.TechnicalEmployee is null ? "Unassigned" : $"{order.FeasibilityReport.TechnicalEmployee.FirstName} {order.FeasibilityReport.TechnicalEmployee.LastName}")</td>
                                 <td>
                                     @if (order.FeasibilityReport is null)
                                     {
@@ -66,11 +67,11 @@
                                     <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@order.Id">View</a>
                                     @if (order.FeasibilityReport is null)
                                     {
-                                        <a class="btn btn-outline-primary" asp-controller="Feasibility" asp-action="Create" asp-route-orderId="@order.Id">Check</a>
+                                        <a class="btn btn-outline-primary" asp-controller="Feasibility" asp-action="Create" asp-route-orderId="@order.Id">Assign &amp; check</a>
                                     }
                                     else if (order.Connection is null && order.Status == OrderStatus.Feasible)
                                     {
-                                        <a class="btn btn-outline-primary" asp-controller="Connections" asp-action="Create" asp-route-orderId="@order.Id">Connect</a>
+                                        <a class="btn btn-outline-primary" asp-controller="Connections" asp-action="Create" asp-route-orderId="@order.Id">Install &amp; activate</a>
                                     }
                                 </td>
                             </tr>

@@ -6,5 +6,8 @@ public enum PaymentMethod
     Card,
     BankTransfer,
     Cheque,
-    Other
+    Other,
+
+    /// <summary>JazzCash / EasyPaisa and similar mobile wallets.</summary>
+    MobileWallet
 }

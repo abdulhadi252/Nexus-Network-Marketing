@@ -1,7 +1,8 @@
 @model IReadOnlyList<Payment>
 @{
     ViewData["Title"] = "Payment History";
-    var totalPaid = Model.Sum(p => p.Amount);
+    // Rejected and reversed submissions must not count towards the paid total.
+    var totalPaid = Model.Where(p => p.Status == PaymentStatus.Recorded).Sum(p => p.Amount);
 }
 
 <nav class="crumbs" aria-label="Breadcrumb">
@@ -19,6 +20,9 @@
         <p class="page-subtitle">Every payment recorded against your account, newest first.</p>
         <p class="page-subtitle__meta">Total paid to date: <strong>PKR @totalPaid.ToString("N2")</strong></p>
     </div>
+    <div class="page-head__actions">
+        <a class="btn btn-primary" asp-action="Pay">Pay a bill</a>
+    </div>
 </div>
 
 <div class="card">
@@ -35,7 +39,7 @@
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
                     <thead>
-                        <tr><th>Receipt</th><th>Bill</th><th>Account</th><th>Date</th><th>Method</th><th>Reference</th><th>Amount</th></tr>
+                        <tr><th>Receipt</th><th>Bill</th><th>Account</th><th>Date</th><th>Method</th><th>Reference</th><th>Amount</th><th>Status</th></tr>
                     </thead>
                     <tbody>
                         @foreach (var payment in Model)
@@ -45,9 +49,10 @@
                                 <td>@payment.Bill.BillNumber</td>
                                 <td>@payment.Connection.AccountNumber</td>
                                 <td>@payment.PaidAt.ToLocalTime().ToString("dd MMM yyyy")</td>
-                                <td>@payment.Method</td>
+                                <td>@(payment.Method == PaymentMethod.BankTransfer ? "Bank Transfer" : payment.Method == PaymentMethod.MobileWallet ? "Mobile Wallet" : payment.Method.ToString())</td>
                                 <td>@(payment.PaymentReference ?? "-")</td>
                                 <td class="text-price">PKR @payment.Amount.ToString("N2")</td>
+                                <td><partial name="_StatusPill" model="@((object?)payment.Status)" /></td>
                             </tr>
                         }
                     </tbody>

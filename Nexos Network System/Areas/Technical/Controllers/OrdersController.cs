@@ -18,11 +18,23 @@ public class OrdersController(ApplicationDbContext db, IOrderService orderServic
         ViewData["PanelName"] = "Technical Panel";
         ViewData["q"] = q;
 
+        // Technical only works on jobs retail has verified and forwarded. Orders still sitting
+        // with retail (or rejected by them) stay out of this queue.
+        var forwardedStatuses = new[]
+        {
+            OrderStatus.VerifiedByRetail,
+            OrderStatus.FeasibilityPending,
+            OrderStatus.Feasible,
+            OrderStatus.ConnectionProvided
+        };
+
         var query = db.Orders
+            .Where(o => forwardedStatuses.Contains(o.Status))
             .Include(o => o.Customer)
             .Include(o => o.Plan)
-            .Include(o => o.FeasibilityReport)
+            .Include(o => o.FeasibilityReport).ThenInclude(f => f!.TechnicalEmployee)
             .Include(o => o.Connection)
+            .Include(o => o.VerifiedByEmployee)
             .AsNoTracking()
             .AsQueryable();
 

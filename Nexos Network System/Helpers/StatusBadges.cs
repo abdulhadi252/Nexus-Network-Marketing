@@ -11,7 +11,7 @@ public static class StatusBadges
     {
         "Active" or "Paid" or "Feasible" or "Recorded" or "ConnectionProvided" or "Completed" or "Assigned" or "Available" or "In"
             => "status-pill status-pill--positive",
-        "Pending" or "Unpaid" or "FeasibilityPending" or "AwaitingCustomerInformation" or "PartiallyPaid" or "InProgress"
+        "Pending" or "Unpaid" or "FeasibilityPending" or "AwaitingCustomerInformation" or "PartiallyPaid" or "InProgress" or "PendingVerification"
             => "status-pill status-pill--warning",
         "TemporarilyInactive" or "UnderRepair" or "VerifiedByRetail" or "Out"
             => "status-pill status-pill--info",
@@ -24,7 +24,7 @@ public static class StatusBadges
 
     public static string CssClass(object? value) => (value?.ToString() ?? string.Empty) switch
     {
-        "Pending" or "Unpaid" or "FeasibilityPending" or "AwaitingCustomerInformation" or "Available" or "In" => "badge bg-warning text-dark",
+        "Pending" or "Unpaid" or "FeasibilityPending" or "AwaitingCustomerInformation" or "Available" or "In" or "PendingVerification" => "badge bg-warning text-dark",
         "Active" or "Paid" or "Feasible" or "Recorded" or "ConnectionProvided" or "Completed" or "Assigned" => "badge bg-success",
         "TemporarilyInactive" or "PartiallyPaid" or "InProgress" or "UnderRepair" or "Out" or "VerifiedByRetail" => "badge bg-info text-dark",
         "NotFeasible" or "RetailRejected" or "PermanentlyInactive" or "Cancelled" or "Reversed" or "Rejected" or "Retired" or "Adjustment" => "badge bg-danger",

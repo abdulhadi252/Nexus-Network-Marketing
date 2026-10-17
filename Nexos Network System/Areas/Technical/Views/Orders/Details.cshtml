@@ -113,6 +113,8 @@
                     <dd class="col-7">@(Model.FeasibilityReport.DistanceMeters.HasValue ? $"{Model.FeasibilityReport.DistanceMeters} m" : "-")</dd>
                     <dt class="col-5">Server available</dt>
                     <dd class="col-7">@(Model.FeasibilityReport.ServerAvailable.HasValue ? (Model.FeasibilityReport.ServerAvailable.Value ? "Yes" : "No") : "-")</dd>
+                    <dt class="col-5">Assigned technician</dt>
+                    <dd class="col-7">@(Model.FeasibilityReport.TechnicalEmployee is null ? "Unassigned" : $"{Model.FeasibilityReport.TechnicalEmployee.FirstName} {Model.FeasibilityReport.TechnicalEmployee.LastName}")</dd>
                     <dt class="col-5">Checked by</dt>
                     <dd class="col-7">@(Model.FeasibilityReport.TechnicalEmployee is null ? "-" : $"{Model.FeasibilityReport.TechnicalEmployee.FirstName} {Model.FeasibilityReport.TechnicalEmployee.LastName}")</dd>
                     <dt class="col-5">Checked at</dt>

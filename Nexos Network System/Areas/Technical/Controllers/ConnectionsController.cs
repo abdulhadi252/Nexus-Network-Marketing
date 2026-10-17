@@ -101,6 +101,50 @@ public class ConnectionsController(ApplicationDbContext db, IConnectionService c
         }
     }
 
+    /// <summary>
+    /// Final step of the field job: the installation has been checked on site and the
+    /// connection is now live. Accounts can only bill active connections, so this is the
+    /// hand-off from technical to accounts.
+    /// </summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Activate(int id, string? notes)
+    {
+        var connection = await db.Connections
+            .Include(c => c.Order)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == id);
+
+        if (connection is null)
+        {
+            return NotFound();
+        }
+
+        if (connection.Status == ConnectionStatus.Active)
+        {
+            TempData["Error"] = "This connection is already active.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        if (connection.Order is not null && connection.Order.Status != OrderStatus.ConnectionProvided)
+        {
+            TempData["Error"] = "The order linked to this connection is not marked as connection provided yet.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        try
+        {
+            await connectionService.UpdateStatusAsync(id, ConnectionStatus.Active, notes);
+            TempData["Success"] = $"Connection {connection.AccountNumber} secured and activated. Accounts can now bill the customer.";
+        }
+        catch (InvalidOperationException ex)
+        {
+            TempData["Error"] = ex.Message;
+        }
+
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateStatus(int id, ConnectionStatus status, string? notes)

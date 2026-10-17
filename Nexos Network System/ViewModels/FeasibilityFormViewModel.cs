@@ -12,6 +12,10 @@ public class FeasibilityFormViewModel
 
     public string OrderNumber { get; set; } = string.Empty;
 
+    /// <summary>The technician sent to the customer's address for the site check.</summary>
+    [Display(Name = "Assigned technician")]
+    public int? TechnicalEmployeeId { get; set; }
+
     [Display(Name = "Feasibility Status")]
     [EnumDataType(typeof(FeasibilityStatus))]
     public FeasibilityStatus Status { get; set; } = FeasibilityStatus.Feasible;

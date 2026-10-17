@@ -24,7 +24,8 @@ public class DashboardController(ApplicationDbContext db) : Controller
             GreetingName = await User.GetGreetingNameAsync(db),
             PeriodLabel = $"{monthStart:d MMM yyyy} - {monthStart.AddMonths(1).AddDays(-1):d MMM yyyy}",
 
-            PendingOrders = await db.Orders.CountAsync(o => o.Status == OrderStatus.Pending || o.Status == OrderStatus.FeasibilityPending),
+            // Retail hands work to technical via VerifiedByRetail; only forwarded jobs count here.
+            PendingOrders = await db.Orders.CountAsync(o => o.Status == OrderStatus.VerifiedByRetail || o.Status == OrderStatus.FeasibilityPending),
             PendingFeasibility = await db.FeasibilityReports.CountAsync(f => f.Status == FeasibilityStatus.Pending),
             ApprovedFeasibility = await db.FeasibilityReports.CountAsync(f => f.Status == FeasibilityStatus.Feasible),
             NotFeasibleCount = await db.FeasibilityReports.CountAsync(f => f.Status == FeasibilityStatus.NotFeasible),

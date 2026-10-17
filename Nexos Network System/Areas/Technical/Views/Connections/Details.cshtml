@@ -46,6 +46,35 @@
             </dl>
         </div>
 
+        @if (Model.Status == ConnectionStatus.Pending)
+        {
+            <div class="card p-4">
+                <h6 class="mb-2">Installation sign-off</h6>
+                <p class="text-muted small mb-3">
+                    Confirm the cable, equipment and signal were checked at the customer's address. Activating the
+                    connection hands it to accounts, who can then raise the first bill.
+                </p>
+                <form asp-action="Activate" asp-route-id="@Model.Id" method="post" class="row g-2">
+                    <div class="col-12">
+                        <textarea name="notes" class="form-control" rows="2" placeholder="Installation check notes (optional)"></textarea>
+                    </div>
+                    <div class="col-12 d-grid">
+                        <button type="submit" class="btn btn-primary">Connection secured - activate</button>
+                    </div>
+                </form>
+            </div>
+        }
+        else if (Model.Status == ConnectionStatus.Active)
+        {
+            <div class="card p-4">
+                <h6 class="mb-2">Connection secured</h6>
+                <p class="text-muted small mb-0">
+                    This connection is active and billing-ready. The accounts team can raise bills for
+                    account <strong>@Model.AccountNumber</strong>.
+                </p>
+            </div>
+        }
+
         <div class="card p-4">
             <h6 class="mb-3">Update Status</h6>
             <form asp-action="UpdateStatus" asp-route-id="@Model.Id" method="post" class="row g-2">

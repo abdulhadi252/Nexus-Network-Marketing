@@ -1,7 +1,9 @@
 @model PagedResult<Payment>
 @{
     ViewData["Title"] = "Payments";
-    var pageTotal = Model.Items.Sum(p => p.Amount);
+    var pageTotal = Model.Items.Where(p => p.Status == PaymentStatus.Recorded).Sum(p => p.Amount);
+    var pendingCount = (int)(ViewBag.PendingCount ?? 0);
+    var pendingAmount = (decimal)(ViewBag.PendingAmount ?? 0m);
 }
 
 <nav class="crumbs" aria-label="Breadcrumb">
@@ -19,6 +21,12 @@
         <p class="page-subtitle">Page total: PKR @pageTotal.ToString("N2")</p>
     </div>
     <div class="page-head__actions">
+        @if (pendingCount > 0)
+        {
+            <a class="btn btn-warning" asp-action="Index" asp-route-status="@PaymentStatus.PendingVerification">
+                Review @pendingCount online payment@(pendingCount == 1 ? "" : "s") (PKR @pendingAmount.ToString("N2"))
+            </a>
+        }
         <a class="btn btn-primary" asp-action="Create">+ Record Payment</a>
     </div>
 </div>
@@ -35,6 +43,15 @@
                     @foreach (var method in Enum.GetValues<PaymentMethod>())
                     {
                         <option value="@method" selected="@(ViewData["method"]?.ToString() == method.ToString())">@method</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="status" class="form-select">
+                    <option value="">All statuses</option>
+                    @foreach (var status in Enum.GetValues<PaymentStatus>())
+                    {
+                        <option value="@status" selected="@(ViewData["status"]?.ToString() == status.ToString())">@status</option>
                     }
                 </select>
             </div>
@@ -57,7 +74,7 @@
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
                     <thead>
-                        <tr><th>Receipt</th><th>Customer</th><th>Account</th><th>Bill</th><th>Date</th><th>Method</th><th>Amount</th><th></th></tr>
+                        <tr><th>Receipt</th><th>Customer</th><th>Account</th><th>Bill</th><th>Date</th><th>Method</th><th>Amount</th><th>Status</th><th></th></tr>
                     </thead>
                     <tbody>
                         @foreach (var payment in Model.Items)
@@ -70,8 +87,15 @@
                                 <td>@payment.PaidAt.ToLocalTime().ToString("dd MMM yyyy")</td>
                                 <td>@payment.Method</td>
                                 <td class="text-price">PKR @payment.Amount.ToString("N2")</td>
+                                <td><partial name="_StatusPill" model="@((object?)payment.Status)" /></td>
                                 <td class="table-actions">
                                     <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@payment.Id">View</a>
+                                    @if (payment.Status == PaymentStatus.PendingVerification)
+                                    {
+                                        <form asp-action="Verify" asp-route-id="@payment.Id" method="post" class="d-inline">
+                                            <button type="submit" class="btn btn-primary">Confirm</button>
+                                        </form>
+                                    }
                                 </td>
                             </tr>
                         }

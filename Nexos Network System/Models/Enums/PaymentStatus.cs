@@ -4,5 +4,8 @@ public enum PaymentStatus
 {
     Recorded,
     Reversed,
-    Cancelled
+    Cancelled,
+
+    /// <summary>The customer submitted the payment from their panel; accounts still has to confirm it.</summary>
+    PendingVerification
 }

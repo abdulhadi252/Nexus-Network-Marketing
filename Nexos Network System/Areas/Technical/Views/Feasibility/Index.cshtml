@@ -16,7 +16,7 @@
 <div class="page-header">
     <div>
         <h1 class="h3">Feasibility Reports</h1>
-        <p class="page-subtitle">Site checks recorded by the technical team.</p>
+        <p class="page-subtitle">Site checks for jobs retail has forwarded to the technical team.</p>
     </div>
     <div class="page-head__actions">
         <a class="btn btn-primary" asp-action="Create">+ New Feasibility Check</a>
@@ -26,7 +26,8 @@
 @if (pendingOrders.Count > 0)
 {
     <div class="alert alert-info">
-        <strong>@pendingOrders.Count order(s) waiting for a feasibility check.</strong>
+        <strong>@pendingOrders.Count order(s) waiting for a site visit and feasibility check.</strong>
+        <span class="d-block small">These orders were verified by retail and forwarded to technical.</span>
     </div>
 }
 
@@ -41,7 +42,7 @@
         {
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
-                    <thead><tr><th>Order</th><th>Customer</th><th>Type</th><th>Submitted</th><th></th></tr></thead>
+                    <thead><tr><th>Order</th><th>Customer</th><th>Type</th><th>Address</th><th>Forwarded</th><th></th></tr></thead>
                     <tbody>
                         @foreach (var order in pendingOrders)
                         {
@@ -49,9 +50,15 @@
                                 <td class="fw-semibold">@order.OrderNumber</td>
                                 <td>@order.Customer.FirstName @order.Customer.LastName</td>
                                 <td>@order.ConnectionType</td>
-                                <td>@order.SubmittedAt.ToLocalTime().ToString("dd MMM yyyy")</td>
+                                <td>
+                                    @{
+                                        var address = order.Customer.Addresses.OrderByDescending(a => a.IsPrimary).FirstOrDefault();
+                                    }
+                                    @(address is null ? "-" : $"{address.AddressLine1}, {address.City?.Name}")
+                                </td>
+                                <td>@(order.VerifiedAt?.ToLocalTime().ToString("dd MMM yyyy") ?? "-")</td>
                                 <td class="table-actions">
-                                    <a class="btn btn-outline-primary" asp-action="Create" asp-route-orderId="@order.Id">Check</a>
+                                    <a class="btn btn-outline-primary" asp-action="Create" asp-route-orderId="@order.Id">Assign &amp; check</a>
                                     <a class="btn btn-outline-secondary" asp-controller="Orders" asp-action="Details" asp-route-id="@order.Id">Order</a>
                                 </td>
                             </tr>
@@ -75,7 +82,7 @@
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
                     <thead>
-                        <tr><th>Order</th><th>Customer</th><th>Result</th><th>Distance</th><th>Checked by</th><th>Date</th><th></th></tr>
+                        <tr><th>Order</th><th>Customer</th><th>Result</th><th>Distance</th><th>Assigned to</th><th>Checked by</th><th>Date</th><th></th></tr>
                     </thead>
                     <tbody>
                         @foreach (var report in Model.Items)
@@ -85,7 +92,8 @@
                                 <td>@report.Order.Customer.FirstName @report.Order.Customer.LastName</td>
                                 <td><partial name="_StatusPill" model="@((object?)report.Status)" /></td>
                                 <td>@(report.DistanceMeters.HasValue ? $"{report.DistanceMeters} m" : "-")</td>
-                                <td>@(report.TechnicalEmployee is null ? "-" : $"{report.TechnicalEmployee.FirstName} {report.TechnicalEmployee.LastName}")</td>
+                                <td>@(report.TechnicalEmployee is null ? "Unassigned" : $"{report.TechnicalEmployee.FirstName} {report.TechnicalEmployee.LastName}")</td>
+                                <td>@(report.Status == FeasibilityStatus.Pending ? "-" : (report.TechnicalEmployee is null ? "-" : $"{report.TechnicalEmployee.FirstName} {report.TechnicalEmployee.LastName}"))</td>
                                 <td>@(report.CheckedAt?.ToLocalTime().ToString("dd MMM yyyy") ?? "-")</td>
                                 <td class="table-actions">
                                     <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@report.Id">View</a>

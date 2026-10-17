@@ -24,6 +24,7 @@ public class BillsController(ApplicationDbContext db) : Controller
 
         var bills = await db.Bills
             .Include(b => b.Connection)
+            .Include(b => b.Payments)
             .AsNoTracking()
             .Where(b => b.CustomerId == customerId.Value)
             .OrderByDescending(b => b.GeneratedAt)

@@ -75,9 +75,13 @@ public class PanelNotificationsViewComponent(ApplicationDbContext db) : ViewComp
 
             case "Technical":
             {
+                var forwardedJobs = await db.Orders.CountAsync(o =>
+                    o.Status == OrderStatus.VerifiedByRetail && o.FeasibilityReport == null);
                 var pendingReports = await db.FeasibilityReports.CountAsync(f => f.Status == FeasibilityStatus.Pending);
                 var pendingConnections = await db.Connections.CountAsync(c => c.Status == ConnectionStatus.Pending);
 
+                Add(items, "New jobs from retail", forwardedJobs,
+                    Url.Action("Index", "Orders", new { area }));
                 Add(items, "Feasibility reports awaiting a check", pendingReports,
                     Url.Action("Index", "Feasibility", new { area }));
                 Add(items, "Connections awaiting installation", pendingConnections,
@@ -89,7 +93,10 @@ public class PanelNotificationsViewComponent(ApplicationDbContext db) : ViewComp
             {
                 var dueBills = await db.Bills.LatestBillPerConnection().CountAsync(b => b.DueAmount > 0);
                 var unpaidBills = await db.Bills.LatestBillPerConnection().CountAsync(b => b.Status == BillStatus.Unpaid);
+                var pendingPayments = await db.Payments.CountAsync(p => p.Status == PaymentStatus.PendingVerification);
 
+                Add(items, "Online payments to verify", pendingPayments,
+                    Url.Action("Index", "Payments", new { area, status = PaymentStatus.PendingVerification }));
                 Add(items, "Bills with dues", dueBills,
                     Url.Action("Index", "Bills", new { area }));
                 Add(items, "Unpaid bills", unpaidBills,
@@ -111,9 +118,13 @@ public class PanelNotificationsViewComponent(ApplicationDbContext db) : ViewComp
                     .CountAsync(b => b.CustomerId == customerId.Value && b.DueAmount > 0);
                 var pendingOrders = await db.Orders.CountAsync(o => o.CustomerId == customerId.Value &&
                     (o.Status == OrderStatus.Pending || o.Status == OrderStatus.FeasibilityPending));
+                var pendingPayments = await db.Payments.CountAsync(p =>
+                    p.CustomerId == customerId.Value && p.Status == PaymentStatus.PendingVerification);
 
                 Add(items, "Unpaid bills", unpaidBills,
                     Url.Action("Index", "Bills", new { area }));
+                Add(items, "Payments awaiting confirmation", pendingPayments,
+                    Url.Action("Index", "Payments", new { area }));
                 Add(items, "Orders in progress", pendingOrders,
                     Url.Action("Index", "Orders", new { area }));
                 break;

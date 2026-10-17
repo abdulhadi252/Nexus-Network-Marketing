@@ -51,6 +51,14 @@
                                 <td><partial name="_StatusPill" model="@((object?)bill.Status)" /></td>
                                 <td class="table-actions">
                                     <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@bill.Id">View</a>
+                                    @if (bill.Payments.Any(p => p.Status == PaymentStatus.PendingVerification))
+                                    {
+                                        <span class="badge bg-warning text-dark">Payment pending</span>
+                                    }
+                                    else if (bill.DueAmount > 0)
+                                    {
+                                        <a class="btn btn-primary" asp-area="Customer" asp-controller="Payments" asp-action="Pay" asp-route-billId="@bill.Id">Pay now</a>
+                                    }
                                 </td>
                             </tr>
                         }

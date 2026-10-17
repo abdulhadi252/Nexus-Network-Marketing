@@ -99,6 +99,17 @@
     </div>
 </div>
 
+@if (Model.OutstandingAmount > 0)
+{
+    <div class="alert alert-warning d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <span>
+            <strong>PKR @Model.OutstandingAmount.ToString("N2")</strong> is outstanding on your account.
+            The accounts team has requested this payment - clear it from your panel to avoid disconnection.
+        </span>
+        <a class="btn btn-primary btn-sm" asp-area="Customer" asp-controller="Payments" asp-action="Pay">Pay now</a>
+    </div>
+}
+
 @* ---------------------------------------------------------------- Orders + Payments *@
 <div class="row g-3 mb-3">
     <div class="col-xl-6">

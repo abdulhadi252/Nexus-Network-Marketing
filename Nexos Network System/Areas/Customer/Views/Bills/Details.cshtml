@@ -21,6 +21,10 @@
         </p>
     </div>
     <div class="page-head__actions">
+        @if (Model.DueAmount > 0 && !Model.Payments.Any(p => p.Status == PaymentStatus.PendingVerification))
+        {
+            <a class="btn btn-primary" asp-area="Customer" asp-controller="Payments" asp-action="Pay" asp-route-billId="@Model.Id">Pay now</a>
+        }
         <a class="btn btn-outline-secondary" asp-action="Index">Back to bills</a>
     </div>
 </div>
@@ -75,9 +79,16 @@
         </div>
         <div class="card p-4">
             <h6 class="mb-3">Payments</h6>
+            @if (Model.Payments.Any(p => p.Status == PaymentStatus.PendingVerification))
+            {
+                <div class="alert alert-warning small mb-3">
+                    A payment of PKR @Model.Payments.Where(p => p.Status == PaymentStatus.PendingVerification).Sum(p => p.Amount).ToString("N2")
+                    is awaiting confirmation from the accounts team. This bill will update once it is verified.
+                </div>
+            }
             @if (Model.Payments.Count == 0)
             {
-                <p class="text-muted mb-0">No payments recorded for this bill yet. Payments can be made at any NEXUS branch.</p>
+                <p class="text-muted mb-0">No payments recorded for this bill yet. You can pay online from this page or at any NEXUS branch.</p>
             }
             else
             {
@@ -85,7 +96,7 @@
                     @foreach (var payment in Model.Payments.OrderByDescending(p => p.PaidAt))
                     {
                         <li class="d-flex justify-content-between mb-2">
-                            <span>@payment.ReceiptNumber <span class="text-muted small">(@payment.PaidAt.ToLocalTime().ToString("dd MMM yyyy"), @payment.Method)</span></span>
+                            <span>@payment.ReceiptNumber <span class="text-muted small">(@payment.PaidAt.ToLocalTime().ToString("dd MMM yyyy"), @payment.Method)</span> <partial name="_StatusPill" model="@((object?)payment.Status)" /></span>
                             <span class="text-price">PKR @payment.Amount.ToString("N2")</span>
                         </li>
                     }

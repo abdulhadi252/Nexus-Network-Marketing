@@ -1,0 +1,121 @@
+@model CustomerPaymentViewModel
+@{
+    ViewData["Title"] = "Pay a Bill";
+}
+
+<nav class="crumbs" aria-label="Breadcrumb">
+    <a asp-area="Customer" asp-controller="Dashboard" asp-action="Index">
+        <svg class="svg-icon" aria-hidden="true"><use href="#i-home-clean" /></svg>
+        <span>Dashboard</span>
+    </a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <a asp-action="Index">Payment History</a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <span class="crumbs__current" aria-current="page">Pay a Bill</span>
+</nav>
+
+<div class="page-header">
+    <div>
+        <h1 class="h3">Pay a Bill</h1>
+        <p class="page-subtitle">Choose your bill, pick a billing method and submit the payment. Accounts confirms it and your balance updates.</p>
+    </div>
+    <div class="page-head__actions">
+        <a class="btn btn-outline-secondary" asp-action="Index">Payment history</a>
+    </div>
+</div>
+
+@if (Model.OpenBills.Count == 0)
+{
+    <div class="card">
+        <div class="card-body">
+            <div class="empty-state">
+                <span class="empty-icon"><svg class="svg-icon" aria-hidden="true"><use href="#i-wallet" /></svg></span>
+                <p class="mb-0">You have no outstanding bills to pay right now.</p>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        <div class="col-lg-7">
+            <div class="card">
+                <div class="card-header">Payment details</div>
+                <div class="card-body">
+                    <form asp-action="Pay" method="post" class="row g-3">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+                        <div class="col-12">
+                            <label asp-for="BillId" class="form-label">Bill</label>
+                            <select asp-for="BillId" class="form-select" id="billSelect">
+                                <option value="">-- Select an outstanding bill --</option>
+                                @foreach (var bill in Model.OpenBills)
+                                {
+                                    <option value="@bill.Id">
+                                        @bill.BillNumber &middot; @bill.Connection.AccountNumber &middot; due PKR @bill.DueAmount.ToString("N2") &middot; by @bill.DueDate.ToString("dd MMM yyyy")
+                                    </option>
+                                }
+                            </select>
+                            <span asp-validation-for="BillId" class="field-validation-error"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Amount" class="form-label"></label>
+                            <input asp-for="Amount" type="number" step="0.01" min="0.01" class="form-control" />
+                            <span asp-validation-for="Amount" class="field-validation-error"></span>
+                            @if (Model.DueAmount > 0)
+                            {
+                                <div class="form-text">Outstanding due: <strong>PKR @Model.DueAmount.ToString("N2")</strong></div>
+                            }
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Method" class="form-label"></label>
+                            <select asp-for="Method" class="form-select">
+                                <option value="@PaymentMethod.Card">Debit / Credit Card</option>
+                                <option value="@PaymentMethod.BankTransfer">Bank Transfer</option>
+                                <option value="@PaymentMethod.MobileWallet">JazzCash / EasyPaisa</option>
+                                <option value="@PaymentMethod.Cheque">Cheque (branch deposit)</option>
+                            </select>
+                            <span asp-validation-for="Method" class="field-validation-error"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="PaymentReference" class="form-label"></label>
+                            <input asp-for="PaymentReference" class="form-control" placeholder="Transaction, wallet or cheque number" />
+                            <span asp-validation-for="PaymentReference" class="field-validation-error"></span>
+                            <div class="form-text">Accounts uses this reference to match the money against your bill.</div>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Notes" class="form-label">Notes (optional)</label>
+                            <textarea asp-for="Notes" class="form-control" rows="2" placeholder="Anything the accounts team should know"></textarea>
+                            <span asp-validation-for="Notes" class="field-validation-error"></span>
+                        </div>
+
+                        <div class="col-12 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">Submit Payment</button>
+                            <a class="btn btn-outline-secondary" asp-action="Index">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card p-4">
+                <h6 class="mb-3">How it works</h6>
+                <ol class="mb-0 ps-3 small text-muted">
+                    <li class="mb-2">Pick the bill you want to clear and enter the amount.</li>
+                    <li class="mb-2">Pay through your card, bank transfer or mobile wallet and enter the transaction reference.</li>
+                    <li class="mb-2">The payment appears as <span class="badge bg-warning text-dark">PendingVerification</span> until the accounts team confirms it.</li>
+                    <li>Once confirmed, your bill's paid and due amounts update and the receipt appears in your payment history.</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

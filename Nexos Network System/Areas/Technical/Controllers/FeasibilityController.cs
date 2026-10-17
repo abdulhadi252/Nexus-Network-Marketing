@@ -25,9 +25,10 @@ public class FeasibilityController(ApplicationDbContext db) : Controller
                 .OrderByDescending(f => f.Order.SubmittedAt),
             page);
 
+        // Only jobs retail has verified and forwarded: technical never picks up an unverified order.
         var pendingOrders = await db.Orders
-            .Where(o => (o.Status == OrderStatus.Pending || o.Status == OrderStatus.FeasibilityPending || o.Status == OrderStatus.VerifiedByRetail) && o.FeasibilityReport == null)
-            .Include(o => o.Customer)
+            .Where(o => (o.Status == OrderStatus.VerifiedByRetail || o.Status == OrderStatus.FeasibilityPending) && o.FeasibilityReport == null)
+            .Include(o => o.Customer).ThenInclude(c => c.Addresses).ThenInclude(a => a.City)
             .Include(o => o.RetailShop)
             .Include(o => o.VerifiedByEmployee)
             .OrderBy(o => o.SubmittedAt)
@@ -61,6 +62,7 @@ public class FeasibilityController(ApplicationDbContext db) : Controller
     {
         ViewData["PanelName"] = "Technical Panel";
         await LoadPendingOrdersAsync();
+        await LoadTechniciansAsync();
 
         var model = new FeasibilityFormViewModel();
         if (orderId.HasValue && await db.Orders.AnyAsync(o => o.Id == orderId.Value))
@@ -69,6 +71,8 @@ public class FeasibilityController(ApplicationDbContext db) : Controller
             model.OrderId = orderId.Value;
             model.OrderNumber = order?.OrderNumber ?? string.Empty;
         }
+
+        model.TechnicalEmployeeId = (await User.GetEmployeeAsync(db))?.Id;
 
         return View(model);
     }
@@ -84,21 +88,23 @@ public class FeasibilityController(ApplicationDbContext db) : Controller
         {
             ModelState.AddModelError(nameof(model.OrderId), "The selected order is not available.");
         }
-        else if (order.Status is not (OrderStatus.Pending or OrderStatus.FeasibilityPending or OrderStatus.VerifiedByRetail) ||
+        else if (order.Status is not (OrderStatus.FeasibilityPending or OrderStatus.VerifiedByRetail) ||
                  await db.FeasibilityReports.AnyAsync(f => f.OrderId == model.OrderId))
         {
-            ModelState.AddModelError(string.Empty, "A feasibility report can only be created for an order awaiting feasibility review.");
+            ModelState.AddModelError(string.Empty, "A feasibility report can only be created for an order retail has forwarded to technical.");
         }
 
         if (!ModelState.IsValid)
         {
             await LoadPendingOrdersAsync();
+            await LoadTechniciansAsync();
             return View(model);
         }
 
         if (order is null)
         {
             await LoadPendingOrdersAsync();
+            await LoadTechniciansAsync();
             return View(model);
         }
 
@@ -107,7 +113,7 @@ public class FeasibilityController(ApplicationDbContext db) : Controller
         var report = new FeasibilityReport
         {
             OrderId = model.OrderId,
-            TechnicalEmployeeId = employee?.Id,
+            TechnicalEmployeeId = model.TechnicalEmployeeId ?? employee?.Id,
             Status = model.Status,
             DistanceMeters = model.DistanceMeters,
             ServerAvailable = model.ServerAvailable,
@@ -154,11 +160,14 @@ public class FeasibilityController(ApplicationDbContext db) : Controller
             return RedirectToAction(nameof(Details), new { id });
         }
 
+        await LoadTechniciansAsync();
+
         return View(new FeasibilityFormViewModel
         {
             Id = report.Id,
             OrderId = report.OrderId,
             OrderNumber = report.Order.OrderNumber,
+            TechnicalEmployeeId = report.TechnicalEmployeeId,
             Status = report.Status,
             DistanceMeters = report.DistanceMeters,
             ServerAvailable = report.ServerAvailable,
@@ -189,6 +198,7 @@ public class FeasibilityController(ApplicationDbContext db) : Controller
         if (!ModelState.IsValid)
         {
             model.OrderNumber = report.Order.OrderNumber;
+            await LoadTechniciansAsync();
             return View(model);
         }
 
@@ -199,7 +209,7 @@ public class FeasibilityController(ApplicationDbContext db) : Controller
         report.CheckedAt = DateTimeOffset.UtcNow;
 
         var employee = await User.GetEmployeeAsync(db);
-        report.TechnicalEmployeeId = employee?.Id;
+        report.TechnicalEmployeeId = model.TechnicalEmployeeId ?? report.TechnicalEmployeeId ?? employee?.Id;
 
         var previousStatus = report.Order.Status;
         report.Order.Status = model.Status switch
@@ -217,10 +227,22 @@ public class FeasibilityController(ApplicationDbContext db) : Controller
         return RedirectToAction(nameof(Details), new { id = report.Id });
     }
 
+    private async Task LoadTechniciansAsync()
+    {
+        var technicians = await db.Employees
+            .AsNoTracking()
+            .Where(e => e.Role == EmployeeRole.Technical)
+            .OrderBy(e => e.FirstName)
+            .Select(e => new { e.Id, Name = e.FirstName + " " + e.LastName + " (" + e.EmployeeNumber + ")" })
+            .ToListAsync();
+
+        ViewBag.Technicians = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(technicians, "Id", "Name");
+    }
+
     private async Task LoadPendingOrdersAsync()
     {
         var orders = await db.Orders
-            .Where(o => (o.Status == OrderStatus.Pending || o.Status == OrderStatus.FeasibilityPending || o.Status == OrderStatus.VerifiedByRetail) && o.FeasibilityReport == null)
+            .Where(o => (o.Status == OrderStatus.FeasibilityPending || o.Status == OrderStatus.VerifiedByRetail) && o.FeasibilityReport == null)
             .OrderBy(o => o.SubmittedAt)
             .Select(o => new { o.Id, Label = o.OrderNumber + " - " + o.Customer.FirstName + " " + o.Customer.LastName + (o.RetailShop != null ? " [" + o.RetailShop.Name + "]" : "") })
             .ToListAsync();
