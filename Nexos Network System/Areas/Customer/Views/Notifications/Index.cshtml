@@ -1,0 +1,99 @@
+@model IReadOnlyList<CustomerNotification>
+@{
+    ViewData["Title"] = "Notifications";
+    var unreadCount = (int?)ViewData["UnreadCount"] ?? 0;
+    var payableBillIds = ViewData["PayableBillIds"] as HashSet<int> ?? new HashSet<int>();
+}
+
+<nav class="crumbs" aria-label="Breadcrumb">
+    <a asp-area="Customer" asp-controller="Dashboard" asp-action="Index">
+        <svg class="svg-icon" aria-hidden="true"><use href="#i-home-clean" /></svg>
+        <span>Dashboard</span>
+    </a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <span class="crumbs__current" aria-current="page">Notifications</span>
+</nav>
+
+<div class="page-header">
+    <div>
+        <h1 class="h3">Notifications</h1>
+        <p class="page-subtitle">Bill aur account messages jo hamari team ne aap ko bheje hain.</p>
+    </div>
+    <div class="page-head__actions">
+        <span class="count-chip">
+            <svg class="svg-icon" aria-hidden="true"><use href="#i-bell" /></svg>
+            @Model.Count message@(Model.Count == 1 ? string.Empty : "s")
+        </span>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        @if (Model.Count == 0)
+        {
+            <div class="empty-state">
+                <span class="empty-icon"><svg class="svg-icon" aria-hidden="true"><use href="#i-bell" /></svg></span>
+                <p class="mb-0">Abhi koi notification nahi hai. Naya bill banne par aap ko yahan message milega.</p>
+            </div>
+        }
+        else
+        {
+            @foreach (var notification in Model)
+            {
+                var isNew = unreadCount > 0 && !notification.IsRead;
+                var bill = notification.Bill;
+                var billPayable = bill is not null && payableBillIds.Contains(bill.Id);
+
+                <article class="card p-3 mb-3">
+                    <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                        <div>
+                            <h6 class="mb-1">
+                                @notification.Title
+                                @if (isNew)
+                                {
+                                    <span class="badge bg-primary ms-1">New</span>
+                                }
+                            </h6>
+                            <p class="text-muted small mb-2">
+                                @notification.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")
+                                @if (notification.Amount.HasValue)
+                                {
+                                    <text> &middot; PKR @notification.Amount.Value.ToString("N2")</text>
+                                }
+                                @if (bill is not null)
+                                {
+                                    <text> &middot; bill @bill.BillNumber</text>
+                                }
+                            </p>
+                            <p class="mb-0" style="white-space: pre-line;">@notification.Message</p>
+                        </div>
+
+                        <div class="d-flex flex-column align-items-end gap-2">
+                            <div class="d-flex gap-2">
+                                @if (bill is not null)
+                                {
+                                    <a class="btn btn-sm btn-outline-secondary" asp-controller="Bills" asp-action="Details" asp-route-id="@bill.Id">
+                                        View bill
+                                    </a>
+                                }
+                                @if (billPayable)
+                                {
+                                    <a class="btn btn-sm btn-primary" asp-controller="Payments" asp-action="Pay" asp-route-billId="@bill!.Id">
+                                        Pay now
+                                    </a>
+                                }
+                            </div>
+                            @if (bill is not null && !billPayable)
+                            {
+                                <span class="text-muted small text-end" style="max-width: 220px;">
+                                    Ye bill ab latest nahi hai. Latest bill
+                                    <a asp-controller="Bills" asp-action="Index">My Bills</a> se pay karein.
+                                </span>
+                            }
+                        </div>
+                    </div>
+                </article>
+            }
+        }
+    </div>
+</div>

@@ -26,6 +26,7 @@
             <li><a class="@Active("Bills")" asp-area="Admin" asp-controller="Bills" asp-action="Index"><svg class="nav-icon"><use href="#i-bills" /></svg>Billing</a></li>
             <li><a class="@Active("Payments")" asp-area="Admin" asp-controller="Payments" asp-action="Index"><svg class="nav-icon"><use href="#i-payments" /></svg>Payments</a></li>
             <li><a class="@Active("Messages")" asp-area="Admin" asp-controller="Messages" asp-action="Index"><svg class="nav-icon"><use href="#i-messages" /></svg>Messages</a></li>
+            <li><a class="@Active("Feedback")" asp-area="Admin" asp-controller="Feedback" asp-action="Index"><svg class="nav-icon"><use href="#i-feedback" /></svg>Feedback</a></li>
             <li><a class="@Active("Search")" asp-area="Admin" asp-controller="Search" asp-action="Index"><svg class="nav-icon"><use href="#i-search" /></svg>Advanced Search</a></li>
         }
         else if (User.IsInRole("Retail"))
@@ -65,6 +66,7 @@
             <li><a class="@Active("Equipment")" asp-area="Customer" asp-controller="Equipment" asp-action="Index"><svg class="nav-icon"><use href="#i-equipment" /></svg>My Equipment</a></li>
             <li><a class="@Active("Bills")" asp-area="Customer" asp-controller="Bills" asp-action="Index"><svg class="nav-icon"><use href="#i-bills" /></svg>My Bills</a></li>
             <li><a class="@Active("Payments")" asp-area="Customer" asp-controller="Payments" asp-action="Index"><svg class="nav-icon"><use href="#i-payments" /></svg>Payment History</a></li>
+            <li><a class="@Active("Notifications")" asp-area="Customer" asp-controller="Notifications" asp-action="Index"><svg class="nav-icon"><use href="#i-bell" /></svg>Notifications</a></li>
             <li><a class="@Active("Feedback")" asp-area="Customer" asp-controller="Feedback" asp-action="Index"><svg class="nav-icon"><use href="#i-feedback" /></svg>Feedback</a></li>
         }
     </ul>

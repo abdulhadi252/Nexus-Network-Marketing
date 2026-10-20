@@ -73,7 +73,83 @@ public class BillsController(ApplicationDbContext db, IBillingService billingSer
         ViewBag.CanRecordPayment = await db.Bills.LatestBillPerConnection()
             .AnyAsync(candidate => candidate.Id == bill.Id && candidate.DueAmount > 0);
 
+        // The notification card reports what the customer has already been told about this bill.
+        ViewBag.LastNotification = await db.CustomerNotifications
+            .AsNoTracking()
+            .Where(n => n.BillId == bill.Id)
+            .OrderByDescending(n => n.CreatedAt)
+            .ThenByDescending(n => n.Id)
+            .FirstOrDefaultAsync();
+
+        ViewBag.NotificationCount = await db.CustomerNotifications.CountAsync(n => n.BillId == bill.Id);
+
         return View(bill);
+    }
+
+    /// <summary>
+    /// Puts a bill-ready message into the bill owner's own customer panel (bell + Notifications
+    /// page). Only that customer sees it, and the page links straight to the payment form.
+    /// </summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> NotifyCustomer(int id, string? message)
+    {
+        ViewData["PanelName"] = "Accounts Panel";
+
+        var bill = await db.Bills
+            .Include(b => b.Customer)
+            .FirstOrDefaultAsync(b => b.Id == id);
+
+        if (bill is null)
+        {
+            return NotFound();
+        }
+
+        if (message?.Length > 1000)
+        {
+            TempData["Error"] = "The extra message cannot exceed 1,000 characters.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        var employee = await User.GetEmployeeAsync(db);
+
+        db.CustomerNotifications.Add(new CustomerNotification
+        {
+            CustomerId = bill.CustomerId,
+            BillId = bill.Id,
+            Title = $"Bill {bill.BillNumber} is ready - PKR {bill.DueAmount:N2} due",
+            Message = BillNotificationBody(bill, message),
+            Amount = bill.DueAmount,
+            CreatedByEmployeeId = employee?.Id
+        });
+        await db.SaveChangesAsync();
+
+        TempData["Success"] = $"Bill notification sent to {bill.Customer.FirstName} {bill.Customer.LastName}'s customer panel.";
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
+    private static string BillNotificationBody(Bill bill, string? message)
+    {
+        var lines = new List<string>
+        {
+            $"Dear {bill.Customer.FirstName} {bill.Customer.LastName},".Trim(),
+            string.Empty,
+            $"Your bill {bill.BillNumber} for {bill.BillingPeriodStart:dd MMM yyyy} - {bill.BillingPeriodEnd:dd MMM yyyy} has been generated.",
+            $"Amount due: PKR {bill.DueAmount:N2}",
+            $"Due date: {bill.DueDate:dd MMM yyyy}",
+            string.Empty,
+            "You can pay this bill from your customer panel: open My Bills and press Pay now. " +
+            "Once the payment is submitted, our accounts team confirms it and the bill updates automatically."
+        };
+
+        if (!string.IsNullOrWhiteSpace(message))
+        {
+            lines.Add(string.Empty);
+            lines.Add("Message from our accounts team:");
+            lines.Add(message.Trim());
+        }
+
+        return string.Join(Environment.NewLine, lines);
     }
 
     [HttpGet]

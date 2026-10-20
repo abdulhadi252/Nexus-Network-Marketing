@@ -155,6 +155,37 @@
             }
         </div>
 
+        <div class="card p-4 mb-3">
+            <h6 class="mb-3">Notify Customer</h6>
+            <p class="text-muted small mb-2">
+                Send order <strong>@Model.OrderNumber</strong> confirmation to
+                <strong>@Model.Customer.Email</strong>: we have received your order and your work will start shortly.
+            </p>
+            <p class="small mb-3">
+                @if (Model.CustomerNotifiedAt.HasValue)
+                {
+                    <span class="badge bg-success">Sent</span>
+                    <span class="text-muted">last sent @Model.CustomerNotifiedAt.Value.ToLocalTime().ToString("dd MMM yyyy HH:mm")</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary">Not sent yet</span>
+                }
+            </p>
+            <form asp-action="NotifyCustomer" asp-route-id="@Model.Id" method="post" class="row g-2">
+                <div class="col-12">
+                    <textarea name="message" class="form-control" rows="2" maxlength="2000"
+                              placeholder="Optional extra note for the customer"></textarea>
+                </div>
+                <div class="col-12 d-grid">
+                    <button type="submit" class="btn btn-primary">
+                        <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-envelope" /></svg>
+                        @(Model.CustomerNotifiedAt.HasValue ? "Resend order received email" : "Send order received email")
+                    </button>
+                </div>
+            </form>
+        </div>
+
         <div class="card p-4">
             <h6 class="mb-3">Update Status</h6>
             <form asp-action="UpdateStatus" asp-route-id="@Model.Id" method="post" class="row g-2">

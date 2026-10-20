@@ -27,6 +27,10 @@ public class Order
     public DateTimeOffset SubmittedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
     public string? Remarks { get; set; }
+
+    // Set when the admin sends the "order received" email from Admin > Orders > Details,
+    // so the team can see whether the customer has already been told work is starting.
+    public DateTimeOffset? CustomerNotifiedAt { get; set; }
     public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
     public FeasibilityReport? FeasibilityReport { get; set; }
     public Connection? Connection { get; set; }

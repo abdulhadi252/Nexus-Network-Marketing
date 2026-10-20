@@ -13,6 +13,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Connection> Connections => Set<Connection>();
     public DbSet<ConnectionPlanHistory> ConnectionPlanHistories => Set<ConnectionPlanHistory>();
     public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
+    public DbSet<CustomerNotification> CustomerNotifications => Set<CustomerNotification>();
     public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<CustomerAddress> CustomerAddresses => Set<CustomerAddress>();
     public DbSet<Employee> Employees => Set<Employee>();
@@ -276,6 +277,19 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     private static void ConfigureSupport(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<CustomerNotification>(entity =>
+        {
+            entity.Property(x => x.Title).HasMaxLength(200).IsRequired();
+            entity.Property(x => x.Message).HasMaxLength(2000).IsRequired();
+            entity.Property(x => x.Amount).HasPrecision(18, 2);
+            // The bell counts unread rows per customer, so that pair is what gets indexed.
+            entity.HasIndex(x => new { x.CustomerId, x.IsRead });
+            entity.HasIndex(x => x.CreatedAt);
+            entity.HasOne(x => x.Customer).WithMany().HasForeignKey(x => x.CustomerId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(x => x.Bill).WithMany().HasForeignKey(x => x.BillId).OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(x => x.CreatedByEmployee).WithMany().HasForeignKey(x => x.CreatedByEmployeeId).OnDelete(DeleteBehavior.SetNull);
+        });
+
         modelBuilder.Entity<ContactMessage>(entity =>
         {
             entity.Property(x => x.Name).HasMaxLength(100).IsRequired();

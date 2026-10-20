@@ -42,6 +42,7 @@ public class PanelNotificationsViewComponent(ApplicationDbContext db) : ViewComp
                     o.Status == OrderStatus.Pending || o.Status == OrderStatus.FeasibilityPending);
                 var lowStock = await db.StockItems.CountAsync(s => s.QuantityOnHand <= s.ReorderLevel);
                 var unreadMessages = await db.ContactMessages.CountAsync(m => !m.IsRead);
+                var pendingFeedback = await db.FeedbackEntries.CountAsync(f => !f.IsReviewed);
 
                 Add(items, "Pending orders", pendingOrders,
                     Url.Action("Index", "Orders", new { area, status = OrderStatus.Pending }));
@@ -49,6 +50,8 @@ public class PanelNotificationsViewComponent(ApplicationDbContext db) : ViewComp
                     Url.Action("Index", "Stock", new { area, lowOnly = true }));
                 Add(items, "Unread messages", unreadMessages,
                     Url.Action("Index", "Messages", new { area, unreadOnly = true }));
+                Add(items, "Feedback awaiting review", pendingFeedback,
+                    Url.Action("Index", "Feedback", new { area, status = "pending" }));
                 break;
             }
 
@@ -121,12 +124,18 @@ public class PanelNotificationsViewComponent(ApplicationDbContext db) : ViewComp
                 var pendingPayments = await db.Payments.CountAsync(p =>
                     p.CustomerId == customerId.Value && p.Status == PaymentStatus.PendingVerification);
 
+                // Messages the team sent to this customer (e.g. "your bill is ready").
+                var unreadNotifications = await db.CustomerNotifications.CountAsync(n =>
+                    n.CustomerId == customerId.Value && !n.IsRead);
+
                 Add(items, "Unpaid bills", unpaidBills,
                     Url.Action("Index", "Bills", new { area }));
                 Add(items, "Payments awaiting confirmation", pendingPayments,
                     Url.Action("Index", "Payments", new { area }));
                 Add(items, "Orders in progress", pendingOrders,
                     Url.Action("Index", "Orders", new { area }));
+                Add(items, "New notifications", unreadNotifications,
+                    Url.Action("Index", "Notifications", new { area }));
                 break;
             }
         }

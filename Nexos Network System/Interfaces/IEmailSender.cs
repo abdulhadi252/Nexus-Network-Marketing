@@ -1,8 +1,8 @@
 namespace Nexos_Network_System.Interfaces;
 
 /// <summary>
-/// A single outbound email: one reply going back to whoever filled in the
-/// public contact form.
+/// A single outbound email: a reply to whoever filled in the public contact
+/// form, or the "order received" confirmation sent from an order's details page.
 /// </summary>
 /// <param name="To">Recipient address.</param>
 /// <param name="ToName">Recipient display name, when we know it.</param>
@@ -19,8 +19,8 @@ public class EmailSendException(string message, Exception? innerException = null
     : Exception(message, innerException);
 
 /// <summary>
-/// The app's only outbound mail need: sending the admin's reply back to a
-/// contact message sender.
+/// Outbound mail: the admin's reply to a contact message sender, and the
+/// order-received notification sent to a customer.
 /// </summary>
 public interface IEmailSender
 {

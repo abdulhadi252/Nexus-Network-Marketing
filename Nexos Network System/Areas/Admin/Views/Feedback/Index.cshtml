@@ -1,0 +1,222 @@
+@model PagedResult<Feedback>
+@{
+    ViewData["Title"] = "Feedback";
+    var total = (int)ViewData["TotalFeedback"]!;
+    var pending = (int)ViewData["PendingFeedback"]!;
+    var reviewed = (int)ViewData["ReviewedFeedback"]!;
+    var average = (double)ViewData["AverageRating"]!;
+    var ratingCount = (int)ViewData["RatingCount"]!;
+    var currentStatus = ViewData["Status"] as string;
+}
+
+<nav class="crumbs" aria-label="Breadcrumb">
+    <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+        <svg class="svg-icon" aria-hidden="true"><use href="#i-home-clean" /></svg>
+        <span>Dashboard</span>
+    </a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <span class="crumbs__current" aria-current="page">Feedback</span>
+</nav>
+
+<div class="page-header">
+    <div>
+        <h1 class="h3">Customer Feedback</h1>
+        <p class="page-subtitle">Every rating and comment submitted from the customer panel, newest first.</p>
+    </div>
+    <div class="page-head__actions">
+        <span class="count-chip">
+            <svg class="svg-icon" aria-hidden="true"><use href="#i-feedback" /></svg>
+            @total feedback entr@(total == 1 ? "y" : "ies")
+        </span>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-12 col-sm-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--blue">
+                    <svg class="svg-icon" aria-hidden="true"><use href="#i-feedback" /></svg>
+                </span>
+                <span class="kpi-card__label">Total Feedback</span>
+            </div>
+            <div class="kpi-card__value">@total.ToString("N0")</div>
+            <div class="kpi-card__foot">
+                <span class="kpi-trend__caption">all submissions</span>
+            </div>
+        </article>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--orange">
+                    <svg class="svg-icon" aria-hidden="true"><use href="#i-clock" /></svg>
+                </span>
+                <span class="kpi-card__label">Pending Review</span>
+            </div>
+            <div class="kpi-card__value">@pending.ToString("N0")</div>
+            <div class="kpi-card__foot">
+                <span class="kpi-trend__caption">waiting for an admin</span>
+            </div>
+        </article>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--green">
+                    <svg class="svg-icon" aria-hidden="true"><use href="#i-check-circle" /></svg>
+                </span>
+                <span class="kpi-card__label">Reviewed</span>
+            </div>
+            <div class="kpi-card__value">@reviewed.ToString("N0")</div>
+            <div class="kpi-card__foot">
+                <span class="kpi-trend__caption">already checked</span>
+            </div>
+        </article>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <article class="kpi-card">
+            <div class="kpi-card__top">
+                <span class="kpi-card__icon kpi-card__icon--purple">
+                    <svg class="svg-icon" aria-hidden="true"><use href="#i-feedback" /></svg>
+                </span>
+                <span class="kpi-card__label">Average Rating</span>
+            </div>
+            <div class="kpi-card__value">@(ratingCount == 0 ? "—" : average.ToString("N1"))</div>
+            <div class="kpi-card__foot">
+                <span class="kpi-trend__caption">@ratingCount rated submission@(ratingCount == 1 ? string.Empty : "s")</span>
+            </div>
+        </article>
+    </div>
+</div>
+
+<section class="card directory">
+    <div class="card-body">
+        <header class="directory__head">
+            <span class="directory__head-icon">
+                <svg class="svg-icon" aria-hidden="true"><use href="#i-feedback" /></svg>
+            </span>
+            <h2 class="directory__title">Feedback Inbox</h2>
+        </header>
+
+        <form method="get" class="toolbar directory__toolbar mb-0">
+            <div class="search-bar directory__search">
+                <svg class="search-icon svg-icon" aria-hidden="true"><use href="#i-search" /></svg>
+                <label class="visually-hidden" for="feedbackSearch">Search feedback</label>
+                <input id="feedbackSearch" type="search" name="Query" value="@ViewData["Query"]"
+                       class="form-control" placeholder="Customer name, email or message..." />
+            </div>
+
+            <div class="toolbar__select">
+                <label class="visually-hidden" for="feedbackStatus">Status</label>
+                <select id="feedbackStatus" name="Status" class="form-select">
+                    <option value="">All feedback</option>
+                    <option value="pending" selected="@(currentStatus == "pending")">Pending review</option>
+                    <option value="reviewed" selected="@(currentStatus == "reviewed")">Reviewed</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-search" /></svg>
+                Filter
+            </button>
+            <a class="btn btn-outline-secondary" asp-action="Index">
+                <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-refresh" /></svg>
+                Reset
+            </a>
+        </form>
+
+        @if (Model.Items.Count == 0)
+        {
+            <div class="empty-state">
+                <span class="empty-icon">
+                    <svg class="svg-icon" aria-hidden="true"><use href="#i-feedback" /></svg>
+                </span>
+                <p class="empty-title">No feedback found</p>
+                <p class="mb-0">Try a different search term or clear the filters.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle directory__table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Submitted</th>
+                            <th scope="col">Customer</th>
+                            <th scope="col">Connection</th>
+                            <th scope="col">Rating</th>
+                            <th scope="col">Message</th>
+                            <th scope="col">Status</th>
+                            <th scope="col" class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var feedback in Model.Items)
+                        {
+                            <tr>
+                                <td class="text-body-muted">
+                                    @feedback.SubmittedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")
+                                </td>
+                                <td>
+                                    <div class="person">
+                                        <span class="person__avatar person__avatar--blue" aria-hidden="true">
+                                            @(string.Concat((feedback.Customer.FirstName.Trim() is { Length: > 0 } f ? f[..1] : string.Empty),
+                                                (feedback.Customer.LastName.Trim() is { Length: > 0 } l ? l[..1] : string.Empty)).ToUpperInvariant())
+                                        </span>
+                                        <span class="person__body">
+                                            <span class="person__name">@feedback.Customer.FirstName @feedback.Customer.LastName</span>
+                                            <a class="person__meta" href="mailto:@feedback.Customer.Email">@feedback.Customer.Email</a>
+                                        </span>
+                                    </div>
+                                </td>
+                                <td>@(feedback.Connection?.AccountNumber ?? "-")</td>
+                                <td>
+                                    @if (feedback.Rating.HasValue)
+                                    {
+                                        <span class="text-warning">&#9733; @feedback.Rating.Value/5</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td style="max-width: 380px;">@feedback.Message</td>
+                                <td>
+                                    @if (feedback.IsReviewed)
+                                    {
+                                        <span class="status-pill status-pill--positive">
+                                            <span class="status-pill__dot" aria-hidden="true"></span>Reviewed
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-pill status-pill--warning">
+                                            <span class="status-pill__dot" aria-hidden="true"></span>Pending review
+                                        </span>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    <form asp-action="ToggleReviewed" asp-route-id="@feedback.Id"
+                                          asp-route-query="@ViewData["Query"]"
+                                          asp-route-status="@currentStatus"
+                                          asp-route-page="@Model.Page"
+                                          method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-sm @(feedback.IsReviewed ? "btn-outline-secondary" : "btn-primary")">
+                                            @(feedback.IsReviewed ? "Mark pending" : "Mark reviewed")
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <partial name="_Pagination" model="Model" />
+        }
+    </div>
+</section>

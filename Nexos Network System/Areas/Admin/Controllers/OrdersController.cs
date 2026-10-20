@@ -13,7 +13,11 @@ namespace Nexos_Network_System.Areas.Admin.Controllers;
 
 [Area("Admin")]
 [Authorize(Roles = "Admin")]
-public class OrdersController(ApplicationDbContext db, IOrderService orderService) : Controller
+public class OrdersController(
+    ApplicationDbContext db,
+    IOrderService orderService,
+    IEmailSender emailSender,
+    ILogger<OrdersController> logger) : Controller
 {
     public async Task<IActionResult> Index(OrderFilterViewModel filter, int page = 1)
     {
@@ -139,5 +143,89 @@ public class OrdersController(ApplicationDbContext db, IOrderService orderServic
         }
 
         return RedirectToAction(nameof(Details), new { id });
+    }
+
+    /// <summary>
+    /// Emails the customer that their order has been received and work is starting.
+    /// The address always comes from the stored customer, never from the posted form.
+    /// </summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> NotifyCustomer(int id, string? message)
+    {
+        var order = await db.Orders
+            .Include(o => o.Customer)
+            .Include(o => o.Plan)
+            .FirstOrDefaultAsync(o => o.Id == id);
+
+        if (order is null)
+        {
+            return NotFound();
+        }
+
+        if (string.IsNullOrWhiteSpace(order.Customer.Email))
+        {
+            TempData["Error"] = "This customer has no email address on record, so no notification could be sent.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        if (message?.Length > 2000)
+        {
+            TempData["Error"] = "The extra message cannot exceed 2,000 characters.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        var recipient = order.Customer.Email.Trim();
+
+        try
+        {
+            await emailSender.SendAsync(new OutboundEmail(
+                recipient,
+                $"{order.Customer.FirstName} {order.Customer.LastName}".Trim(),
+                $"Order {order.OrderNumber} received - your work will start shortly",
+                OrderReceivedBody(order, message)));
+        }
+        catch (EmailSendException ex)
+        {
+            logger.LogError(ex, "Order received notification for {OrderNumber} failed", order.OrderNumber);
+            TempData["Error"] = ex.Message;
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        order.CustomerNotifiedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync();
+
+        TempData["Success"] = $"Order received email sent to {recipient}.";
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
+    private static string OrderReceivedBody(Order order, string? message)
+    {
+        var lines = new List<string>
+        {
+            $"Dear {order.Customer.FirstName} {order.Customer.LastName},".Trim(),
+            string.Empty,
+            $"Thank you for your order. We have received order {order.OrderNumber} and your work will start shortly.",
+            string.Empty,
+            $"Order number   : {order.OrderNumber}",
+            $"Service        : {order.ConnectionType}",
+            $"Plan           : {order.Plan?.Name ?? "-"}",
+            $"Submitted      : {order.SubmittedAt.ToLocalTime():dd MMM yyyy HH:mm}",
+            $"Current status : {order.Status}"
+        };
+
+        if (!string.IsNullOrWhiteSpace(message))
+        {
+            lines.Add(string.Empty);
+            lines.Add("Message from our team:");
+            lines.Add(message.Trim());
+        }
+
+        lines.Add(string.Empty);
+        lines.Add("You can follow this order at any time on our website under Track Order using the order number above.");
+        lines.Add(string.Empty);
+        lines.Add("Nexos Network - Customer Care");
+
+        return string.Join(Environment.NewLine, lines);
     }
 }

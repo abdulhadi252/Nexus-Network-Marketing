@@ -622,6 +622,59 @@ namespace Nexos_Network_System.Data.Migrations
                     b.ToTable("CustomerAddresses");
                 });
 
+            modelBuilder.Entity("Nexos_Network_System.Models.CustomerNotification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal?>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("BillId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("CreatedByEmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTimeOffset?>("ReadAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BillId");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("CreatedByEmployeeId");
+
+                    b.HasIndex("CustomerId", "IsRead");
+
+                    b.ToTable("CustomerNotifications");
+                });
+
             modelBuilder.Entity("Nexos_Network_System.Models.Employee", b =>
                 {
                     b.Property<int>("Id")
@@ -835,6 +888,9 @@ namespace Nexos_Network_System.Data.Migrations
 
                     b.Property<int>("CustomerId")
                         .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("CustomerNotifiedAt")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<string>("OrderNumber")
                         .IsRequired()
@@ -1430,6 +1486,31 @@ namespace Nexos_Network_System.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("City");
+
+                    b.Navigation("Customer");
+                });
+
+            modelBuilder.Entity("Nexos_Network_System.Models.CustomerNotification", b =>
+                {
+                    b.HasOne("Nexos_Network_System.Models.Bill", "Bill")
+                        .WithMany()
+                        .HasForeignKey("BillId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Nexos_Network_System.Models.Employee", "CreatedByEmployee")
+                        .WithMany()
+                        .HasForeignKey("CreatedByEmployeeId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Nexos_Network_System.Models.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Bill");
+
+                    b.Navigation("CreatedByEmployee");
 
                     b.Navigation("Customer");
                 });

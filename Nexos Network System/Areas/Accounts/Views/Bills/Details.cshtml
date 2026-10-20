@@ -1,6 +1,8 @@
 @model Bill
 @{
     ViewData["Title"] = "Bill Details";
+    var lastNotification = ViewBag.LastNotification as CustomerNotification;
+    var notificationCount = (int?)ViewBag.NotificationCount ?? 0;
 }
 
 <nav class="crumbs" aria-label="Breadcrumb">
@@ -118,6 +120,53 @@
                 <dt class="col-7">Generated</dt>
                 <dd class="col-5">@Model.GeneratedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</dd>
             </dl>
+        </div>
+
+        <div class="card p-4 mt-3">
+            <h6 class="mb-3">Notify Customer</h6>
+            <p class="text-muted small mb-2">
+                Send this bill to <strong>@Model.Customer.FirstName @Model.Customer.LastName</strong>'s own
+                customer panel. Sirf wohi customer isse dekhta hai, aur message se seedha <em>Pay now</em> khulta hai.
+            </p>
+
+            <p class="small mb-3">
+                @if (lastNotification is null)
+                {
+                    <span class="badge bg-secondary">Not sent yet</span>
+                }
+                else
+                {
+                    <span class="badge bg-success">Sent</span>
+                    <span class="text-muted">
+                        @lastNotification.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")
+                        &middot; @(lastNotification.IsRead ? "customer ne parh li" : "customer ne abhi nahi parhi")
+                        @if (notificationCount > 1)
+                        {
+                            <text> &middot; @notificationCount times</text>
+                        }
+                    </span>
+                }
+            </p>
+
+            @if (Model.DueAmount <= 0)
+            {
+                <p class="text-muted small mb-0">Is bill par koi outstanding due nahi hai, is liye notification ki zaroorat nahi.</p>
+            }
+            else
+            {
+                <form asp-action="NotifyCustomer" asp-route-id="@Model.Id" method="post" class="row g-2">
+                    <div class="col-12">
+                        <textarea name="message" class="form-control" rows="2" maxlength="1000"
+                                  placeholder="Optional note for the customer (e.g. payment deadline)"></textarea>
+                    </div>
+                    <div class="col-12 d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-bell" /></svg>
+                            @(lastNotification is null ? "Send bill notification" : "Resend bill notification")
+                        </button>
+                    </div>
+                </form>
+            }
         </div>
     </div>
 </div>
