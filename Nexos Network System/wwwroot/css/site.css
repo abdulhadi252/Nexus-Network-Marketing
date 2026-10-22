@@ -7051,7 +7051,7 @@ body:not(.panel-body) main > :not(.hero):nth-child(3) { animation-delay: 160ms; 
 
 .hp-svc-card__media {
     position: relative;
-    height: 158px;
+    height: 190px;
     overflow: hidden;
     background: linear-gradient(135deg, #0a2754 0%, #0e4bb0 100%);
 }
