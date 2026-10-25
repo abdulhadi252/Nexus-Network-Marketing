@@ -101,7 +101,7 @@
 
                 <div class="lg-new">
                     <span>New to NEXUS?</span>
-                    <a asp-area="Identity" asp-controller="Account" asp-action="Register">
+                    <a asp-area="Identity" asp-controller="Account" asp-action="Register" asp-route-returnUrl="@Model.ReturnUrl">
                         Create an account
                         <svg class="btn-icon" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
                     </a>

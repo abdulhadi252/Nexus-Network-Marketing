@@ -233,13 +233,13 @@
                         <div class="pd-order__divider" aria-hidden="true"><span>OR</span></div>
 
                         <a class="btn btn-outline-primary pd-order__cta pd-order__cta--outline"
-                           asp-area="Identity" asp-controller="Account" asp-action="Register">
+                           asp-area="Identity" asp-controller="Account" asp-action="Register" asp-route-returnUrl="@orderUrl">
                             <svg class="btn-icon" aria-hidden="true"><use href="#i-user" /></svg>
                             Register as a Customer
                         </a>
 
                         <p class="pd-order__hint">
-                            New here? Create your free customer account, then sign in and place this order from your panel.
+                            New here? Create your free customer account and you will come straight back to this plan's order form.
                         </p>
                     }
 

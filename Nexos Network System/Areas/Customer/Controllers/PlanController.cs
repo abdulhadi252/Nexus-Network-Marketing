@@ -29,6 +29,16 @@ public class PlanController(ApplicationDbContext db) : Controller
             .AsNoTracking()
             .ToListAsync();
 
+        // Every other active plan is offered underneath, so the customer can read a plan's
+        // details and order it from the panel instead of asking the branch.
+        var currentPlanIds = plans.Select(p => p.Id).ToList();
+        ViewBag.OtherPlans = await db.Plans
+            .AsNoTracking()
+            .Where(p => p.IsActive && !currentPlanIds.Contains(p.Id))
+            .OrderBy(p => p.ConnectionType)
+            .ThenBy(p => p.RecurringCharge)
+            .ToListAsync();
+
         return View(plans);
     }
 }

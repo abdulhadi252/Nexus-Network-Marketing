@@ -137,4 +137,7 @@ public class RegisterViewModel
     [Compare(nameof(Password), ErrorMessage = "The password and confirmation do not match.")]
     [Display(Name = "Confirm Password")]
     public string ConfirmPassword { get; set; } = string.Empty;
+
+    /// <summary>Local URL to return to after registration (e.g. a plan's order form).</summary>
+    public string? ReturnUrl { get; set; }
 }

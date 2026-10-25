@@ -46,8 +46,6 @@ public class OrdersController(ApplicationDbContext db, IOrderService orderServic
             return Forbid();
         }
 
-        await LoadPlansAsync();
-
         // When the visitor arrived from a plan detail page, preselect that plan so the
         // order can be submitted without choosing it again.
         var model = new CustomerOrderViewModel();
@@ -55,6 +53,8 @@ public class OrdersController(ApplicationDbContext db, IOrderService orderServic
         {
             model.PlanId = planId.Value;
         }
+
+        await LoadPlansAsync(model.PlanId);
 
         return View(model);
     }
@@ -84,7 +84,7 @@ public class OrdersController(ApplicationDbContext db, IOrderService orderServic
 
         if (!ModelState.IsValid)
         {
-            await LoadPlansAsync();
+            await LoadPlansAsync(model.PlanId);
             return View(model);
         }
 
@@ -106,7 +106,7 @@ public class OrdersController(ApplicationDbContext db, IOrderService orderServic
         catch (InvalidOperationException ex)
         {
             ModelState.AddModelError(string.Empty, ex.Message);
-            await LoadPlansAsync();
+            await LoadPlansAsync(model.PlanId);
             return View(model);
         }
     }
@@ -137,21 +137,37 @@ public class OrdersController(ApplicationDbContext db, IOrderService orderServic
         return View(order);
     }
 
-    private async Task LoadPlansAsync()
+    private async Task LoadPlansAsync(int selectedPlanId = 0)
     {
+        // Materialise the plans before building the labels: concatenating the
+        // ConnectionType enum inside the LINQ query would send its numeric value to SQL
+        // and the dropdown would read "1 - Broadband Home 10 Mbps" instead of the type name.
+        var plans = await db.Plans
+            .AsNoTracking()
+            .Where(p => p.IsActive)
+            .OrderBy(p => p.ConnectionType)
+            .ThenBy(p => p.RecurringCharge)
+            .ToListAsync();
+
         ViewBag.Plans = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
-            await db.Plans
-                .AsNoTracking()
-                .Where(p => p.IsActive)
-                .OrderBy(p => p.ConnectionType)
-                .ThenBy(p => p.RecurringCharge)
-                .Select(p => new
-                {
-                    p.Id,
-                    Label = p.ConnectionType + " - " + p.Name + " (PKR " + p.RecurringCharge + ")"
-                })
-                .ToListAsync(),
+            plans.Select(p => new
+            {
+                p.Id,
+                Label = $"{p.ConnectionType} - {p.Name} (PKR {p.RecurringCharge})"
+            }).ToList(),
             "Id",
             "Label");
+
+        // The same plans are shown under the form as cards, so a customer can pick a plan
+        // there and order it without touching the dropdown.
+        ViewBag.PlanCards = plans
+            .Select(p => new PlanCardViewModel
+            {
+                Plan = p,
+                Selectable = true,
+                IsSelected = p.Id == selectedPlanId,
+                DetailsUrl = Url.Action("PlanDetails", "Home", new { area = string.Empty, id = p.Id })
+            })
+            .ToList();
     }
 }

@@ -1,6 +1,8 @@
 @model IReadOnlyList<Plan>
 @{
     ViewData["Title"] = "Current Plan";
+
+    var otherPlans = ViewBag.OtherPlans as IEnumerable<Plan> ?? Enumerable.Empty<Plan>();
 }
 
 <nav class="crumbs" aria-label="Breadcrumb">
@@ -15,7 +17,7 @@
 <div class="page-header">
     <div>
         <h1 class="h3">Current Plan</h1>
-        <p class="page-subtitle">Plan details for your active services. To change a plan, please contact your branch.</p>
+        <p class="page-subtitle">The plan behind each of your active services. Open any other plan below to read its details and order it from your panel.</p>
     </div>
 </div>
 
@@ -63,4 +65,36 @@ else
             </div>
         }
     </div>
+}
+
+@if (otherPlans.Any())
+{
+    <section class="plan-picker mt-4" aria-labelledby="other-plans-title">
+        <div class="plan-picker__head">
+            <div>
+                <h2 class="plan-picker__title" id="other-plans-title">Other plans you can order</h2>
+                <p class="plan-picker__sub">
+                    Open a card to see the full specification, then place the order straight from your panel.
+                </p>
+            </div>
+            <a class="btn btn-outline-secondary btn-sm" asp-area="" asp-controller="Home" asp-action="Plans">
+                Compare plans
+            </a>
+        </div>
+
+        <div class="row g-3">
+            @foreach (var plan in otherPlans)
+            {
+                var card = new PlanCardViewModel
+                {
+                    Plan = plan,
+                    DetailsUrl = Url.Action("PlanDetails", "Home", new { area = string.Empty, id = plan.Id })
+                };
+
+                <div class="col-12 col-md-6 col-lg-4">
+                    <partial name="_PlanCard" model="card" />
+                </div>
+            }
+        </div>
+    </section>
 }

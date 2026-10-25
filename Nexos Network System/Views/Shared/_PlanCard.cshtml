@@ -1,0 +1,105 @@
+@model PlanCardViewModel
+@{
+    var plan = Model.Plan;
+
+    var accent = (plan.Id % 3) switch
+    {
+        1 => "pl-plan--violet",
+        2 => "pl-plan--green",
+        _ => "pl-plan--blue"
+    };
+
+    var cardClasses = "pl-plan plan-tile " + accent
+        + (Model.Selectable ? " pl-plan--selectable" : string.Empty)
+        + (Model.IsSelected ? " is-selected" : string.Empty);
+}
+
+<article class="@cardClasses" data-plan-id="@plan.Id"
+         @if (Model.Selectable)
+         {
+             <text>data-plan-select tabindex="0" role="button" aria-pressed="@(Model.IsSelected ? "true" : "false")" aria-label="Select @plan.Name"</text>
+         }>
+    <header class="pl-plan__head">
+        <div class="pl-plan__headrow">
+            <h3 class="pl-plan__name">
+                @if (!Model.Selectable && !string.IsNullOrEmpty(Model.DetailsUrl))
+                {
+                    <a class="pl-plan__link" href="@Model.DetailsUrl">@plan.Name</a>
+                }
+                else
+                {
+                    @plan.Name
+                }
+            </h3>
+            @if (Model.IsCurrent)
+            {
+                <span class="pl-plan__pill pl-plan__pill--popular">Current</span>
+            }
+            else
+            {
+                <span class="pl-plan__pill">@plan.ConnectionType</span>
+            }
+        </div>
+        @if (!string.IsNullOrWhiteSpace(plan.Description))
+        {
+            <p class="pl-plan__desc">@plan.Description</p>
+        }
+    </header>
+
+    <p class="pl-plan__price">
+        PKR <strong>@plan.RecurringCharge.ToString("N0")</strong>
+        <small>/ @plan.BillingCycle.ToString().ToLowerInvariant()</small>
+    </p>
+
+    <ul class="pl-plan__rows">
+        @if (plan.SpeedMbps.HasValue)
+        {
+            <li>
+                <svg class="svg-icon" aria-hidden="true"><use href="#i-bolt" /></svg>
+                <span>Speed</span>
+                <b>@plan.SpeedMbps Mbps</b>
+            </li>
+        }
+        @if (plan.IncludedUsageHours.HasValue)
+        {
+            <li>
+                <svg class="svg-icon" aria-hidden="true"><use href="#i-clock" /></svg>
+                <span>Free usage</span>
+                <b>@plan.IncludedUsageHours h / cycle</b>
+            </li>
+        }
+        @if (plan.ValidityDays.HasValue)
+        {
+            <li>
+                <svg class="svg-icon" aria-hidden="true"><use href="#i-clock" /></svg>
+                <span>Validity</span>
+                <b>@plan.ValidityDays days</b>
+            </li>
+        }
+        <li>
+            <svg class="svg-icon" aria-hidden="true"><use href="#i-shield" /></svg>
+            <span>Security deposit</span>
+            <b>PKR @plan.SecurityDeposit.ToString("N0")</b>
+        </li>
+        <li>
+            <svg class="svg-icon" aria-hidden="true"><use href="#i-package" /></svg>
+            <span>Installation</span>
+            <b>PKR @plan.InstallationCharge.ToString("N0")</b>
+        </li>
+    </ul>
+
+    <div class="plan-tile__actions">
+        @if (Model.Selectable)
+        {
+            <button type="button" class="btn btn-primary pl-plan__cta" data-order-plan>Order this plan</button>
+            @if (!string.IsNullOrEmpty(Model.DetailsUrl))
+            {
+                <a class="btn btn-outline-secondary" href="@Model.DetailsUrl">Details</a>
+            }
+        }
+        else if (!string.IsNullOrEmpty(Model.DetailsUrl))
+        {
+            <a class="btn btn-primary pl-plan__cta" href="@Model.DetailsUrl">View details &amp; order</a>
+        }
+    </div>
+</article>

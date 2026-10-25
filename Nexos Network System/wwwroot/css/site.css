@@ -3962,6 +3962,68 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 8px 18px -12px rgba(18, 183, 106, .85);
 }
 
+/* ---- Plan tiles inside the customer panel ---- */
+.plan-picker__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: .75rem 1rem;
+    margin-bottom: 1rem;
+}
+
+.plan-picker__title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--nexos-navy);
+    margin: 0 0 .25rem;
+}
+
+.plan-picker__sub {
+    font-size: .86rem;
+    color: var(--nexos-muted);
+    margin: 0;
+    max-width: 62ch;
+}
+
+.plan-tile { height: 100%; }
+
+.plan-tile__actions {
+    margin-top: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+
+.plan-tile__actions .pl-plan__cta {
+    margin-top: 0;
+    flex: 1 1 140px;
+}
+
+.pl-plan__link { color: inherit; text-decoration: none; }
+.pl-plan__link:hover { color: var(--nexos-primary); }
+
+/* Clicking the tile picks the plan in the order form. */
+.pl-plan--selectable {
+    cursor: pointer;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.pl-plan--selectable:hover { border-color: var(--nexos-primary); }
+
+.pl-plan--selectable:focus-visible {
+    outline: none;
+    border-color: var(--nexos-primary);
+    box-shadow: 0 0 0 3px var(--nexos-primary-soft), var(--nexos-shadow);
+}
+
+.pl-plan--selectable.is-selected {
+    border-color: var(--nexos-primary);
+    box-shadow: 0 0 0 2px var(--nexos-primary-soft), var(--nexos-shadow);
+}
+
+.pl-plan--selectable.is-selected .pl-plan__pill { color: #fff; background: var(--nexos-primary); }
+
 /* ---- Responsive ---- */
 @media (max-width: 991.98px) {
     .pl-hero { padding: 3.4rem 0 3.2rem; }

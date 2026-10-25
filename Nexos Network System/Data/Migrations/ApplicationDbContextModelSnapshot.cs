@@ -875,6 +875,62 @@ namespace Nexos_Network_System.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Nexos_Network_System.Models.LoginAudit", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTimeOffset>("AttemptedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("FailureReason")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("FullName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<bool>("IsSuccessful")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Roles")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AttemptedAt");
+
+                    b.HasIndex("CustomerId", "AttemptedAt");
+
+                    b.HasIndex("UserId", "AttemptedAt");
+
+                    b.ToTable("LoginAudits");
+                });
+
             modelBuilder.Entity("Nexos_Network_System.Models.Order", b =>
                 {
                     b.Property<int>("Id")
@@ -1584,6 +1640,16 @@ namespace Nexos_Network_System.Data.Migrations
                     b.Navigation("Connection");
 
                     b.Navigation("Customer");
+                });
+
+            modelBuilder.Entity("Nexos_Network_System.Models.LoginAudit", b =>
+                {
+                    b.HasOne("Nexos_Network_System.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Nexos_Network_System.Models.Order", b =>

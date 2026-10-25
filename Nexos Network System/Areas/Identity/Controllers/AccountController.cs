@@ -19,7 +19,8 @@ namespace Nexos_Network_System.Areas.Identity.Controllers;
 public class AccountController(
     SignInManager<ApplicationUser> signInManager,
     UserManager<ApplicationUser> userManager,
-    ApplicationDbContext db) : AccountProfileControllerBase(userManager, signInManager, db)
+    ApplicationDbContext db,
+    ILogger<AccountController> logger) : AccountProfileControllerBase(userManager, signInManager, db)
 {
     protected override string PanelName => "Account";
     [HttpGet]
@@ -47,6 +48,7 @@ public class AccountController(
         var user = await UserManager.FindByEmailAsync(model.Email.Trim());
         if (user is null)
         {
+            await RecordLoginAsync(null, model.Email, Array.Empty<string>(), success: false, "Unknown email");
             ModelState.AddModelError(string.Empty, "Invalid email or password.");
             return View(model);
         }
@@ -58,6 +60,7 @@ public class AccountController(
                 (employee.Role.ToString() != "Retail" ||
                  employee.RetailShopId.HasValue && employee.RetailShop!.IsActive)))
         {
+            await RecordLoginAsync(user, model.Email, roles, success: false, "Inactive or unlinked staff account");
             ModelState.AddModelError(string.Empty, "Invalid email or password.");
             return View(model);
         }
@@ -66,6 +69,7 @@ public class AccountController(
             (user.CustomerId is null ||
              !await Db.Customers.AnyAsync(customer => customer.Id == user.CustomerId && customer.IsActive)))
         {
+            await RecordLoginAsync(user, model.Email, roles, success: false, "Inactive or unlinked customer account");
             ModelState.AddModelError(string.Empty, "Invalid email or password.");
             return View(model);
         }
@@ -73,8 +77,13 @@ public class AccountController(
         var result = await SignInManager.PasswordSignInAsync(user, model.Password, model.RememberMe, lockoutOnFailure: true);
         if (result.Succeeded)
         {
+            await RecordLoginAsync(user, model.Email, roles, success: true, failureReason: null);
             return RedirectToLocal(model.ReturnUrl) ?? RedirectToPanelHome(roles.GetPanelAreaName());
         }
+
+        await RecordLoginAsync(user, model.Email, roles, success: false, result.IsLockedOut
+            ? "Account locked out after repeated failures"
+            : "Invalid password");
 
         ModelState.AddModelError(string.Empty, result.IsLockedOut
             ? "This account is temporarily locked after too many failed attempts. Please try again later."
@@ -133,7 +142,7 @@ public class AccountController(
 
     [HttpGet]
     [AllowAnonymous]
-    public async Task<IActionResult> Register()
+    public async Task<IActionResult> Register(string? returnUrl = null)
     {
         if (User.Identity?.IsAuthenticated == true)
         {
@@ -141,7 +150,7 @@ public class AccountController(
         }
 
         await LoadRegistrationCitiesAsync();
-        return View(new RegisterViewModel());
+        return View(new RegisterViewModel { ReturnUrl = returnUrl });
     }
 
     [HttpPost]
@@ -237,7 +246,12 @@ public class AccountController(
         await transaction.CommitAsync();
 
         await SignInManager.SignInAsync(user, isPersistent: false);
-        return RedirectToAction("Index", "Dashboard", new { area = "Customer" });
+        await RecordLoginAsync(user, email, new[] { "Customer" }, success: true, failureReason: null);
+
+        // A visitor who picked a plan before registering lands back on that plan's order
+        // form instead of the dashboard, so the order can be submitted immediately.
+        return RedirectToLocal(model.ReturnUrl) ??
+               RedirectToAction("Index", "Dashboard", new { area = "Customer" });
     }
 
     private async Task LoadRegistrationCitiesAsync()
@@ -246,6 +260,47 @@ public class AccountController(
             await Db.Cities.AsNoTracking().OrderBy(c => c.Name).ToListAsync(),
             nameof(City.Id), nameof(City.Name));
     }
+
+    /// <summary>
+    /// Stores one row per sign-in attempt - successful or not - for customers and for the
+    /// Admin, Retail, Technical and Accounts panel accounts. Password material is never
+    /// written: Identity keeps only its hash in AspNetUsers.PasswordHash. Auditing must
+    /// never block a sign-in, so storage failures are logged and swallowed.
+    /// </summary>
+    private async Task RecordLoginAsync(
+        ApplicationUser? user,
+        string email,
+        IEnumerable<string> roles,
+        bool success,
+        string? failureReason)
+    {
+        var roleList = roles.ToList();
+
+        try
+        {
+            Db.LoginAudits.Add(new LoginAudit
+            {
+                UserId = user?.Id,
+                Email = Truncate(email.Trim(), 256) ?? string.Empty,
+                FullName = Truncate(user?.FullName, 200),
+                Roles = roleList.Count == 0 ? null : Truncate(string.Join(", ", roleList), 100),
+                CustomerId = user?.CustomerId,
+                IsSuccessful = success,
+                FailureReason = Truncate(failureReason, 300),
+                IpAddress = Truncate(HttpContext.Connection.RemoteIpAddress?.ToString(), 64),
+                UserAgent = Truncate(Request.Headers.UserAgent.ToString(), 400),
+                AttemptedAt = DateTimeOffset.UtcNow
+            });
+            await Db.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Unable to record the login attempt for {Email}.", email);
+        }
+    }
+
+    private static string? Truncate(string? value, int maxLength) =>
+        string.IsNullOrEmpty(value) || value.Length <= maxLength ? value : value[..maxLength];
 
     private IActionResult? RedirectToLocal(string? returnUrl)
     {

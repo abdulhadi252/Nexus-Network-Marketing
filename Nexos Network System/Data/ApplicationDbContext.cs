@@ -20,6 +20,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Equipment> Equipment => Set<Equipment>();
     public DbSet<FeasibilityReport> FeasibilityReports => Set<FeasibilityReport>();
     public DbSet<Feedback> FeedbackEntries => Set<Feedback>();
+    public DbSet<LoginAudit> LoginAudits => Set<LoginAudit>();
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderStatusHistory> OrderStatusHistories => Set<OrderStatusHistory>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
@@ -288,6 +289,22 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.HasOne(x => x.Customer).WithMany().HasForeignKey(x => x.CustomerId).OnDelete(DeleteBehavior.Cascade);
             entity.HasOne(x => x.Bill).WithMany().HasForeignKey(x => x.BillId).OnDelete(DeleteBehavior.SetNull);
             entity.HasOne(x => x.CreatedByEmployee).WithMany().HasForeignKey(x => x.CreatedByEmployeeId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<LoginAudit>(entity =>
+        {
+            entity.Property(x => x.Email).HasMaxLength(256).IsRequired();
+            entity.Property(x => x.FullName).HasMaxLength(200);
+            entity.Property(x => x.Roles).HasMaxLength(100);
+            entity.Property(x => x.FailureReason).HasMaxLength(300);
+            entity.Property(x => x.IpAddress).HasMaxLength(64);
+            entity.Property(x => x.UserAgent).HasMaxLength(400);
+            // The Admin login history is read newest-first and filtered per account.
+            entity.HasIndex(x => x.AttemptedAt);
+            entity.HasIndex(x => new { x.UserId, x.AttemptedAt });
+            entity.HasIndex(x => new { x.CustomerId, x.AttemptedAt });
+            // Audit rows are kept when an account is removed, so the login trail survives.
+            entity.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<ContactMessage>(entity =>

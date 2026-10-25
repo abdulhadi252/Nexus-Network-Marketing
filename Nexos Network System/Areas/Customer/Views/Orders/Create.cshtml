@@ -1,6 +1,8 @@
 @model CustomerOrderViewModel
 @{
     ViewData["Title"] = "Place an Order";
+
+    var planCards = ViewBag.PlanCards as IEnumerable<PlanCardViewModel> ?? Enumerable.Empty<PlanCardViewModel>();
 }
 
 <nav class="crumbs" aria-label="Breadcrumb">
@@ -15,13 +17,13 @@
 <div class="page-header">
     <div>
         <h1 class="h3">Place a service order</h1>
-        <p class="page-subtitle">Choose an active plan. Your order number and status will be available in your account.</p>
+        <p class="page-subtitle">Choose an active plan from the list below or from the cards. Your order number and status will be available in your account.</p>
     </div>
 </div>
 
 <div class="card">
     <div class="card-body">
-        <form asp-action="Create" method="post" class="row g-3">
+        <form asp-action="Create" method="post" class="row g-3" id="orderForm">
             <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
             <div class="col-md-8">
                 <label asp-for="PlanId" class="form-label"></label>
@@ -42,3 +44,78 @@
         </form>
     </div>
 </div>
+
+@if (planCards.Any())
+{
+    <section class="plan-picker mt-4" aria-labelledby="plan-picker-title">
+        <div class="plan-picker__head">
+            <div>
+                <h2 class="plan-picker__title" id="plan-picker-title">All available plans</h2>
+                <p class="plan-picker__sub">
+                    Tap a card to choose that plan, or order it straight away. Open the details page to read the full specification first.
+                </p>
+            </div>
+            <a class="btn btn-outline-secondary btn-sm" asp-area="" asp-controller="Home" asp-action="Plans">
+                Compare plans
+            </a>
+        </div>
+
+        <div class="row g-3">
+            @foreach (var card in planCards)
+            {
+                <div class="col-12 col-md-6 col-lg-4">
+                    <partial name="_PlanCard" model="card" />
+                </div>
+            }
+        </div>
+    </section>
+}
+
+@section Scripts {
+    <script>
+        // Choosing a card fills the plan dropdown; the card's order button submits the form
+        // straight away so the plan can be ordered without leaving the page.
+        (function () {
+            var form = document.getElementById('orderForm');
+            var select = document.getElementById('PlanId');
+            if (!form || !select) { return; }
+
+            var cards = Array.prototype.slice.call(document.querySelectorAll('[data-plan-select]'));
+
+            function selectPlan(card) {
+                select.value = card.getAttribute('data-plan-id');
+
+                cards.forEach(function (other) {
+                    var chosen = other === card;
+                    other.classList.toggle('is-selected', chosen);
+                    other.setAttribute('aria-pressed', chosen ? 'true' : 'false');
+                });
+            }
+
+            cards.forEach(function (card) {
+                card.addEventListener('click', function (event) {
+                    // Links inside the card open the plan detail page on their own.
+                    if (event.target.closest('a')) { return; }
+
+                    var orderButton = event.target.closest('[data-order-plan]');
+                    selectPlan(card);
+
+                    if (orderButton) {
+                        if (form.requestSubmit) { form.requestSubmit(); } else { form.submit(); }
+                        return;
+                    }
+
+                    form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                });
+
+                card.addEventListener('keydown', function (event) {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        selectPlan(card);
+                        form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                });
+            });
+        })();
+    </script>
+}
