@@ -54,7 +54,7 @@ public class OrdersController(ApplicationDbContext db, IOrderService orderServic
             model.PlanId = planId.Value;
         }
 
-        await LoadPlansAsync(model.PlanId);
+        await LoadPlansAsync();
 
         return View(model);
     }
@@ -84,7 +84,7 @@ public class OrdersController(ApplicationDbContext db, IOrderService orderServic
 
         if (!ModelState.IsValid)
         {
-            await LoadPlansAsync(model.PlanId);
+            await LoadPlansAsync();
             return View(model);
         }
 
@@ -106,7 +106,7 @@ public class OrdersController(ApplicationDbContext db, IOrderService orderServic
         catch (InvalidOperationException ex)
         {
             ModelState.AddModelError(string.Empty, ex.Message);
-            await LoadPlansAsync(model.PlanId);
+            await LoadPlansAsync();
             return View(model);
         }
     }
@@ -137,7 +137,7 @@ public class OrdersController(ApplicationDbContext db, IOrderService orderServic
         return View(order);
     }
 
-    private async Task LoadPlansAsync(int selectedPlanId = 0)
+    private async Task LoadPlansAsync()
     {
         // Materialise the plans before building the labels: concatenating the
         // ConnectionType enum inside the LINQ query would send its numeric value to SQL
@@ -158,14 +158,12 @@ public class OrdersController(ApplicationDbContext db, IOrderService orderServic
             "Id",
             "Label");
 
-        // The same plans are shown under the form as cards, so a customer can pick a plan
-        // there and order it without touching the dropdown.
+        // The same plans are shown under the form as cards. Every card links to the plan
+        // detail page, so the customer can review the plan and order it from there.
         ViewBag.PlanCards = plans
             .Select(p => new PlanCardViewModel
             {
                 Plan = p,
-                Selectable = true,
-                IsSelected = p.Id == selectedPlanId,
                 DetailsUrl = Url.Action("PlanDetails", "Home", new { area = string.Empty, id = p.Id })
             })
             .ToList();

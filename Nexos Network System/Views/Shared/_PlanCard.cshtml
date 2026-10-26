@@ -9,28 +9,15 @@
         _ => "pl-plan--blue"
     };
 
-    var cardClasses = "pl-plan plan-tile " + accent
-        + (Model.Selectable ? " pl-plan--selectable" : string.Empty)
-        + (Model.IsSelected ? " is-selected" : string.Empty);
+    // The whole card is the link: clicking anywhere opens the plan detail page, where the
+    // customer can read the full specification and place the order from the panel.
+    var cardClasses = "pl-plan plan-tile pl-plan--link " + accent;
 }
 
-<article class="@cardClasses" data-plan-id="@plan.Id"
-         @if (Model.Selectable)
-         {
-             <text>data-plan-select tabindex="0" role="button" aria-pressed="@(Model.IsSelected ? "true" : "false")" aria-label="Select @plan.Name"</text>
-         }>
+<a class="@cardClasses" href="@Model.DetailsUrl" aria-label="View @plan.Name details and order it">
     <header class="pl-plan__head">
         <div class="pl-plan__headrow">
-            <h3 class="pl-plan__name">
-                @if (!Model.Selectable && !string.IsNullOrEmpty(Model.DetailsUrl))
-                {
-                    <a class="pl-plan__link" href="@Model.DetailsUrl">@plan.Name</a>
-                }
-                else
-                {
-                    @plan.Name
-                }
-            </h3>
+            <h3 class="pl-plan__name">@plan.Name</h3>
             @if (Model.IsCurrent)
             {
                 <span class="pl-plan__pill pl-plan__pill--popular">Current</span>
@@ -87,19 +74,4 @@
             <b>PKR @plan.InstallationCharge.ToString("N0")</b>
         </li>
     </ul>
-
-    <div class="plan-tile__actions">
-        @if (Model.Selectable)
-        {
-            <button type="button" class="btn btn-primary pl-plan__cta" data-order-plan>Order this plan</button>
-            @if (!string.IsNullOrEmpty(Model.DetailsUrl))
-            {
-                <a class="btn btn-outline-secondary" href="@Model.DetailsUrl">Details</a>
-            }
-        }
-        else if (!string.IsNullOrEmpty(Model.DetailsUrl))
-        {
-            <a class="btn btn-primary pl-plan__cta" href="@Model.DetailsUrl">View details &amp; order</a>
-        }
-    </div>
-</article>
+</a>

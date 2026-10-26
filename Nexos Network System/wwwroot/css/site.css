@@ -3963,6 +3963,28 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ---- Plan tiles inside the customer panel ---- */
+/* The whole tile is one link, so a click anywhere opens the plan detail page. The accent
+   top border of the marketing cards is dropped here: the tile carries no colourful edge. */
+.pl-plan--link {
+    border-top: 1px solid var(--nexos-line);
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.pl-plan--link:hover {
+    color: inherit;
+    border-color: var(--nexos-primary);
+    box-shadow: 0 18px 32px -24px rgba(11, 31, 58, .5);
+}
+
+.pl-plan--link:focus-visible {
+    outline: none;
+    border-color: var(--nexos-primary);
+    box-shadow: 0 0 0 3px var(--nexos-primary-soft), var(--nexos-shadow);
+}
+
 .plan-picker__head {
     display: flex;
     flex-wrap: wrap;
@@ -3988,41 +4010,9 @@ h1, h2, h3, h4, h5, h6 {
 
 .plan-tile { height: 100%; }
 
-.plan-tile__actions {
-    margin-top: auto;
-    display: flex;
-    flex-wrap: wrap;
-    gap: .5rem;
-}
-
-.plan-tile__actions .pl-plan__cta {
-    margin-top: 0;
-    flex: 1 1 140px;
-}
-
 .pl-plan__link { color: inherit; text-decoration: none; }
 .pl-plan__link:hover { color: var(--nexos-primary); }
 
-/* Clicking the tile picks the plan in the order form. */
-.pl-plan--selectable {
-    cursor: pointer;
-    transition: border-color .15s ease, box-shadow .15s ease;
-}
-
-.pl-plan--selectable:hover { border-color: var(--nexos-primary); }
-
-.pl-plan--selectable:focus-visible {
-    outline: none;
-    border-color: var(--nexos-primary);
-    box-shadow: 0 0 0 3px var(--nexos-primary-soft), var(--nexos-shadow);
-}
-
-.pl-plan--selectable.is-selected {
-    border-color: var(--nexos-primary);
-    box-shadow: 0 0 0 2px var(--nexos-primary-soft), var(--nexos-shadow);
-}
-
-.pl-plan--selectable.is-selected .pl-plan__pill { color: #fff; background: var(--nexos-primary); }
 
 /* ---- Responsive ---- */
 @media (max-width: 991.98px) {
