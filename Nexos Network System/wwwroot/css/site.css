@@ -6709,7 +6709,9 @@ main > .container:first-child,
    documents on the public site). 17px matches the .directory__head-icon chip and
    the row action icons; 16px matches the page action buttons. */
 .panel-content .card-header .svg-icon { width: 17px; height: 17px; flex: 0 0 auto; }
-.panel-content .card-body .btn .btn-icon { width: 16px; height: 16px; flex: 0 0 auto; }
+/* .card (not just .card-body) so buttons sitting in a plain "card p-4" still get a sized icon. */
+.panel-content .card .btn .btn-icon,
+.panel-content .card .btn .svg-icon { width: 16px; height: 16px; flex: 0 0 auto; }
 
 .icon-btn:hover,
 .icon-btn:focus-visible {
