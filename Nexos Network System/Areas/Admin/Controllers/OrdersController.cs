@@ -37,7 +37,8 @@ public class OrdersController(
             var term = filter.Query.Trim();
             query = query.Where(o =>
                 o.OrderNumber.Contains(term) ||
-                (o.Customer.FirstName + " " + o.Customer.LastName).Contains(term));
+                (o.Customer.FirstName + " " + o.Customer.LastName).Contains(term) ||
+                (o.Plan != null && o.Plan.Name.Contains(term)));
         }
 
         if (filter.Status.HasValue)

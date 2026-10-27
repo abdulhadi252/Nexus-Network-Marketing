@@ -19,10 +19,13 @@ public class MessagesController(
 {
     public async Task<IActionResult> Index(
         string? query,
-        bool? unread,
-        bool? replied,
-        bool? pending,
-
+        string? status,
+        string? dateRange,
+        string? afSubject,
+        string? afFrom,
+        DateTimeOffset? afMinDate,
+        DateTimeOffset? afMaxDate,
+        string? sort,
         int page = 1)
     {
         ViewData["PanelName"] = "Admin Panel";
@@ -108,30 +111,88 @@ public class MessagesController(
                 m.Message.Contains(query));
         }
 
-        if (unread == true)
+        // The collapsed "Advanced Filters" panel narrows the free-text search further.
+        if (!string.IsNullOrWhiteSpace(afSubject))
         {
-            baseQuery = baseQuery.Where(m => !m.IsRead);
-        }
-        else if (replied == true)
-        {
-            baseQuery = baseQuery.Where(m => m.Status == ContactMessageStatus.Replied);
-        }
-        else if (pending == true)
-        {
-            baseQuery = baseQuery.Where(m => m.Status == ContactMessageStatus.Pending && !m.IsRead);
+            var subjectTerm = afSubject.Trim();
+            baseQuery = baseQuery.Where(m => m.Subject.Contains(subjectTerm));
         }
 
-        var result = await PagedResult<ContactMessage>.CreateAsync(
-            baseQuery.OrderByDescending(m => m.SubmittedAt), page);
+        if (!string.IsNullOrWhiteSpace(afFrom))
+        {
+            var fromTerm = afFrom.Trim();
+            baseQuery = baseQuery.Where(m => m.Email.Contains(fromTerm));
+        }
+
+        if (afMinDate.HasValue)
+        {
+            baseQuery = baseQuery.Where(m => m.SubmittedAt >= afMinDate.Value);
+        }
+
+        if (afMaxDate.HasValue)
+        {
+            baseQuery = baseQuery.Where(m => m.SubmittedAt < afMaxDate.Value.AddDays(1));
+        }
+
+        // The status box and the tabs both feed this one value (All / Unread / Pending / Replied).
+        var selectedStatus = string.IsNullOrWhiteSpace(status) ? null : status.Trim().ToLowerInvariant();
+        baseQuery = selectedStatus switch
+        {
+            "unread" => baseQuery.Where(m => !m.IsRead),
+            "pending" => baseQuery.Where(m => m.Status == ContactMessageStatus.Pending && !m.IsRead),
+            "replied" => baseQuery.Where(m => m.Status == ContactMessageStatus.Replied),
+            _ => baseQuery
+        };
+
+        // Quick date-range box: today / last 7 days / last 30 days.
+        DateTimeOffset? rangeStart = dateRange?.Trim().ToLowerInvariant() switch
+        {
+            "today" => new DateTimeOffset(now.UtcDateTime.Date, TimeSpan.Zero),
+            "week" => now.AddDays(-7),
+            "month" => now.AddDays(-30),
+            _ => null
+        };
+
+        if (rangeStart.HasValue)
+        {
+            baseQuery = baseQuery.Where(m => m.SubmittedAt >= rangeStart.Value);
+        }
+
+        var ordered = sort?.Trim().ToLowerInvariant() switch
+        {
+            "oldest" => baseQuery.OrderBy(m => m.SubmittedAt),
+            "name" => baseQuery.OrderBy(m => m.Name),
+            "subject" => baseQuery.OrderBy(m => m.Subject),
+            _ => baseQuery.OrderByDescending(m => m.SubmittedAt)
+        };
+
+        var result = await PagedResult<ContactMessage>.CreateAsync(ordered, page);
 
         var vm = new MessageIndexViewModel(result)
         {
             Query = query,
+            Status = selectedStatus,
+            DateRange = dateRange,
+            Sort = sort,
+            Subject = afSubject,
+            FromEmail = afFrom,
+            FromDate = afMinDate,
+            ToDate = afMaxDate,
             TotalMetric = totalMetric,
             UnreadMetric = unreadMetric,
             RepliedMetric = repliedMetric,
             PendingMetric = pendingMetric,
-            SelectedTab = unread == true ? "Unread" : replied == true ? "Replied" : pending == true ? "Pending" : "All"
+            AdvancedFiltersExpanded = !string.IsNullOrWhiteSpace(afSubject)
+                || !string.IsNullOrWhiteSpace(afFrom)
+                || afMinDate.HasValue
+                || afMaxDate.HasValue,
+            SelectedTab = selectedStatus switch
+            {
+                "unread" => "Unread",
+                "replied" => "Replied",
+                "pending" => "Pending",
+                _ => "All"
+            }
         };
 
         return View(vm);
@@ -231,7 +292,10 @@ public class MessagesController(
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ToggleRead(
         int id,
-        bool unreadOnly = false,
+        string? query,
+        string? status,
+        string? dateRange,
+        string? sort,
         int page = 1,
         bool returnToDetails = false)
     {
@@ -252,7 +316,7 @@ public class MessagesController(
             return RedirectToAction(nameof(Details), new { id });
         }
 
-        return RedirectToAction(nameof(Index), new { unreadOnly, page });
+        return RedirectToAction(nameof(Index), new { query, status, dateRange, sort, page });
     }
 
     /// <summary>

@@ -3565,9 +3565,12 @@ h1, h2, h3, h4, h5, h6 {
    ============================================================ */
 .contact-map-band {
     width: 100%;
+    /* Matches the light-blue contact content above, so the map sits on the same
+       background instead of showing a separate grey band behind it. */
+    background: #f6faff;
     /* Held clear of the footer, so the map reads as its own section
        instead of blending into the dark footer band. */
-    margin-bottom: 2.5rem;
+    padding-bottom: 2.5rem;
     line-height: 0;
 }
 

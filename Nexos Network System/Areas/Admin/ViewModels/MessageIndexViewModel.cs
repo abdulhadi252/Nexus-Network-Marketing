@@ -40,9 +40,34 @@ public class MessageIndexViewModel
     public string? Status { get; set; }
 
     /// <summary>
-    /// Date range filter value (free text supplied by the UI).
+    /// Date range filter value (today / week / month).
     /// </summary>
     public string? DateRange { get; set; }
+
+    /// <summary>
+    /// Current sort order: newest (default), oldest, name or subject.
+    /// </summary>
+    public string? Sort { get; set; }
+
+    /// <summary>
+    /// Advanced filter: only messages whose subject contains this text.
+    /// </summary>
+    public string? Subject { get; set; }
+
+    /// <summary>
+    /// Advanced filter: only messages whose sender email contains this text.
+    /// </summary>
+    public string? FromEmail { get; set; }
+
+    /// <summary>
+    /// Advanced filter: only messages received on or after this date.
+    /// </summary>
+    public DateTimeOffset? FromDate { get; set; }
+
+    /// <summary>
+    /// Advanced filter: only messages received on or before this date.
+    /// </summary>
+    public DateTimeOffset? ToDate { get; set; }
 
     /// <summary>
     /// KPI tiles shown above the list.

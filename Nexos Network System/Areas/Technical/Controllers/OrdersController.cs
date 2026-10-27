@@ -41,7 +41,10 @@ public class OrdersController(ApplicationDbContext db, IOrderService orderServic
         if (!string.IsNullOrWhiteSpace(q))
         {
             var term = q.Trim();
-            query = query.Where(o => o.OrderNumber.Contains(term) || (o.Customer.FirstName + " " + o.Customer.LastName).Contains(term));
+            query = query.Where(o =>
+                o.OrderNumber.Contains(term) ||
+                (o.Customer.FirstName + " " + o.Customer.LastName).Contains(term) ||
+                (o.Plan != null && o.Plan.Name.Contains(term)));
         }
 
         var result = await PagedResult<Order>.CreateAsync(query.OrderBy(o => o.SubmittedAt), page);

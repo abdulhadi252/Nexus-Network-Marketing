@@ -37,7 +37,8 @@ public class AdminSearchService(ApplicationDbContext db) : IAdminSearchService
                 o.OrderNumber.Contains(term) ||
                 (o.Customer.FirstName + " " + o.Customer.LastName).Contains(term) ||
                 o.Customer.PrimaryContactNumber.Contains(term) ||
-                (o.Connection != null && o.Connection.AccountNumber.Contains(term)));
+                (o.Connection != null && o.Connection.AccountNumber.Contains(term)) ||
+                (o.Plan != null && o.Plan.Name.Contains(term)));
 
             connectionQuery = connectionQuery.Where(c =>
                 c.AccountNumber.Contains(term) ||
