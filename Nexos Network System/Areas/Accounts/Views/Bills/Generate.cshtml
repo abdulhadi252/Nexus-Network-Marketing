@@ -49,6 +49,10 @@
                     needs to enter the discount (and any extra equipment or replacement charge).
                 </p>
             </div>
+            <div class="col-12" id="connectionCardWrapper" hidden>
+                <div id="connectionCard"></div>
+            </div>
+
             <div class="col-md-4">
                 <label for="MonthlyRental" class="form-label">Monthly rental (from plan)</label>
                 <input id="MonthlyRental" class="form-control" readonly aria-readonly="true" />
@@ -97,14 +101,47 @@
                 securityDeposit: document.getElementById('SecurityDeposit'),
                 previousBalance: document.getElementById('PreviousBalance')
             };
+            var cardWrapper = document.getElementById('connectionCardWrapper');
+            var card = document.getElementById('connectionCard');
             var defaultsUrl = '@Url.Action("BillDefaults", "Bills", new { area = "Accounts" })';
 
             function money(value) {
                 return Number(value || 0).toFixed(2);
             }
 
+            function display(value) {
+                return 'PKR ' + Number(value || 0).toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+
+            function escapeHtml(value) {
+                var div = document.createElement('div');
+                div.textContent = value == null ? '' : value;
+                return div.innerHTML;
+            }
+
             function clearFields() {
                 Object.values(fields).forEach(function (input) { input.value = ''; });
+                cardWrapper.hidden = true;
+                card.innerHTML = '';
+            }
+
+            function renderCard(data) {
+                card.innerHTML =
+                    '<a class="card p-4 text-reset text-decoration-none" href="' + data.detailsUrl + '">' +
+                    '<div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">' +
+                    '<div><h6 class="mb-1">' + escapeHtml(data.customerName) + '</h6>' +
+                    '<div class="text-muted small">' + escapeHtml(data.accountNumber) + ' &middot; ' + escapeHtml(data.planName) +
+                    (data.cityName ? ' &middot; ' + escapeHtml(data.cityName) : '') + '</div></div>' +
+                    '<span class="' + data.statusCss + '"><span class="status-pill__dot" aria-hidden="true"></span>' + escapeHtml(data.statusText) + '</span></div>' +
+                    '<dl class="row detail-list mb-0 small">' +
+                    '<dt class="col-6 col-md-3">Monthly rental</dt><dd class="col-6 col-md-3 text-price">' + display(data.monthlyRental) + '</dd>' +
+                    '<dt class="col-6 col-md-3">Security deposit</dt><dd class="col-6 col-md-3 text-price">' + display(data.securityDeposit) + '</dd>' +
+                    '<dt class="col-6 col-md-3">Previous balance</dt><dd class="col-6 col-md-3 text-price">' + display(data.previousBalance) + '</dd>' +
+                    '<dt class="col-6 col-md-3">Previous bill</dt><dd class="col-6 col-md-3">' + (data.previousBillNumber ? escapeHtml(data.previousBillNumber) : '-') + '</dd>' +
+                    '</dl>' +
+                    '<span class="btn btn-sm btn-outline-primary mt-3">View connection details</span>' +
+                    '</a>';
+                cardWrapper.hidden = false;
             }
 
             function loadDefaults() {
@@ -126,6 +163,7 @@
                         fields.monthlyRental.value = money(data.monthlyRental);
                         fields.securityDeposit.value = money(data.securityDeposit);
                         fields.previousBalance.value = money(data.previousBalance);
+                        renderCard(data);
                     })
                     .catch(clearFields);
             }

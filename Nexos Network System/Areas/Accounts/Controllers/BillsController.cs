@@ -211,7 +211,16 @@ public class BillsController(ApplicationDbContext db, IBillingService billingSer
         var connection = await db.Connections
             .AsNoTracking()
             .Where(c => c.Id == connectionId)
-            .Select(c => new { c.Plan.RecurringCharge, c.Plan.SecurityDeposit })
+            .Select(c => new
+            {
+                c.AccountNumber,
+                c.Status,
+                PlanName = c.Plan.Name,
+                c.Plan.RecurringCharge,
+                c.Plan.SecurityDeposit,
+                CityName = c.City!.Name,
+                CustomerName = c.Customer.FirstName + " " + c.Customer.LastName
+            })
             .FirstOrDefaultAsync();
 
         if (connection is null)
@@ -225,15 +234,23 @@ public class BillsController(ApplicationDbContext db, IBillingService billingSer
             .OrderByDescending(b => b.BillingPeriodEnd)
             .ThenByDescending(b => b.GeneratedAt)
             .ThenByDescending(b => b.Id)
-            .Select(b => new { b.DueAmount, b.BillingPeriodEnd })
+            .Select(b => new { b.BillNumber, b.DueAmount, b.BillingPeriodEnd })
             .FirstOrDefaultAsync();
 
         return Json(new
         {
+            customerName = connection.CustomerName,
+            accountNumber = connection.AccountNumber,
+            planName = connection.PlanName,
+            cityName = connection.CityName,
+            statusText = connection.Status.ToString(),
+            statusCss = StatusBadges.PillCssClass(connection.Status),
             monthlyRental = connection.RecurringCharge,
             securityDeposit = connection.SecurityDeposit,
             previousBalance = previousBill?.DueAmount ?? 0m,
-            lastBillingPeriodEnd = previousBill?.BillingPeriodEnd
+            previousBillNumber = previousBill?.BillNumber,
+            lastBillingPeriodEnd = previousBill?.BillingPeriodEnd,
+            detailsUrl = Url.Action("Details", "Connections", new { area = "Accounts", id = connectionId })
         });
     }
 

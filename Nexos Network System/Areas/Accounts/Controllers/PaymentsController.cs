@@ -144,10 +144,89 @@ public class PaymentsController(ApplicationDbContext db, IPaymentService payment
                 model.CustomerName = $"{bill.Customer.FirstName} {bill.Customer.LastName}";
                 model.DueAmount = bill.DueAmount;
                 model.Amount = bill.DueAmount;
+                await ApplyBillDefaultsAsync(model);
             }
         }
 
         return View(model);
+    }
+
+    /// <summary>
+    /// Everything the collect form needs for the chosen bill: the card shown under the dropdown,
+    /// the amount to collect, and the payment method/reference pre-filled from what is already in
+    /// the database so accounts does not have to type them in.
+    /// </summary>
+    [HttpGet]
+    public async Task<IActionResult> BillSummary(int id)
+    {
+        var bill = await db.Bills
+            .Include(b => b.Customer)
+            .Include(b => b.Connection).ThenInclude(c => c.Plan)
+            .Include(b => b.Connection).ThenInclude(c => c.City)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(b => b.Id == id);
+
+        if (bill is null)
+        {
+            return NotFound();
+        }
+
+        var (method, reference) = await GetPaymentDefaultsAsync(bill);
+
+        return Json(new
+        {
+            id = bill.Id,
+            billNumber = bill.BillNumber,
+            customerName = $"{bill.Customer.FirstName} {bill.Customer.LastName}",
+            accountNumber = bill.Connection.AccountNumber,
+            planName = bill.Connection.Plan?.Name,
+            cityName = bill.Connection.City?.Name,
+            statusText = bill.Status.ToString(),
+            statusCss = StatusBadges.PillCssClass(bill.Status),
+            periodStart = bill.BillingPeriodStart.ToString("dd MMM yyyy"),
+            periodEnd = bill.BillingPeriodEnd.ToString("dd MMM yyyy"),
+            dueDate = bill.DueDate.ToString("dd MMM yyyy"),
+            totalAmount = bill.TotalAmount,
+            paidAmount = bill.PaidAmount,
+            dueAmount = bill.DueAmount,
+            previousBalance = bill.PreviousBalance,
+            method = (int)method,
+            methodName = method.ToString(),
+            reference,
+            detailsUrl = Url.Action(nameof(BillsController.Details), "Bills", new { area = "Accounts", id = bill.Id })
+        });
+    }
+
+    /// <summary>
+    /// Payment method and reference taken from the database: the method last recorded for this
+    /// bill (cash when it is the first collection) and the next free reference for it.
+    /// </summary>
+    private async Task<(PaymentMethod Method, string Reference)> GetPaymentDefaultsAsync(Bill bill)
+    {
+        var lastMethod = await db.Payments
+            .AsNoTracking()
+            .Where(p => p.BillId == bill.Id && p.Status != PaymentStatus.Cancelled)
+            .OrderByDescending(p => p.PaidAt)
+            .ThenByDescending(p => p.Id)
+            .Select(p => (PaymentMethod?)p.Method)
+            .FirstOrDefaultAsync();
+
+        var referenceCount = await db.Payments.CountAsync(p => p.BillId == bill.Id);
+
+        return (lastMethod ?? PaymentMethod.Cash, $"REF-{bill.BillNumber}-{referenceCount + 1}");
+    }
+
+    private async Task ApplyBillDefaultsAsync(PaymentRecordViewModel model)
+    {
+        var bill = await db.Bills.AsNoTracking().FirstOrDefaultAsync(b => b.Id == model.BillId);
+        if (bill is null)
+        {
+            return;
+        }
+
+        var (method, reference) = await GetPaymentDefaultsAsync(bill);
+        model.Method = method;
+        model.PaymentReference = reference;
     }
 
     [HttpPost]
@@ -188,6 +267,11 @@ public class PaymentsController(ApplicationDbContext db, IPaymentService payment
             model.BillNumber = bill.BillNumber;
             model.CustomerName = $"{bill.Customer.FirstName} {bill.Customer.LastName}";
             model.DueAmount = bill.DueAmount;
+
+            if (string.IsNullOrWhiteSpace(model.PaymentReference))
+            {
+                await ApplyBillDefaultsAsync(model);
+            }
         }
     }
 

@@ -53,14 +53,9 @@
                 <input asp-for="Notes" class="form-control" placeholder="Optional notes" />
             </div>
 
-            @if (!string.IsNullOrWhiteSpace(Model.BillNumber))
-            {
-                <div class="col-12">
-                    <div class="alert alert-info small mb-0">
-                        Bill <strong>@Model.BillNumber</strong> for <strong>@Model.CustomerName</strong> - outstanding PKR @Model.DueAmount.ToString("N2").
-                    </div>
-                </div>
-            }
+            <div class="col-12" id="billCardWrapper" hidden>
+                <div id="billCard"></div>
+            </div>
 
             <div class="col-12 d-flex gap-2">
                 <button type="submit" class="btn btn-primary">Record Payment</button>
@@ -72,4 +67,85 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            var billSelect = document.getElementById('BillId');
+            var amount = document.getElementById('Amount');
+            var method = document.getElementById('Method');
+            var reference = document.getElementById('PaymentReference');
+            var wrapper = document.getElementById('billCardWrapper');
+            var card = document.getElementById('billCard');
+            var summaryUrl = '@Url.Action("BillSummary", "Payments", new { area = "Accounts" })';
+
+            function money(value) {
+                return 'PKR ' + Number(value || 0).toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+
+            function escapeHtml(value) {
+                var div = document.createElement('div');
+                div.textContent = value == null ? '' : value;
+                return div.innerHTML;
+            }
+
+            function renderCard(data) {
+                card.innerHTML =
+                    '<a class="card p-4 text-reset text-decoration-none" href="' + data.detailsUrl + '">' +
+                    '<div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">' +
+                    '<div><h6 class="mb-1">Bill ' + escapeHtml(data.billNumber) + '</h6>' +
+                    '<div class="text-muted small">' + escapeHtml(data.customerName) + ' &middot; ' + escapeHtml(data.accountNumber) +
+                    (data.planName ? ' &middot; ' + escapeHtml(data.planName) : '') +
+                    (data.cityName ? ' &middot; ' + escapeHtml(data.cityName) : '') + '</div></div>' +
+                    '<span class="' + data.statusCss + '"><span class="status-pill__dot" aria-hidden="true"></span>' + escapeHtml(data.statusText) + '</span></div>' +
+                    '<dl class="row detail-list mb-0 small">' +
+                    '<dt class="col-6 col-md-3">Period</dt><dd class="col-6 col-md-3">' + escapeHtml(data.periodStart) + ' - ' + escapeHtml(data.periodEnd) + '</dd>' +
+                    '<dt class="col-6 col-md-3">Due date</dt><dd class="col-6 col-md-3">' + escapeHtml(data.dueDate) + '</dd>' +
+                    '<dt class="col-6 col-md-3">Total</dt><dd class="col-6 col-md-3 text-price">' + money(data.totalAmount) + '</dd>' +
+                    '<dt class="col-6 col-md-3">Paid</dt><dd class="col-6 col-md-3 text-price">' + money(data.paidAmount) + '</dd>' +
+                    '<dt class="col-6 col-md-3">Outstanding</dt><dd class="col-6 col-md-3 text-price">' + money(data.dueAmount) + '</dd>' +
+                    '<dt class="col-6 col-md-3">Previous balance</dt><dd class="col-6 col-md-3 text-price">' + money(data.previousBalance) + '</dd>' +
+                    '</dl>' +
+                    '<span class="btn btn-sm btn-outline-primary mt-3">View bill details</span>' +
+                    '</a>';
+                wrapper.hidden = false;
+            }
+
+            function loadBill(applyDefaults) {
+                if (!billSelect.value) {
+                    wrapper.hidden = true;
+                    card.innerHTML = '';
+                    return;
+                }
+
+                fetch(summaryUrl + '?id=' + encodeURIComponent(billSelect.value), {
+                    headers: { 'Accept': 'application/json' }
+                })
+                    .then(function (response) { return response.ok ? response.json() : null; })
+                    .then(function (data) {
+                        if (!data) {
+                            wrapper.hidden = true;
+                            card.innerHTML = '';
+                            return;
+                        }
+
+                        renderCard(data);
+
+                        if (applyDefaults) {
+                            amount.value = Number(data.dueAmount || 0).toFixed(2);
+                            method.value = String(data.method);
+                            reference.value = data.reference || '';
+                        }
+                    })
+                    .catch(function () {
+                        wrapper.hidden = true;
+                        card.innerHTML = '';
+                    });
+            }
+
+            billSelect.addEventListener('change', function () { loadBill(true); });
+
+            // On the first render keep whatever the user already typed after a validation error;
+            // only fill the method/reference when the form is untouched.
+            loadBill(!reference.value.trim());
+        })();
+    </script>
 }
