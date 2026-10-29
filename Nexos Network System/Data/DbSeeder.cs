@@ -59,6 +59,7 @@ public static class DbSeeder
             await SeedCatalogAsync(db);
             await SeedCustomersAsync(db);
             await SeedUsersAsync(services, db);
+            await SeedRetailShopLoginsAsync(services, db);
             await SeedOrdersAndBillingAsync(db);
             await SeedFeedbackAsync(db);
         }
@@ -268,6 +269,82 @@ public static class DbSeeder
             {
                 throw new InvalidOperationException(
                     $"Unable to assign the seeded '{role}' role: {string.Join("; ", roleResult.Errors.Select(error => error.Description))}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// One demo login per branch so the Lahore and Islamabad retail panels can be signed into as
+    /// well as the Karachi one. Idempotent: a branch that already has a retail login is skipped, so
+    /// the original retail@nexos.local account is left untouched.
+    /// </summary>
+    private static async Task SeedRetailShopLoginsAsync(IServiceProvider services, ApplicationDbContext db)
+    {
+        var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+
+        var branchLogins = new (string CityCode, string Email, string FirstName, string ContactNumber)[]
+        {
+            ("002", "lahore@nexos.local", "Lahore", "03000000005"),
+            ("003", "islamabad@nexos.local", "Islamabad", "03000000006")
+        };
+
+        foreach (var (cityCode, email, firstName, contactNumber) in branchLogins)
+        {
+            var shop = await db.RetailShops
+                .Include(s => s.City)
+                .Where(s => s.IsActive && s.City!.Code == cityCode)
+                .OrderBy(s => s.Id)
+                .FirstOrDefaultAsync();
+
+            if (shop is null || await db.Employees.AnyAsync(e => e.RetailShopId == shop.Id && e.Role == EmployeeRole.Retail))
+            {
+                continue;
+            }
+
+            var fullName = $"{firstName} Retail";
+
+            db.Employees.Add(new Employee
+            {
+                EmployeeNumber = $"EMP-{(await db.Employees.CountAsync() + 1):D4}",
+                FirstName = firstName,
+                LastName = "Retail",
+                Email = email,
+                ContactNumber = contactNumber,
+                Role = EmployeeRole.Retail,
+                RetailShopId = shop.Id,
+                HireDate = DateTimeOffset.UtcNow.AddMonths(-6)
+            });
+            await db.SaveChangesAsync();
+
+            var existingUser = await userManager.FindByEmailAsync(email);
+            if (existingUser is null)
+            {
+                var user = new ApplicationUser
+                {
+                    UserName = email,
+                    Email = email,
+                    EmailConfirmed = true,
+                    FullName = fullName
+                };
+
+                var createResult = await userManager.CreateAsync(user, DemoPassword);
+                if (!createResult.Succeeded)
+                {
+                    throw new InvalidOperationException(
+                        $"Unable to create the seeded branch account '{email}': {string.Join("; ", createResult.Errors.Select(error => error.Description))}");
+                }
+
+                existingUser = user;
+            }
+
+            if (!await userManager.IsInRoleAsync(existingUser, "Retail"))
+            {
+                var roleResult = await userManager.AddToRoleAsync(existingUser, "Retail");
+                if (!roleResult.Succeeded)
+                {
+                    throw new InvalidOperationException(
+                        $"Unable to assign the Retail role to '{email}': {string.Join("; ", roleResult.Errors.Select(error => error.Description))}");
+                }
             }
         }
     }

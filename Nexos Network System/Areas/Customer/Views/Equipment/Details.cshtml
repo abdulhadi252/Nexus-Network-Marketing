@@ -1,0 +1,130 @@
+@model CustomerEquipmentDetailsViewModel
+@{
+    ViewData["Title"] = "Equipment Details";
+
+    var equipment = Model.Equipment;
+}
+
+<nav class="crumbs" aria-label="Breadcrumb">
+    <a asp-area="Customer" asp-controller="Dashboard" asp-action="Index">
+        <svg class="svg-icon" aria-hidden="true"><use href="#i-home-clean" /></svg>
+        <span>Dashboard</span>
+    </a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <a asp-area="Customer" asp-controller="Equipment" asp-action="Index">My Equipment</a>
+    <span class="crumbs__sep" aria-hidden="true">&rsaquo;</span>
+    <span class="crumbs__current" aria-current="page">@equipment.AssetTag</span>
+</nav>
+
+<div class="page-header">
+    <div>
+        <h1 class="h3">@(equipment.Product?.Name ?? "Equipment")</h1>
+        <p class="page-subtitle">
+            Asset @equipment.AssetTag &middot;
+            <partial name="_StatusPill" model="@((object?)equipment.Status)" />
+        </p>
+    </div>
+    <div class="page-head__actions">
+        <a class="btn btn-outline-secondary" asp-action="Index">Back to equipment</a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card p-4 mb-3">
+            <h6 class="mb-3">Equipment Details</h6>
+            <dl class="row detail-list mb-0">
+                <dt class="col-5">Product</dt>
+                <dd class="col-7">@(equipment.Product?.Name ?? "-")</dd>
+                <dt class="col-5">Asset tag</dt>
+                <dd class="col-7 fw-semibold">@equipment.AssetTag</dd>
+                <dt class="col-5">Serial number</dt>
+                <dd class="col-7">@(equipment.SerialNumber ?? "-")</dd>
+                <dt class="col-5">Connection</dt>
+                <dd class="col-7">@(equipment.Connection?.AccountNumber ?? "-")</dd>
+                <dt class="col-5">Assigned</dt>
+                <dd class="col-7">@(equipment.AssignedAt?.ToLocalTime().ToString("dd MMM yyyy") ?? "-")</dd>
+                <dt class="col-5">Replacement charge</dt>
+                <dd class="col-7 text-price">@(equipment.ReplacementCharge.HasValue ? $"PKR {equipment.ReplacementCharge.Value:N2}" : "-")</dd>
+                <dt class="col-5">Notes</dt>
+                <dd class="col-7">@(equipment.Notes ?? "-")</dd>
+            </dl>
+        </div>
+
+        <div class="card p-4">
+            <h6 class="mb-2">Acceptance</h6>
+            <p class="text-muted small mb-0">
+                Equipment is accepted automatically when technical assigns it to your connection - there is
+                nothing to confirm. If you do not need it any more you can request a cancellation or return
+                it below, and technical will review the request.
+            </p>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card p-4 mb-3">
+            <h6 class="mb-3">Cancel or Return</h6>
+            @if (Model.CanRequest)
+            {
+                <form method="post" asp-action="RequestCancellation" asp-route-id="@equipment.Id" class="row g-2">
+                    <div class="col-12">
+                        <label for="reason" class="form-label">Reason (optional)</label>
+                        <textarea id="reason" name="reason" class="form-control" rows="3" placeholder="Tell technical why you are cancelling or returning this equipment"></textarea>
+                    </div>
+                    <div class="col-12 d-flex flex-wrap gap-2">
+                        <button type="submit" class="btn btn-outline-warning">Request Cancellation</button>
+                        <button type="submit" class="btn btn-outline-danger"
+                                formaction="@Url.Action("RequestReturn", "Equipment", new { area = "Customer", id = equipment.Id })">
+                            Return Equipment
+                        </button>
+                    </div>
+                </form>
+            }
+            else if (Model.PendingRequest is not null)
+            {
+                <p class="mb-2">
+                    Your <strong>@Model.PendingRequest.RequestType.ToString().ToLowerInvariant()</strong> request was sent on
+                    @Model.PendingRequest.RequestedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm") and is waiting for technical review.
+                </p>
+                <p class="text-muted small mb-0">You will see the decision here once technical approves or rejects it.</p>
+            }
+            else
+            {
+                <p class="text-muted mb-0">This equipment is no longer assigned to you, so there is nothing to cancel or return.</p>
+            }
+        </div>
+
+        <div class="card p-4">
+            <h6 class="mb-3">Request History</h6>
+            @if (Model.Requests.Count == 0)
+            {
+                <p class="text-muted mb-0">You have not raised any request for this equipment yet.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead><tr><th>Type</th><th>Status</th><th>Sent</th><th>Reviewed</th></tr></thead>
+                        <tbody>
+                            @foreach (var request in Model.Requests)
+                            {
+                                <tr>
+                                    <td>@request.RequestType</td>
+                                    <td><partial name="_StatusPill" model="@((object?)request.Status)" /></td>
+                                    <td>@request.RequestedAt.ToLocalTime().ToString("dd MMM yyyy")</td>
+                                    <td>@(request.ReviewedAt?.ToLocalTime().ToString("dd MMM yyyy") ?? "-")</td>
+                                </tr>
+                                @if (!string.IsNullOrWhiteSpace(request.ReviewNotes))
+                                {
+                                    <tr>
+                                        <td colspan="4" class="text-muted small">Technical note: @request.ReviewNotes</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

@@ -18,6 +18,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<CustomerAddress> CustomerAddresses => Set<CustomerAddress>();
     public DbSet<Employee> Employees => Set<Employee>();
     public DbSet<Equipment> Equipment => Set<Equipment>();
+    public DbSet<EquipmentRequest> EquipmentRequests => Set<EquipmentRequest>();
     public DbSet<FeasibilityReport> FeasibilityReports => Set<FeasibilityReport>();
     public DbSet<Feedback> FeedbackEntries => Set<Feedback>();
     public DbSet<LoginAudit> LoginAudits => Set<LoginAudit>();
@@ -225,6 +226,18 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         modelBuilder.Entity<Equipment>()
             .HasOne(x => x.Connection).WithMany(x => x.EquipmentItems).HasForeignKey(x => x.ConnectionId).OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<EquipmentRequest>(entity =>
+        {
+            entity.Property(x => x.Reason).HasMaxLength(1000);
+            entity.Property(x => x.ReviewNotes).HasMaxLength(1000);
+            // Technical reads the queue newest-first and filters it by status.
+            entity.HasIndex(x => new { x.Status, x.RequestedAt });
+            entity.HasIndex(x => x.EquipmentId);
+            entity.HasOne(x => x.Equipment).WithMany().HasForeignKey(x => x.EquipmentId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(x => x.Customer).WithMany().HasForeignKey(x => x.CustomerId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(x => x.ReviewedByEmployee).WithMany().HasForeignKey(x => x.ReviewedByEmployeeId).OnDelete(DeleteBehavior.SetNull);
+        });
     }
 
     private static void ConfigureBilling(ModelBuilder modelBuilder)

@@ -32,24 +32,32 @@
     </div>
     <div class="col-lg-7">
         <div class="card mb-3">
-            <div class="card-header">Employees (@Model.Employees.Count)</div>
+            <div class="card-header">Retailers / Branch Staff (@Model.Employees.Count)</div>
             <div class="card-body p-0">
                 @if (Model.Employees.Count == 0)
                 {
-                    <div class="empty-state"><p class="mb-0">No employees assigned.</p></div>
+                    <div class="empty-state"><p class="mb-0">No employees assigned. Create a Retail employee from Employees and link it to this shop so the branch can sign in.</p></div>
                 }
                 else
                 {
                     <div class="table-responsive">
                         <table class="table align-middle mb-0">
-                            <thead><tr><th>Name</th><th>Role</th><th>Contact</th></tr></thead>
+                            <thead><tr><th>Employee #</th><th>Name</th><th>Login email</th><th>Contact</th><th>Joined</th><th>Status</th></tr></thead>
                             <tbody>
-                                @foreach (var employee in Model.Employees)
+                                @foreach (var employee in Model.Employees.OrderBy(e => e.EmployeeNumber))
                                 {
                                     <tr>
-                                        <td>@employee.FirstName @employee.LastName</td>
-                                        <td><span class="badge bg-primary">@employee.Role</span></td>
+                                        <td class="text-muted">@employee.EmployeeNumber</td>
+                                        <td>
+                                            <a asp-controller="Employees" asp-action="Details" asp-route-id="@employee.Id">
+                                                @employee.FirstName @employee.LastName
+                                            </a>
+                                            <div class="text-muted small">@employee.Role</div>
+                                        </td>
+                                        <td>@employee.Email</td>
                                         <td>@employee.ContactNumber</td>
+                                        <td>@employee.HireDate.ToLocalTime().ToString("dd MMM yyyy")</td>
+                                        <td><partial name="_Badge" model="@((object?)(employee.IsActive ? "Active" : "Inactive"))" /></td>
                                     </tr>
                                 }
                             </tbody>

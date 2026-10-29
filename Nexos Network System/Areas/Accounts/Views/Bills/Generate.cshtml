@@ -43,6 +43,25 @@
                 <span asp-validation-for="BillingPeriodEnd" class="field-validation-error"></span>
             </div>
 
+            <div class="col-12">
+                <p class="text-muted small mb-0">
+                    These amounts are filled from the selected connection's plan and its previous bill. Accounts only
+                    needs to enter the discount (and any extra equipment or replacement charge).
+                </p>
+            </div>
+            <div class="col-md-4">
+                <label for="MonthlyRental" class="form-label">Monthly rental (from plan)</label>
+                <input id="MonthlyRental" class="form-control" readonly aria-readonly="true" />
+            </div>
+            <div class="col-md-4">
+                <label for="SecurityDeposit" class="form-label">Security deposit (from plan)</label>
+                <input id="SecurityDeposit" class="form-control" readonly aria-readonly="true" />
+            </div>
+            <div class="col-md-4">
+                <label for="PreviousBalance" class="form-label">Previous balance (unpaid)</label>
+                <input id="PreviousBalance" class="form-control" readonly aria-readonly="true" />
+            </div>
+
             <div class="col-md-3">
                 <label asp-for="DiscountAmount" class="form-label"></label>
                 <input asp-for="DiscountAmount" type="number" step="0.01" class="form-control" />
@@ -70,4 +89,49 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            var connection = document.getElementById('ConnectionId');
+            var fields = {
+                monthlyRental: document.getElementById('MonthlyRental'),
+                securityDeposit: document.getElementById('SecurityDeposit'),
+                previousBalance: document.getElementById('PreviousBalance')
+            };
+            var defaultsUrl = '@Url.Action("BillDefaults", "Bills", new { area = "Accounts" })';
+
+            function money(value) {
+                return Number(value || 0).toFixed(2);
+            }
+
+            function clearFields() {
+                Object.values(fields).forEach(function (input) { input.value = ''; });
+            }
+
+            function loadDefaults() {
+                if (!connection.value) {
+                    clearFields();
+                    return;
+                }
+
+                fetch(defaultsUrl + '?connectionId=' + encodeURIComponent(connection.value), {
+                    headers: { 'Accept': 'application/json' }
+                })
+                    .then(function (response) { return response.ok ? response.json() : null; })
+                    .then(function (data) {
+                        if (!data) {
+                            clearFields();
+                            return;
+                        }
+
+                        fields.monthlyRental.value = money(data.monthlyRental);
+                        fields.securityDeposit.value = money(data.securityDeposit);
+                        fields.previousBalance.value = money(data.previousBalance);
+                    })
+                    .catch(clearFields);
+            }
+
+            connection.addEventListener('change', loadDefaults);
+            loadDefaults();
+        })();
+    </script>
 }

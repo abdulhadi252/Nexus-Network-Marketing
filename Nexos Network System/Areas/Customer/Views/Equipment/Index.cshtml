@@ -39,7 +39,7 @@
                         @foreach (var equipment in Model)
                         {
                             <tr>
-                                <td class="fw-semibold">@equipment.AssetTag</td>
+                                <td class="fw-semibold"><a asp-action="Details" asp-route-id="@equipment.Id">@equipment.AssetTag</a></td>
                                 <td>@(equipment.Product?.Name ?? "-")</td>
                                 <td>@(equipment.SerialNumber ?? "-")</td>
                                 <td>@equipment.Connection?.AccountNumber</td>

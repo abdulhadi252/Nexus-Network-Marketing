@@ -198,6 +198,45 @@ public class BillsController(ApplicationDbContext db, IBillingService billingSer
         }
     }
 
+    /// <summary>
+    /// Amounts shown on the generate form for one connection: plan charge, security deposit and
+    /// the outstanding balance carried from the latest bill. Accounts therefore only types the
+    /// discounts (and any extra equipment/replacement charge) instead of copying figures by hand.
+    /// The billing service recalculates these same values when the bill is saved, so the preview
+    /// can never drift from the stored bill.
+    /// </summary>
+    [HttpGet]
+    public async Task<IActionResult> BillDefaults(int connectionId)
+    {
+        var connection = await db.Connections
+            .AsNoTracking()
+            .Where(c => c.Id == connectionId)
+            .Select(c => new { c.Plan.RecurringCharge, c.Plan.SecurityDeposit })
+            .FirstOrDefaultAsync();
+
+        if (connection is null)
+        {
+            return NotFound();
+        }
+
+        var previousBill = await db.Bills
+            .AsNoTracking()
+            .Where(b => b.ConnectionId == connectionId && b.Status != BillStatus.Cancelled)
+            .OrderByDescending(b => b.BillingPeriodEnd)
+            .ThenByDescending(b => b.GeneratedAt)
+            .ThenByDescending(b => b.Id)
+            .Select(b => new { b.DueAmount, b.BillingPeriodEnd })
+            .FirstOrDefaultAsync();
+
+        return Json(new
+        {
+            monthlyRental = connection.RecurringCharge,
+            securityDeposit = connection.SecurityDeposit,
+            previousBalance = previousBill?.DueAmount ?? 0m,
+            lastBillingPeriodEnd = previousBill?.BillingPeriodEnd
+        });
+    }
+
     private async Task LoadConnectionsAsync()
     {
         var connections = await db.Connections

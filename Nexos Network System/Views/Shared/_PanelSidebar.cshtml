@@ -46,6 +46,7 @@
             <li><a class="@Active("Feasibility")" asp-area="Technical" asp-controller="Feasibility" asp-action="Index"><svg class="nav-icon"><use href="#i-feasibility" /></svg>Feasibility</a></li>
             <li><a class="@Active("Connections")" asp-area="Technical" asp-controller="Connections" asp-action="Index"><svg class="nav-icon"><use href="#i-connections" /></svg>Connections</a></li>
             <li><a class="@Active("Equipment")" asp-area="Technical" asp-controller="Equipment" asp-action="Index"><svg class="nav-icon"><use href="#i-equipment" /></svg>Equipment</a></li>
+            <li><a class="@Active("Equipment", "Requests")" asp-area="Technical" asp-controller="Equipment" asp-action="Requests"><svg class="nav-icon"><use href="#i-package" /></svg>Equipment Requests</a></li>
         }
         else if (User.IsInRole("Accounts"))
         {

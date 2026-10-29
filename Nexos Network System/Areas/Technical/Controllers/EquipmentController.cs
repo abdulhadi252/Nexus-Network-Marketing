@@ -167,6 +167,85 @@ public class EquipmentController(ApplicationDbContext db) : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    /// <summary>
+    /// Customer-raised cancellation and return requests. Defaults to the pending queue, which is
+    /// what technical has to act on; the status filter opens the reviewed history instead.
+    /// </summary>
+    public async Task<IActionResult> Requests(EquipmentRequestStatus? status = EquipmentRequestStatus.Pending)
+    {
+        ViewData["PanelName"] = "Technical Panel";
+        ViewData["status"] = status;
+
+        var query = db.EquipmentRequests
+            .Include(r => r.Equipment).ThenInclude(e => e.Product)
+            .Include(r => r.Customer)
+            .Include(r => r.Equipment).ThenInclude(e => e.Connection)
+            .Include(r => r.ReviewedByEmployee)
+            .AsNoTracking()
+            .AsQueryable();
+
+        if (status.HasValue)
+        {
+            query = query.Where(r => r.Status == status.Value);
+        }
+
+        var requests = await query
+            .OrderByDescending(r => r.RequestedAt)
+            .ToListAsync();
+
+        ViewBag.PendingCount = await db.EquipmentRequests.CountAsync(r => r.Status == EquipmentRequestStatus.Pending);
+
+        return View(requests);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ReviewRequest(int id, EquipmentRequestStatus decision, string? notes)
+    {
+        var request = await db.EquipmentRequests
+            .Include(r => r.Equipment)
+            .FirstOrDefaultAsync(r => r.Id == id);
+        if (request is null)
+        {
+            return NotFound();
+        }
+
+        if (request.Status != EquipmentRequestStatus.Pending)
+        {
+            TempData["Error"] = "This request has already been reviewed.";
+            return RedirectToAction(nameof(Requests));
+        }
+
+        if (decision is not (EquipmentRequestStatus.Approved or EquipmentRequestStatus.Rejected))
+        {
+            TempData["Error"] = "Choose whether to approve or reject the request.";
+            return RedirectToAction(nameof(Requests));
+        }
+
+        var employee = await User.GetEmployeeAsync(db);
+
+        request.Status = decision;
+        request.ReviewedAt = DateTimeOffset.UtcNow;
+        request.ReviewedByEmployeeId = employee?.Id;
+        request.ReviewNotes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim();
+
+        if (decision == EquipmentRequestStatus.Approved && request.Equipment is not null)
+        {
+            // Approving takes the unit back into inventory so it can be assigned again.
+            request.Equipment.Status = EquipmentStatus.Available;
+            request.Equipment.ConnectionId = null;
+            request.Equipment.AssignedAt = null;
+        }
+
+        await db.SaveChangesAsync();
+
+        TempData["Success"] = decision == EquipmentRequestStatus.Approved
+            ? $"{request.RequestType} request for {request.Equipment?.AssetTag} was approved and the equipment is back in inventory."
+            : $"{request.RequestType} request for {request.Equipment?.AssetTag} was rejected.";
+
+        return RedirectToAction(nameof(Requests));
+    }
+
     private async Task LoadLookupsAsync()
     {
         var available = await db.Equipment

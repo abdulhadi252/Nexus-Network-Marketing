@@ -125,7 +125,7 @@ public class OrdersController(ApplicationDbContext db, IOrderService orderServic
             .Include(o => o.Plan)
             .Include(o => o.Items).ThenInclude(i => i.Product)
             .Include(o => o.FeasibilityReport)
-            .Include(o => o.Connection)
+            .Include(o => o.Connection).ThenInclude(c => c!.EquipmentItems).ThenInclude(e => e.Product)
             .AsNoTracking()
             .FirstOrDefaultAsync(o => o.Id == id && o.CustomerId == customerId.Value);
 

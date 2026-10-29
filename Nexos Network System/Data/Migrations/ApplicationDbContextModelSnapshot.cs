@@ -794,6 +794,56 @@ namespace Nexos_Network_System.Data.Migrations
                     b.ToTable("Equipment");
                 });
 
+            modelBuilder.Entity("Nexos_Network_System.Models.EquipmentRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EquipmentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("RequestType")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("RequestedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ReviewNotes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTimeOffset?>("ReviewedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("ReviewedByEmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("EquipmentId");
+
+                    b.HasIndex("ReviewedByEmployeeId");
+
+                    b.HasIndex("Status", "RequestedAt");
+
+                    b.ToTable("EquipmentRequests");
+                });
+
             modelBuilder.Entity("Nexos_Network_System.Models.FeasibilityReport", b =>
                 {
                     b.Property<int>("Id")
@@ -1604,6 +1654,32 @@ namespace Nexos_Network_System.Data.Migrations
                     b.Navigation("Product");
 
                     b.Navigation("Vendor");
+                });
+
+            modelBuilder.Entity("Nexos_Network_System.Models.EquipmentRequest", b =>
+                {
+                    b.HasOne("Nexos_Network_System.Models.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Nexos_Network_System.Models.Equipment", "Equipment")
+                        .WithMany()
+                        .HasForeignKey("EquipmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Nexos_Network_System.Models.Employee", "ReviewedByEmployee")
+                        .WithMany()
+                        .HasForeignKey("ReviewedByEmployeeId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("Equipment");
+
+                    b.Navigation("ReviewedByEmployee");
                 });
 
             modelBuilder.Entity("Nexos_Network_System.Models.FeasibilityReport", b =>
