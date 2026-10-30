@@ -4188,13 +4188,6 @@ h1, h2, h3, h4, h5, h6 {
     margin: 0 0 .6rem;
 }
 
-.reg-card__eyebrow::after {
-    content: "";
-    flex: 1 1 auto;
-    height: 1px;
-    background: var(--nexos-line);
-}
-
 .reg-card__title {
     font-size: clamp(1.5rem, 2.6vw, 1.9rem);
     font-weight: 800;
@@ -4383,16 +4376,6 @@ h1, h2, h3, h4, h5, h6 {
     letter-spacing: .16em;
     text-transform: uppercase;
     margin: .35rem 0 0;
-}
-
-.lg-tagline::after {
-    content: "";
-    display: block;
-    width: 56px;
-    height: 3px;
-    border-radius: 2px;
-    background: var(--nexos-primary);
-    margin: 1.4rem 0 0;
 }
 
 .lg-title {
@@ -5280,13 +5263,6 @@ h1, h2, h3, h4, h5, h6 {
     margin: 0 0 .9rem;
 }
 
-.hp-eyebrow::before {
-    content: "";
-    width: 26px;
-    height: 2px;
-    border-radius: 2px;
-    background: currentColor;
-}
 
 .hp-hero__title {
     font-size: clamp(2.4rem, 5.6vw, 3.9rem);
