@@ -78,6 +78,10 @@ public class PaymentsController(ApplicationDbContext db, IPaymentService payment
         model.OpenBills = openBills;
         FillFromBill(model, openBills.FirstOrDefault(b => b.Id == model.BillId));
 
+        // Amount is derived from the bill above, so drop any binding state from the
+        // posted (read-only) field before validating the model.
+        ModelState.Remove(nameof(CustomerPaymentViewModel.Amount));
+
         if (!ModelState.IsValid)
         {
             return View(model);
@@ -119,9 +123,8 @@ public class PaymentsController(ApplicationDbContext db, IPaymentService payment
         model.BillNumber = bill.BillNumber;
         model.AccountNumber = bill.Connection?.AccountNumber ?? string.Empty;
         model.DueAmount = bill.DueAmount;
-        if (model.Amount <= 0 || model.Amount == model.DueAmount)
-        {
-            model.Amount = bill.DueAmount;
-        }
+        // The customer pays the full outstanding due of the selected bill, so the
+        // amount field on the form is read-only and cannot be overridden.
+        model.Amount = bill.DueAmount;
     }
 }
