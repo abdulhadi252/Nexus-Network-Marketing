@@ -45,8 +45,8 @@
 
             <div class="col-12">
                 <p class="text-muted small mb-0">
-                    These amounts are filled from the selected connection's plan and its previous bill. Accounts only
-                    needs to enter the discount (and any extra equipment or replacement charge).
+                    These amounts are filled from the selected connection's plan, the equipment assigned to it and its
+                    previous bill. Accounts only needs to enter the discount (and any extra replacement charge).
                 </p>
             </div>
             <div class="col-12" id="connectionCardWrapper" hidden>
@@ -66,19 +66,16 @@
                 <input id="PreviousBalance" class="form-control" readonly aria-readonly="true" />
             </div>
 
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <label asp-for="DiscountAmount" class="form-label"></label>
                 <input asp-for="DiscountAmount" type="number" step="0.01" class="form-control" />
             </div>
-            <div class="col-md-3">
-                <label asp-for="SchemeDiscountAmount" class="form-label"></label>
-                <input asp-for="SchemeDiscountAmount" type="number" step="0.01" class="form-control" />
-            </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <label asp-for="EquipmentCharges" class="form-label"></label>
                 <input asp-for="EquipmentCharges" type="number" step="0.01" class="form-control" />
+                <div class="form-text">Filled from the equipment assigned to the connection.</div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <label asp-for="ReplacementCharges" class="form-label"></label>
                 <input asp-for="ReplacementCharges" type="number" step="0.01" class="form-control" />
             </div>
@@ -99,6 +96,7 @@
             var fields = {
                 monthlyRental: document.getElementById('MonthlyRental'),
                 securityDeposit: document.getElementById('SecurityDeposit'),
+                equipmentCharges: document.getElementById('EquipmentCharges'),
                 previousBalance: document.getElementById('PreviousBalance')
             };
             var cardWrapper = document.getElementById('connectionCardWrapper');
@@ -144,7 +142,7 @@
                 cardWrapper.hidden = false;
             }
 
-            function loadDefaults() {
+            function loadDefaults(forceEquipment) {
                 if (!connection.value) {
                     clearFields();
                     return;
@@ -163,13 +161,16 @@
                         fields.monthlyRental.value = money(data.monthlyRental);
                         fields.securityDeposit.value = money(data.securityDeposit);
                         fields.previousBalance.value = money(data.previousBalance);
+                        if (forceEquipment || !fields.equipmentCharges.value || Number(fields.equipmentCharges.value) === 0) {
+                            fields.equipmentCharges.value = money(data.equipmentCharges);
+                        }
                         renderCard(data);
                     })
                     .catch(clearFields);
             }
 
-            connection.addEventListener('change', loadDefaults);
-            loadDefaults();
+            connection.addEventListener('change', function () { loadDefaults(true); });
+            loadDefaults(false);
         })();
     </script>
 }

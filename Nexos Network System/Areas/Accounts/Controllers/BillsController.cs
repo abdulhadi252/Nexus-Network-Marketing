@@ -199,9 +199,10 @@ public class BillsController(ApplicationDbContext db, IBillingService billingSer
     }
 
     /// <summary>
-    /// Amounts shown on the generate form for one connection: plan charge, security deposit and
-    /// the outstanding balance carried from the latest bill. Accounts therefore only types the
-    /// discounts (and any extra equipment/replacement charge) instead of copying figures by hand.
+    /// Amounts shown on the generate form for one connection: plan charge, security deposit, the
+    /// charge for the equipment assigned to the connection and the outstanding balance carried
+    /// from the latest bill. Accounts therefore only types the discount (and any extra
+    /// replacement charge) instead of copying figures by hand.
     /// The billing service recalculates these same values when the bill is saved, so the preview
     /// can never drift from the stored bill.
     /// </summary>
@@ -237,6 +238,17 @@ public class BillsController(ApplicationDbContext db, IBillingService billingSer
             .Select(b => new { b.BillNumber, b.DueAmount, b.BillingPeriodEnd })
             .FirstOrDefaultAsync();
 
+        var assignedEquipment = await db.Equipment
+            .AsNoTracking()
+            .Where(e => e.ConnectionId == connectionId && e.Status == EquipmentStatus.Assigned)
+            .Select(e => new
+            {
+                e.AssetTag,
+                ProductName = e.Product.Name,
+                Charge = e.Product.UnitSalePrice ?? e.ReplacementCharge ?? 0m
+            })
+            .ToListAsync();
+
         return Json(new
         {
             customerName = connection.CustomerName,
@@ -248,6 +260,8 @@ public class BillsController(ApplicationDbContext db, IBillingService billingSer
             monthlyRental = connection.RecurringCharge,
             securityDeposit = connection.SecurityDeposit,
             previousBalance = previousBill?.DueAmount ?? 0m,
+            equipmentCharges = assignedEquipment.Sum(e => e.Charge),
+            equipmentNames = string.Join(", ", assignedEquipment.Select(e => e.ProductName).Distinct()),
             previousBillNumber = previousBill?.BillNumber,
             lastBillingPeriodEnd = previousBill?.BillingPeriodEnd,
             detailsUrl = Url.Action("Details", "Connections", new { area = "Accounts", id = connectionId })
