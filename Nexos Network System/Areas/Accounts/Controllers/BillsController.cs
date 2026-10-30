@@ -245,7 +245,8 @@ public class BillsController(ApplicationDbContext db, IBillingService billingSer
             {
                 e.AssetTag,
                 ProductName = e.Product.Name,
-                Charge = e.Product.UnitSalePrice ?? e.ReplacementCharge ?? 0m
+                Charge = e.Product.UnitSalePrice ?? e.ReplacementCharge ?? 0m,
+                e.ReplacementCharge
             })
             .ToListAsync();
 
@@ -261,6 +262,7 @@ public class BillsController(ApplicationDbContext db, IBillingService billingSer
             securityDeposit = connection.SecurityDeposit,
             previousBalance = previousBill?.DueAmount ?? 0m,
             equipmentCharges = assignedEquipment.Sum(e => e.Charge),
+            replacementCharges = assignedEquipment.Sum(e => e.ReplacementCharge ?? 0m),
             equipmentNames = string.Join(", ", assignedEquipment.Select(e => e.ProductName).Distinct()),
             previousBillNumber = previousBill?.BillNumber,
             lastBillingPeriodEnd = previousBill?.BillingPeriodEnd,

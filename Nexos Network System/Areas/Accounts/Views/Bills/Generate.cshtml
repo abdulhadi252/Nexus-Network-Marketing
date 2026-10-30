@@ -97,6 +97,7 @@
                 monthlyRental: document.getElementById('MonthlyRental'),
                 securityDeposit: document.getElementById('SecurityDeposit'),
                 equipmentCharges: document.getElementById('EquipmentCharges'),
+                replacementCharges: document.getElementById('ReplacementCharges'),
                 previousBalance: document.getElementById('PreviousBalance')
             };
             var cardWrapper = document.getElementById('connectionCardWrapper');
@@ -115,6 +116,14 @@
                 var div = document.createElement('div');
                 div.textContent = value == null ? '' : value;
                 return div.innerHTML;
+            }
+
+            // Amounts keep whatever accounts typed unless the connection changed (force),
+            // or the field is still empty.
+            function fillIfEmpty(input, value, force) {
+                if (force || !input.value || Number(input.value) === 0) {
+                    input.value = money(value);
+                }
             }
 
             function clearFields() {
@@ -161,9 +170,8 @@
                         fields.monthlyRental.value = money(data.monthlyRental);
                         fields.securityDeposit.value = money(data.securityDeposit);
                         fields.previousBalance.value = money(data.previousBalance);
-                        if (forceEquipment || !fields.equipmentCharges.value || Number(fields.equipmentCharges.value) === 0) {
-                            fields.equipmentCharges.value = money(data.equipmentCharges);
-                        }
+                        fillIfEmpty(fields.equipmentCharges, data.equipmentCharges, forceEquipment);
+                        fillIfEmpty(fields.replacementCharges, data.replacementCharges, forceEquipment);
                         renderCard(data);
                     })
                     .catch(clearFields);

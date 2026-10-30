@@ -6,6 +6,7 @@
     int overdueCount = ViewBag.OverdueCount ?? 0;
     decimal overdueAmount = ViewBag.OverdueAmount ?? 0m;
     var today = DateOnly.FromDateTime(DateTime.UtcNow);
+    var reminderBills = ViewBag.ReminderBills as IReadOnlyList<Bill> ?? Array.Empty<Bill>();
 }
 
 <nav class="crumbs" aria-label="Breadcrumb">
@@ -42,6 +43,71 @@
             <div class="stat-label">Overdue Amount</div>
             <div class="stat-value text-danger">PKR @overdueAmount.ToString("N2")</div>
         </div>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h6 class="mb-2">Send a payment reminder</h6>
+        @if (reminderBills.Count == 0)
+        {
+            <p class="text-muted small mb-0">Every bill is paid, so there is nobody to remind right now.</p>
+        }
+        else
+        {
+            <p class="text-muted small mb-3">
+                Pick a customer whose bill is still unpaid. Their bill details fill in by themselves and the note
+                goes straight to that customer's own panel.
+            </p>
+            <form asp-action="SendReminder" method="post" class="row g-3">
+                <div class="col-lg-7">
+                    <label for="reminderBill" class="form-label">Customer / bill with outstanding due</label>
+                    <select class="form-select" id="reminderBill" name="billId" required>
+                        <option value="">-- Select a customer with outstanding dues --</option>
+                        @foreach (var bill in reminderBills)
+                        {
+                            <option value="@bill.Id"
+                                    data-customer="@bill.Customer.FirstName @bill.Customer.LastName"
+                                    data-account="@bill.Connection.AccountNumber"
+                                    data-bill="@bill.BillNumber"
+                                    data-period="@bill.BillingPeriodStart.ToString("dd MMM yyyy") to @bill.BillingPeriodEnd.ToString("dd MMM yyyy")"
+                                    data-due="@bill.DueAmount.ToString("N2")"
+                                    data-duedate="@bill.DueDate.ToString("dd MMM yyyy")"
+                                    data-phone="@bill.Customer.PrimaryContactNumber"
+                                    data-email="@bill.Customer.Email">
+                                @bill.Customer.FirstName @bill.Customer.LastName &middot; @bill.Connection.AccountNumber &middot; PKR @bill.DueAmount.ToString("N2") due
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="col-lg-5">
+                    <div class="border rounded p-3 h-100" id="reminderDetails" hidden>
+                        <dl class="row mb-0 small">
+                            <dt class="col-5">Customer</dt><dd class="col-7 mb-1" id="reminderCustomer"></dd>
+                            <dt class="col-5">Account</dt><dd class="col-7 mb-1" id="reminderAccount"></dd>
+                            <dt class="col-5">Phone</dt><dd class="col-7 mb-1" id="reminderPhone"></dd>
+                            <dt class="col-5">Email</dt><dd class="col-7 mb-1 text-break" id="reminderEmail"></dd>
+                            <dt class="col-5">Bill</dt><dd class="col-7 mb-1" id="reminderBillNumber"></dd>
+                            <dt class="col-5">Period</dt><dd class="col-7 mb-1" id="reminderPeriod"></dd>
+                            <dt class="col-5">Outstanding</dt><dd class="col-7 mb-1 fw-semibold text-danger" id="reminderDue"></dd>
+                            <dt class="col-5">Due date</dt><dd class="col-7 mb-0" id="reminderDueDate"></dd>
+                        </dl>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <label for="reminderMessage" class="form-label">Note to the customer (optional)</label>
+                    <textarea name="message" id="reminderMessage" class="form-control" rows="2" maxlength="1000"
+                              placeholder="e.g. Please clear the amount before the next billing cycle."></textarea>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary" id="reminderSend" disabled>
+                        <svg class="svg-icon btn-icon" aria-hidden="true"><use href="#i-bell" /></svg>
+                        Send reminder
+                    </button>
+                    <span class="text-muted small ms-2">The customer sees it in their panel bell and Notifications page.</span>
+                </div>
+            </form>
+        }
     </div>
 </div>
 
@@ -110,3 +176,54 @@
         }
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var select = document.getElementById('reminderBill');
+            var details = document.getElementById('reminderDetails');
+            var send = document.getElementById('reminderSend');
+            if (!select || !details) {
+                return;
+            }
+
+            var targets = {
+                reminderCustomer: 'customer',
+                reminderAccount: 'account',
+                reminderPhone: 'phone',
+                reminderEmail: 'email',
+                reminderBillNumber: 'bill',
+                reminderPeriod: 'period',
+                reminderDue: 'due',
+                reminderDueDate: 'duedate'
+            };
+
+            // Every detail comes from the selected bill, so nothing is typed twice.
+            function syncDetails() {
+                var option = select.selectedOptions.length ? select.selectedOptions[0] : null;
+                var chosen = select.value !== '' && option !== null;
+
+                Object.keys(targets).forEach(function (id) {
+                    var element = document.getElementById(id);
+                    if (!element) {
+                        return;
+                    }
+
+                    var value = chosen ? option.getAttribute('data-' + targets[id]) : '';
+                    if (targets[id] === 'due' && value) {
+                        value = 'PKR ' + value;
+                    }
+                    element.textContent = value || '-';
+                });
+
+                details.hidden = !chosen;
+                if (send) {
+                    send.disabled = !chosen;
+                }
+            }
+
+            select.addEventListener('change', syncDetails);
+            syncDetails();
+        })();
+    </script>
+}
