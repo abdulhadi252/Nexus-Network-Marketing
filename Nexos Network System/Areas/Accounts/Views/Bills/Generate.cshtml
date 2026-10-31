@@ -72,12 +72,13 @@
             </div>
             <div class="col-md-4">
                 <label asp-for="EquipmentCharges" class="form-label"></label>
-                <input asp-for="EquipmentCharges" type="number" step="0.01" class="form-control" />
-                <div class="form-text">Filled from the equipment assigned to the connection.</div>
+                <input asp-for="EquipmentCharges" type="number" step="0.01" class="form-control" readonly aria-readonly="true" />
+                <div class="form-text">Filled from the equipment assigned to the connection and cannot be edited.</div>
             </div>
             <div class="col-md-4">
                 <label asp-for="ReplacementCharges" class="form-label"></label>
                 <input asp-for="ReplacementCharges" type="number" step="0.01" class="form-control" />
+                <div class="form-text">Only enter an amount when equipment was actually replaced.</div>
             </div>
 
             <div class="col-12 d-flex gap-2">

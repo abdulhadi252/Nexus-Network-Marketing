@@ -1,0 +1,23 @@
+@*
+    NEXUS branded boot loader.
+
+    Shown for roughly two seconds on the first load of a session, then it
+    hands the page over. The logo asset is used as a CSS mask, never
+    redrawn or stretched: a blue/cyan ribbon travels through its exact
+    shape, the silhouette fills with brand light, and the untouched logo
+    is revealed. Internal navigation skips it entirely (an inline script
+    in <head> adds `.nx-booted` to <html> before first paint), and users
+    who prefer reduced motion never see it.
+*@
+<div class="nx-loader" id="nxLoader" aria-hidden="true">
+    <div class="nx-loader__stage">
+        <div class="nx-loader__art">
+            <img class="nx-loader__logo" src="~/img/logo2.png" alt="" width="180" height="74" />
+            <span class="nx-loader__trace"></span>
+            <span class="nx-loader__ribbon"></span>
+        </div>
+        <span class="nx-loader__word">NEXUS</span>
+        <span class="nx-loader__caption">Network &amp; Internet Services</span>
+        <span class="nx-loader__bar"><span></span></span>
+    </div>
+</div>

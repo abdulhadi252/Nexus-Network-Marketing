@@ -184,6 +184,10 @@ public class BillsController(ApplicationDbContext db, IBillingService billingSer
             return View(model);
         }
 
+        // Equipment charges always come from the equipment assigned to the connection, never from
+        // the form, so accounts cannot type or tamper with them.
+        model.EquipmentCharges = await CalculateEquipmentChargesAsync(model.ConnectionId);
+
         try
         {
             var bill = await billingService.GenerateBillAsync(model);
@@ -244,9 +248,7 @@ public class BillsController(ApplicationDbContext db, IBillingService billingSer
             .Select(e => new
             {
                 e.AssetTag,
-                ProductName = e.Product.Name,
-                Charge = e.Product.UnitSalePrice ?? e.ReplacementCharge ?? 0m,
-                e.ReplacementCharge
+                ProductName = e.Product.Name
             })
             .ToListAsync();
 
@@ -261,13 +263,30 @@ public class BillsController(ApplicationDbContext db, IBillingService billingSer
             monthlyRental = connection.RecurringCharge,
             securityDeposit = connection.SecurityDeposit,
             previousBalance = previousBill?.DueAmount ?? 0m,
-            equipmentCharges = assignedEquipment.Sum(e => e.Charge),
-            replacementCharges = assignedEquipment.Sum(e => e.ReplacementCharge ?? 0m),
+            equipmentCharges = await CalculateEquipmentChargesAsync(connectionId),
+            // A replacement is only billed when one actually happened, so nothing is filled here;
+            // accounts enters an amount only for a real replacement.
+            replacementCharges = 0m,
             equipmentNames = string.Join(", ", assignedEquipment.Select(e => e.ProductName).Distinct()),
             previousBillNumber = previousBill?.BillNumber,
             lastBillingPeriodEnd = previousBill?.BillingPeriodEnd,
             detailsUrl = Url.Action("Details", "Connections", new { area = "Accounts", id = connectionId })
         });
+    }
+
+    /// <summary>
+    /// Charge for the equipment currently assigned to a connection. Shared by the form preview and
+    /// the saved bill so both always show the same figure.
+    /// </summary>
+    private async Task<decimal> CalculateEquipmentChargesAsync(int connectionId)
+    {
+        var charges = await db.Equipment
+            .AsNoTracking()
+            .Where(e => e.ConnectionId == connectionId && e.Status == EquipmentStatus.Assigned)
+            .Select(e => e.Product.UnitSalePrice ?? e.ReplacementCharge ?? 0m)
+            .ToListAsync();
+
+        return charges.Sum();
     }
 
     private async Task LoadConnectionsAsync()

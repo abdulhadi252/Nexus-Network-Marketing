@@ -1,0 +1,1196 @@
+/* ============================================================
+   NEXUS - Motion & micro-interaction layer
+   ------------------------------------------------------------
+   The single source of truth for animation across the whole
+   application: public website, Admin, Retail, Technical, Accounts
+   and Customer panels, plus the standalone login screen.
+
+   Principles
+     - only `transform` and `opacity` are animated (compositor work,
+       no layout recalculation, no content flashing)
+     - one shared easing curve and a small duration scale
+     - entrance animations use fill-mode `backwards`, so the resting
+       state is always the natural document state
+     - nothing depends on JavaScript to become visible
+     - every effect is disabled for `prefers-reduced-motion: reduce`
+   ============================================================ */
+
+:root {
+    --nx-ease: cubic-bezier(.22, .61, .36, 1);      /* gentle ease-out */
+    --nx-ease-out: cubic-bezier(.16, 1, .3, 1);
+    --nx-anim-fast: 180ms;
+    --nx-anim-base: 260ms;
+    --nx-anim-slow: 400ms;
+    --nx-anim-load: 480ms;
+    --nx-stagger: 55ms;
+    --nx-lift: -3px;
+}
+
+/* ============================================================
+   1. Keyframes
+   ============================================================ */
+
+@keyframes nx-fade-up {
+    from { opacity: 0; transform: translate3d(0, 12px, 0); }
+    to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes nx-fade-down {
+    from { opacity: 0; transform: translate3d(0, -8px, 0); }
+    to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes nx-fade-right {
+    from { opacity: 0; transform: translate3d(-10px, 0, 0); }
+    to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes nx-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes nx-fade-scale {
+    from { opacity: 0; transform: scale(.985); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes nx-pop {
+    from { opacity: 0; transform: translateY(-4px) scale(.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes nx-alert-in {
+    from { opacity: 0; transform: translate3d(0, -6px, 0); }
+    to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes nx-line-draw {
+    from { opacity: .25; clip-path: inset(0 100% 0 0); }
+    to { opacity: 1; clip-path: inset(0 0 0 0); }
+}
+
+@keyframes nx-donut-in {
+    from { opacity: 0; transform: scale(.94) rotate(-6deg); }
+    to { opacity: 1; transform: scale(1) rotate(0); }
+}
+
+@keyframes nx-bar-grow {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+}
+
+@keyframes nx-accent-bar {
+    from { transform: scaleY(0); opacity: 0; }
+    to { transform: scaleY(1); opacity: 1; }
+}
+
+/* ============================================================
+   2. Global page entrance
+   ============================================================ */
+
+/* Public pages: each top-level section settles in once. */
+main > section {
+    animation: nx-fade-in var(--nx-anim-slow) var(--nx-ease) backwards;
+}
+
+/* Hero copy lines rise in sequence. */
+.hp-hero__copy > *,
+.svc-hero__copy > *,
+.ab-hero__copy > *,
+.contact-hero__copy > *,
+.pl-hero__copy > *,
+.page-hero__inner > * {
+    animation: nx-fade-up .55s var(--nx-ease) backwards;
+}
+
+.hp-hero__copy > :nth-child(1),
+.svc-hero__copy > :nth-child(1),
+.ab-hero__copy > :nth-child(1),
+.contact-hero__copy > :nth-child(1),
+.pl-hero__copy > :nth-child(1) { animation-delay: 40ms; }
+
+.hp-hero__copy > :nth-child(2),
+.svc-hero__copy > :nth-child(2),
+.ab-hero__copy > :nth-child(2),
+.contact-hero__copy > :nth-child(2),
+.pl-hero__copy > :nth-child(2) { animation-delay: 120ms; }
+
+.hp-hero__copy > :nth-child(3),
+.svc-hero__copy > :nth-child(3),
+.ab-hero__copy > :nth-child(3),
+.contact-hero__copy > :nth-child(3),
+.pl-hero__copy > :nth-child(3) { animation-delay: 200ms; }
+
+.hp-hero__copy > :nth-child(n+4),
+.svc-hero__copy > :nth-child(n+4),
+.ab-hero__copy > :nth-child(n+4),
+.contact-hero__copy > :nth-child(n+4),
+.pl-hero__copy > :nth-child(n+4) { animation-delay: 260ms; }
+
+/* Cards that sit beside the hero copy. */
+.hp-status-card,
+.pl-hero__aside,
+.contact-hero__badges {
+    animation: nx-fade-up .6s var(--nx-ease) 220ms backwards;
+}
+
+/* ============================================================
+   3. Panel shell: frame first, then content blocks
+   ============================================================ */
+
+.panel-sidebar {
+    animation: nx-fade-right .5s var(--nx-ease) backwards;
+}
+
+.panel-topbar {
+    animation: nx-fade-down .45s var(--nx-ease) backwards;
+}
+
+.panel-content {
+    animation: nx-fade-in .45s var(--nx-ease) 60ms backwards;
+}
+
+.panel-footer {
+    animation: nx-fade-in .45s var(--nx-ease) 120ms backwards;
+}
+
+.panel-content > *:not(script):not(style) {
+    animation: nx-fade-up var(--nx-anim-load) var(--nx-ease) backwards;
+}
+
+.panel-content > *:nth-child(2) { animation-delay: 60ms; }
+.panel-content > *:nth-child(3) { animation-delay: 110ms; }
+.panel-content > *:nth-child(4) { animation-delay: 160ms; }
+.panel-content > *:nth-child(n+5) { animation-delay: 200ms; }
+
+/* ============================================================
+   4. Cards: staggered entrance, gentle hover lift
+   ============================================================ */
+
+/* `--nx-i` is set by motion.js on the children of card grids; custom
+   properties inherit, so the card inside the column picks it up. */
+.kpi-card,
+.stat-card,
+.hp-svc-card,
+.hp-plan-card,
+.pl-plan,
+.svc-main-card,
+.svc-support-card,
+.ab-value-card,
+.ab-step,
+.contact-card,
+.pay-stat,
+.pay-card {
+    animation: nx-fade-up var(--nx-anim-load) var(--nx-ease) backwards;
+    animation-delay: calc(var(--nx-i, 0) * var(--nx-stagger));
+    transition:
+        transform var(--nx-anim-base) var(--nx-ease),
+        box-shadow var(--nx-anim-base) var(--nx-ease),
+        border-color var(--nx-anim-base) var(--nx-ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .kpi-card:hover,
+    .stat-card:hover,
+    .hp-svc-card:hover,
+    .hp-plan-card:hover,
+    .pl-plan:hover,
+    .svc-main-card:hover,
+    .svc-support-card:hover,
+    .ab-value-card:hover,
+    .ab-step:hover,
+    .contact-card:hover,
+    .pay-stat:hover {
+        transform: translate3d(0, var(--nx-lift), 0);
+        box-shadow: var(--nexos-shadow-lg);
+    }
+}
+
+/* Card icons settle in just behind their card. */
+.kpi-card__icon .svg-icon,
+.dash-card__icon .svg-icon,
+.stat-card .svg-icon {
+    animation: nx-fade-scale var(--nx-anim-slow) var(--nx-ease) 120ms backwards;
+}
+
+/* ============================================================
+   5. Navigation: public navbar + panel sidebar
+   ============================================================ */
+
+.public-navbar {
+    animation: nx-fade-down var(--nx-anim-load) var(--nx-ease) backwards;
+}
+
+.public-navbar .nav-link {
+    transition: color var(--nx-anim-fast) var(--nx-ease);
+}
+
+.public-navbar .btn-primary {
+    transition:
+        transform var(--nx-anim-fast) var(--nx-ease),
+        background-color var(--nx-anim-fast) var(--nx-ease),
+        border-color var(--nx-anim-fast) var(--nx-ease),
+        box-shadow var(--nx-anim-fast) var(--nx-ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .public-navbar .btn-primary:hover {
+        transform: translate3d(0, -1px, 0);
+        box-shadow: 0 12px 22px -12px rgba(22, 119, 255, .9);
+    }
+}
+
+/* --- Panel sidebar --- */
+.panel-sidebar {
+    transition:
+        margin-left 280ms var(--nx-ease),
+        box-shadow var(--nx-anim-base) var(--nx-ease);
+}
+
+.panel-nav a,
+.panel-nav button {
+    transition:
+        background-color var(--nx-anim-fast) var(--nx-ease),
+        color var(--nx-anim-fast) var(--nx-ease),
+        transform var(--nx-anim-fast) var(--nx-ease),
+        box-shadow var(--nx-anim-fast) var(--nx-ease);
+}
+
+.panel-nav .nav-icon {
+    transition: transform var(--nx-anim-fast) var(--nx-ease), opacity var(--nx-anim-fast) var(--nx-ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .panel-nav a:hover,
+    .panel-nav button:hover {
+        transform: translate3d(2px, 0, 0);
+    }
+
+    .panel-nav a:hover .nav-icon,
+    .panel-nav button:hover .nav-icon {
+        transform: translateX(1px) scale(1.06);
+    }
+}
+
+.panel-nav a.active,
+.panel-nav button.active {
+    transform: none;
+}
+
+/* Active marker draws itself when the page settles. */
+.panel-nav a.active::before {
+    transform-origin: center;
+    animation: nx-accent-bar var(--nx-anim-slow) var(--nx-ease) 200ms backwards;
+}
+
+/* Sub-menu support: any `<ul class="panel-nav__sub">` toggled by
+   [data-nx-submenu] opens smoothly (see motion.js). */
+.panel-nav__sub {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition:
+        max-height var(--nx-anim-base) var(--nx-ease),
+        opacity var(--nx-anim-fast) var(--nx-ease);
+}
+
+.is-open > .panel-nav__sub {
+    max-height: 24rem;
+    opacity: 1;
+}
+
+.panel-nav__caret {
+    margin-left: auto;
+    transition: transform var(--nx-anim-fast) var(--nx-ease);
+}
+
+.is-open > a .panel-nav__caret,
+.is-open > button .panel-nav__caret {
+    transform: rotate(90deg);
+}
+
+/* Mobile drawer: dimmed backdrop that fades with the slide-in. */
+@media (max-width: 991.98px) {
+    .panel-wrapper.is-nav-open::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: 25;
+        background: rgba(11, 31, 58, .46);
+        animation: nx-fade-in var(--nx-anim-base) var(--nx-ease);
+    }
+}
+
+.panel-topbar__toggle,
+.panel-bell,
+.panel-chip,
+.panel-search input {
+    transition:
+        background-color var(--nx-anim-fast) var(--nx-ease),
+        border-color var(--nx-anim-fast) var(--nx-ease),
+        color var(--nx-anim-fast) var(--nx-ease),
+        box-shadow var(--nx-anim-fast) var(--nx-ease);
+}
+
+.panel-bell__menu {
+    animation: nx-pop var(--nx-anim-base) var(--nx-ease);
+    transform-origin: top right;
+}
+
+/* ============================================================
+   6. Buttons & small controls
+   ============================================================ */
+
+/* The transform composes three inputs: the magnetic offset written by
+   motion.js, the hover/press scale, and nothing else - so hover, press and
+   the pointer-follow effect never fight over one property. */
+.btn:not(.nav-link) {
+    transform: translate3d(var(--nx-mx, 0px), var(--nx-my, 0px), 0) scale(var(--nx-scale, 1));
+    transition:
+        transform var(--nx-anim-fast) var(--nx-ease),
+        background-color var(--nx-anim-fast) var(--nx-ease),
+        border-color var(--nx-anim-fast) var(--nx-ease),
+        color var(--nx-anim-fast) var(--nx-ease),
+        box-shadow var(--nx-anim-fast) var(--nx-ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .btn:not(.nav-link):hover {
+        --nx-scale: 1.012;
+    }
+}
+
+.btn:not(.nav-link):active {
+    --nx-scale: .988;
+}
+
+.btn .btn-icon,
+.btn .svg-icon {
+    transition: transform var(--nx-anim-fast) var(--nx-ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .btn:hover .btn-icon {
+        transform: translateX(2px);
+    }
+}
+
+.icon-btn,
+.pager__btn,
+.page-link,
+.pay-kebab,
+.pay-copy,
+.pay-btn,
+.pay-page-btn {
+    transition:
+        transform var(--nx-anim-fast) var(--nx-ease),
+        background-color var(--nx-anim-fast) var(--nx-ease),
+        border-color var(--nx-anim-fast) var(--nx-ease),
+        color var(--nx-anim-fast) var(--nx-ease),
+        box-shadow var(--nx-anim-fast) var(--nx-ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .pager__btn:hover:not(.is-disabled),
+    .pay-page-btn:hover {
+        transform: translateY(-1px);
+    }
+}
+
+/* ============================================================
+   7. Tables, status badges, pagination, empty states
+   ============================================================ */
+
+.table tbody tr,
+.directory__table tbody tr,
+.pay-table tbody tr {
+    animation: nx-fade-in .32s var(--nx-ease) backwards;
+}
+
+/* A short cascade for the first rows only: long registers stay static. */
+.table tbody tr:nth-child(1),
+.directory__table tbody tr:nth-child(1),
+.pay-table tbody tr:nth-child(1) { animation-delay: 160ms; }
+
+.table tbody tr:nth-child(2),
+.directory__table tbody tr:nth-child(2),
+.pay-table tbody tr:nth-child(2) { animation-delay: 185ms; }
+
+.table tbody tr:nth-child(3),
+.directory__table tbody tr:nth-child(3),
+.pay-table tbody tr:nth-child(3) { animation-delay: 210ms; }
+
+.table tbody tr:nth-child(4),
+.directory__table tbody tr:nth-child(4),
+.pay-table tbody tr:nth-child(4) { animation-delay: 235ms; }
+
+.table tbody tr:nth-child(5),
+.directory__table tbody tr:nth-child(5),
+.pay-table tbody tr:nth-child(5) { animation-delay: 260ms; }
+
+.table tbody tr:nth-child(6),
+.directory__table tbody tr:nth-child(6),
+.pay-table tbody tr:nth-child(6) { animation-delay: 285ms; }
+
+.table tbody tr:nth-child(7),
+.directory__table tbody tr:nth-child(7),
+.pay-table tbody tr:nth-child(7) { animation-delay: 305ms; }
+
+.table tbody tr:nth-child(8),
+.directory__table tbody tr:nth-child(8),
+.pay-table tbody tr:nth-child(8) { animation-delay: 325ms; }
+
+.table tbody tr,
+.order-item,
+.pay-table tbody tr {
+    transition: background-color var(--nx-anim-fast) var(--nx-ease);
+}
+
+/* Status badges fade in with the row, never looping. */
+.status-pill,
+.badge-soft-primary,
+.badge-soft-accent,
+.badge-soft-neutral,
+.badge-soft-purple,
+.badge-soft-green,
+.pay-pill,
+.pl-plan__pill {
+    animation: nx-fade-in .34s var(--nx-ease) 80ms backwards;
+}
+
+.status-pill__dot {
+    transition: transform var(--nx-anim-fast) var(--nx-ease);
+}
+
+.pagination .page-item {
+    animation: nx-fade-in .3s var(--nx-ease) backwards;
+}
+
+.pagination .page-item:nth-child(1) { animation-delay: 240ms; }
+.pagination .page-item:nth-child(2) { animation-delay: 260ms; }
+.pagination .page-item:nth-child(3) { animation-delay: 280ms; }
+.pagination .page-item:nth-child(4) { animation-delay: 300ms; }
+.pagination .page-item:nth-child(n+5) { animation-delay: 320ms; }
+
+.page-item.active .page-link {
+    transition: background-color var(--nx-anim-fast) var(--nx-ease), box-shadow var(--nx-anim-fast) var(--nx-ease);
+}
+
+.empty-state {
+    animation: nx-fade-up .45s var(--nx-ease) 120ms backwards;
+}
+
+.empty-state .empty-icon {
+    animation: nx-fade-scale var(--nx-anim-slow) var(--nx-ease) 200ms backwards;
+}
+
+/* ============================================================
+   8. Forms
+   ============================================================ */
+
+.form-control,
+.form-select,
+.form-check-input,
+.panel-search input,
+.pay-field,
+.pay-field-group select,
+.pay-dates {
+    transition:
+        border-color var(--nx-anim-fast) var(--nx-ease),
+        box-shadow var(--nx-anim-fast) var(--nx-ease),
+        background-color var(--nx-anim-fast) var(--nx-ease),
+        color var(--nx-anim-fast) var(--nx-ease);
+}
+
+.form-label {
+    transition: color var(--nx-anim-fast) var(--nx-ease);
+}
+
+.form-control:focus + .form-label,
+.form-label:has(+ .form-control:focus) {
+    color: var(--nexos-primary-dark);
+}
+
+.form-check-input {
+    transition:
+        transform var(--nx-anim-fast) var(--nx-ease),
+        background-color var(--nx-anim-fast) var(--nx-ease),
+        border-color var(--nx-anim-fast) var(--nx-ease),
+        box-shadow var(--nx-anim-fast) var(--nx-ease);
+}
+
+.form-check-input:active {
+    transform: scale(.94);
+}
+
+/* Validation feedback slides in instead of snapping. */
+.field-validation-error,
+.validation-summary-errors,
+.input-validation-error + .field-validation-error {
+    display: inline-block;
+    animation: nx-fade-up var(--nx-anim-base) var(--nx-ease);
+}
+
+.input-validation-error {
+    border-color: #dc3545;
+    transition: border-color var(--nx-anim-fast) var(--nx-ease), box-shadow var(--nx-anim-fast) var(--nx-ease);
+}
+
+/* ============================================================
+   9. Overlays: alerts, dropdowns, modals, toasts
+   ============================================================ */
+
+.alert {
+    animation: nx-alert-in var(--nx-anim-base) var(--nx-ease);
+}
+
+.alert.fade:not(.show) {
+    transition: opacity var(--nx-anim-fast) linear;
+}
+
+.dropdown-menu.show {
+    animation: nx-pop var(--nx-anim-base) var(--nx-ease);
+    transform-origin: top left;
+}
+
+.dropdown-menu-end.show {
+    transform-origin: top right;
+}
+
+.modal.fade .modal-dialog {
+    transform: translate3d(0, 10px, 0) scale(.985);
+    transition: transform var(--nx-anim-base) var(--nx-ease);
+}
+
+.modal.show .modal-dialog {
+    transform: none;
+}
+
+.modal-backdrop.show {
+    animation: nx-fade-in var(--nx-anim-base) linear;
+}
+
+.toast.show,
+.toast.showing {
+    animation: nx-alert-in var(--nx-anim-base) var(--nx-ease);
+}
+
+.modal-title,
+.modal-body > * {
+    animation: nx-fade-up .32s var(--nx-ease) backwards;
+}
+
+.modal-body > *:nth-child(2) { animation-delay: 40ms; }
+.modal-body > *:nth-child(n+3) { animation-delay: 70ms; }
+
+/* ============================================================
+   10. Charts & analytics
+   ============================================================ */
+
+/* Line charts: the plot is revealed left-to-right, which reads as the
+   line being drawn without touching the server-rendered SVG geometry. */
+.chart-svg,
+.kpi-spark {
+    animation: nx-line-draw .95s var(--nx-ease) 150ms backwards;
+}
+
+.chart-plot,
+.chart-grid {
+    animation: nx-fade-in .5s var(--nx-ease) 100ms backwards;
+}
+
+.chart-axis span,
+.chart-legend span {
+    animation: nx-fade-in .5s var(--nx-ease) 450ms backwards;
+}
+
+.dash-legend__item,
+.donut__legend li {
+    animation: nx-fade-in .45s var(--nx-ease) backwards;
+}
+
+.donut__legend li:nth-child(2) { animation-delay: 60ms; }
+.donut__legend li:nth-child(3) { animation-delay: 110ms; }
+.donut__legend li:nth-child(n+4) { animation-delay: 150ms; }
+
+.donut__chart {
+    animation: nx-donut-in .85s var(--nx-ease) 180ms backwards;
+}
+
+/* CSS bar / progress visualisations: grow from their left edge.
+   scaleX keeps the server-rendered widths untouched. */
+.progress-bar {
+    transform-origin: left center;
+    animation: nx-bar-grow .7s var(--nx-ease) backwards;
+}
+
+/* ============================================================
+   11. Scroll reveal (public pages)
+   Added by motion.js to below-the-fold sections only, so content is
+   never hidden by markup or by CSS alone.
+   ============================================================ */
+
+[data-nx-reveal] {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0);
+    transition:
+        opacity .5s var(--nx-ease),
+        transform .5s var(--nx-ease);
+    transition-delay: var(--nx-delay, 0ms);
+}
+
+[data-nx-reveal].is-revealed {
+    opacity: 1;
+    transform: none;
+}
+
+/* A revealed section is driven by the observer, not by the entrance rule. */
+main > section[data-nx-reveal] {
+    animation: none;
+}
+
+/* ============================================================
+   12. Standalone login screen
+   ============================================================ */
+
+.lg-head > * {
+    animation: nx-fade-up .55s var(--nx-ease) backwards;
+}
+
+.lg-head > :nth-child(1) { animation-delay: 40ms; }
+.lg-head > :nth-child(2) { animation-delay: 100ms; }
+.lg-head > :nth-child(3) { animation-delay: 160ms; }
+.lg-head > :nth-child(n+4) { animation-delay: 220ms; }
+
+.lg-card {
+    animation: nx-fade-up .6s var(--nx-ease) 180ms backwards;
+}
+
+.lg-note,
+.lg-copy {
+    animation: nx-fade-in .5s var(--nx-ease) 420ms backwards;
+}
+
+/* ============================================================
+   13. Branded boot loader
+   The original logo asset (wwwroot/img/logo2.png) is used as a mask,
+   never redrawn: a blue/cyan ribbon travels through its exact shape,
+   the silhouette fills, then the untouched logo is revealed.
+   ============================================================ */
+
+.nx-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    display: grid;
+    place-items: center;
+    padding: 1.5rem;
+    /* A bare colour cannot be its own layer in the `background` shorthand, so the
+       navy fill is set separately and the two glows sit on top of it. */
+    background-color: var(--nexos-navy);
+    background-image:
+        radial-gradient(900px 520px at 50% 16%, rgba(22, 119, 255, .30), transparent 62%),
+        radial-gradient(720px 420px at 84% 90%, rgba(32, 196, 255, .16), transparent 60%);
+    /* Failsafe: the overlay always clears itself, even without JavaScript. */
+    animation: nx-loader-auto-hide .01s linear 2.9s forwards;
+}
+
+/* Skip the brand boot on internal navigation (set by an inline head script). */
+html.nx-booted .nx-loader {
+    display: none;
+}
+
+.nx-loader.is-done {
+    animation: nx-loader-out .42s var(--nx-ease) forwards;
+}
+
+.nx-loader__stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.15rem;
+    text-align: center;
+}
+
+/* Fixed box for the logo: the masked ribbon layers paint inside exactly the
+   same 74px stage, so the silhouette can never be scaled up. */
+.nx-loader__art {
+    position: relative;
+    height: 74px;
+    width: 190px;
+    max-width: 72vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nx-loader__art img {
+    display: block;
+    height: 74px;
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+/* The real logo, dimmed until the ribbon has formed it. */
+.nx-loader__logo {
+    position: relative;
+    z-index: 1;
+    opacity: .2;
+    animation: nx-loader-logo 1.5s var(--nx-ease) 250ms forwards;
+}
+
+/* The silhouette filling with brand light, left to right. */
+.nx-loader__trace {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background: linear-gradient(135deg, var(--nexos-accent) 0%, var(--nexos-primary) 100%);
+    -webkit-mask-image: url("../img/logo2.png");
+    mask-image: url("../img/logo2.png");
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    clip-path: inset(0 100% 0 0);
+    animation: nx-loader-form 1.7s var(--nx-ease) 220ms both;
+    pointer-events: none;
+}
+
+/* The travelling ribbon highlight. */
+.nx-loader__ribbon {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    background-image: linear-gradient(100deg,
+        rgba(32, 196, 255, 0) 6%,
+        rgba(32, 196, 255, .9) 30%,
+        #ffffff 48%,
+        rgba(22, 119, 255, .95) 66%,
+        rgba(22, 119, 255, 0) 90%);
+    background-size: 320% 100%;
+    background-repeat: no-repeat;
+    background-position: 130% 0;
+    -webkit-mask-image: url("../img/logo2.png");
+    mask-image: url("../img/logo2.png");
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    animation: nx-ribbon-flow 1.55s cubic-bezier(.45, .05, .35, 1) 420ms both;
+    pointer-events: none;
+}
+
+.nx-loader__word {
+    font-family: var(--nexos-font-head);
+    font-size: 1.02rem;
+    font-weight: 800;
+    letter-spacing: .58em;
+    text-indent: .58em;
+    text-transform: uppercase;
+    color: #fff;
+    opacity: 0;
+    animation: nx-fade-up .7s var(--nx-ease) 1.05s forwards;
+}
+
+.nx-loader__caption {
+    margin-top: -.55rem;
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: #7f93b0;
+    opacity: 0;
+    animation: nx-fade-in .6s var(--nx-ease) 1.25s forwards;
+}
+
+.nx-loader__bar {
+    position: relative;
+    width: 132px;
+    height: 3px;
+    margin-top: .35rem;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, .22);
+    overflow: hidden;
+}
+
+.nx-loader__bar span {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--nexos-primary), var(--nexos-accent));
+    transform-origin: left center;
+    animation: nx-loader-bar 2.05s var(--nx-ease) 200ms both;
+}
+
+@keyframes nx-loader-logo {
+    from { opacity: .2; transform: scale(.992); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes nx-loader-form {
+    0% { clip-path: inset(0 100% 0 0); opacity: 1; }
+    62% { clip-path: inset(0 0 0 0); opacity: 1; }
+    100% { clip-path: inset(0 0 0 0); opacity: 0; }
+}
+
+@keyframes nx-ribbon-flow {
+    0% { background-position: 130% 0; opacity: 0; }
+    14% { opacity: 1; }
+    72% { opacity: 1; }
+    100% { background-position: -70% 0; opacity: 0; }
+}
+
+@keyframes nx-loader-bar {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+}
+
+@keyframes nx-loader-out {
+    from { opacity: 1; }
+    to { opacity: 0; visibility: hidden; }
+}
+
+@keyframes nx-loader-auto-hide {
+    to { opacity: 0; visibility: hidden; }
+}
+
+/* ============================================================
+   14. Reduced motion
+   Users who ask for less motion get the finished state instantly:
+   nothing moves, nothing stays hidden, the boot loader is skipped.
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: .01ms !important;
+        animation-delay: 0ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+        transition-delay: 0ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    [data-nx-reveal] {
+        opacity: 1 !important;
+        transform: none !important;
+    }
+
+    .nx-loader {
+        display: none !important;
+    }
+
+    /* No hover or press movement at all. */
+    .btn:hover,
+    .btn:active,
+    .public-navbar .btn-primary:hover,
+    .kpi-card:hover,
+    .stat-card:hover,
+    .hp-svc-card:hover,
+    .hp-plan-card:hover,
+    .pl-plan:hover,
+    .svc-main-card:hover,
+    .svc-support-card:hover,
+    .ab-value-card:hover,
+    .ab-step:hover,
+    .contact-card:hover,
+    .pay-stat:hover,
+    .panel-nav a:hover,
+    .panel-nav button:hover,
+    .panel-nav a:hover .nav-icon,
+    .panel-nav button:hover .nav-icon,
+    .pager__btn:hover,
+    .pay-page-btn:hover {
+        transform: none !important;
+    }
+}
+
+/* ============================================================
+   15. VIP layer - cinematic details
+   Built on the same tokens as everything above: transform/opacity only,
+   one easing curve, and all of it disabled for reduced motion.
+   ============================================================ */
+
+/* --- 15.1 Hero headline reveal -------------------------------------
+   motion.js wraps the words of a hero heading; without JS the heading
+   renders exactly as authored, so nothing is hidden by the markup. */
+.nx-split .nx-word {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: top;
+    /* Keeps descenders (g, y, p) from being clipped by the reveal mask. */
+    padding-bottom: .14em;
+    margin-bottom: -.14em;
+}
+
+.nx-split .nx-word__in {
+    display: inline-block;
+    animation: nx-word-up .78s var(--nx-ease) both;
+    animation-delay: calc(var(--nx-w, 0) * 55ms + 90ms);
+}
+
+@keyframes nx-word-up {
+    from { opacity: 0; transform: translate3d(0, .62em, 0); }
+    to { opacity: 1; transform: none; }
+}
+
+/* --- 15.2 Page transition veil ------------------------------------- */
+.nx-veil {
+    position: fixed;
+    inset: 0;
+    z-index: 2999;
+    background: var(--nexos-body);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms var(--nx-ease);
+}
+
+.nx-veil.is-active {
+    opacity: 1;
+}
+
+/* --- 15.3 Button loading state ------------------------------------- */
+.btn.is-loading {
+    pointer-events: none;
+    opacity: .92;
+}
+
+.btn.is-loading::after {
+    content: "";
+    display: inline-block;
+    width: .95em;
+    height: .95em;
+    margin-left: .5rem;
+    vertical-align: -2px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: nx-spin .7s linear infinite;
+}
+
+@keyframes nx-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* --- 15.4 Restrained card sheen ------------------------------------ */
+@media (hover: hover) and (pointer: fine) {
+    .kpi-card,
+    .hp-svc-card,
+    .pl-plan,
+    .pay-stat {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .kpi-card::after,
+    .hp-svc-card::after,
+    .pl-plan::after,
+    .pay-stat::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        pointer-events: none;
+        opacity: 0;
+        background: linear-gradient(112deg,
+            transparent 32%,
+            rgba(22, 119, 255, .08) 45%,
+            rgba(32, 196, 255, .13) 52%,
+            transparent 66%);
+        transform: translateX(-115%);
+        transition: transform .85s var(--nx-ease), opacity .35s var(--nx-ease);
+    }
+
+    .kpi-card:hover::after,
+    .hp-svc-card:hover::after,
+    .pl-plan:hover::after,
+    .pay-stat:hover::after {
+        opacity: 1;
+        transform: translateX(115%);
+    }
+}
+
+/* --- 15.5 Sidebar active sweep ------------------------------------- */
+.panel-nav a.active {
+    overflow: hidden;
+}
+
+.panel-nav a.active::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(100deg,
+        transparent 24%,
+        rgba(255, 255, 255, .26) 50%,
+        transparent 76%);
+    transform: translateX(-100%);
+    animation: nx-nav-sweep 1.1s var(--nx-ease) 220ms both;
+}
+
+@keyframes nx-nav-sweep {
+    to { transform: translateX(100%); }
+}
+
+/* --- 15.6 Hero depth: slow ambient drift --------------------------- */
+.hp-hero__glow {
+    animation: nx-ambient 19s ease-in-out infinite alternate;
+}
+
+.hp-hero__network {
+    animation: nx-network-drift 27s ease-in-out infinite alternate;
+}
+
+.svc-hero::before,
+.svc-hero::after {
+    animation: nx-ambient 23s ease-in-out infinite alternate;
+}
+
+@keyframes nx-ambient {
+    from { opacity: .82; transform: translate3d(0, 0, 0) scale(1); }
+    to { opacity: 1; transform: translate3d(-1.5%, 1.2%, 0) scale(1.04); }
+}
+
+@keyframes nx-network-drift {
+    from { transform: translate3d(0, 0, 0); }
+    to { transform: translate3d(6px, -4px, 0); }
+}
+
+/* --- 15.7 Detail micro-interactions -------------------------------- */
+.tooltip {
+    animation: nx-fade-scale .18s var(--nx-ease);
+}
+
+.tooltip .tooltip-inner {
+    border-radius: 8px;
+    box-shadow: 0 14px 28px -18px rgba(11, 31, 58, .65);
+}
+
+.directory__tab {
+    transition:
+        background-color var(--nx-anim-fast) var(--nx-ease),
+        color var(--nx-anim-fast) var(--nx-ease),
+        transform var(--nx-anim-fast) var(--nx-ease),
+        box-shadow var(--nx-anim-fast) var(--nx-ease);
+}
+
+.directory__tab:active {
+    transform: scale(.97);
+}
+
+.directory__tab.is-active {
+    box-shadow: 0 10px 18px -14px rgba(22, 119, 255, .9);
+}
+
+.form-switch .form-check-input {
+    transition:
+        background-color var(--nx-anim-base) var(--nx-ease),
+        background-position var(--nx-anim-base) var(--nx-ease),
+        border-color var(--nx-anim-base) var(--nx-ease),
+        box-shadow var(--nx-anim-base) var(--nx-ease);
+}
+
+.pay-copy.is-done {
+    animation: nx-pop .45s var(--nx-ease);
+}
+
+.page-hero__crumbs,
+.profile-crumbs,
+.breadcrumb {
+    animation: nx-fade-down .45s var(--nx-ease) backwards;
+}
+
+/* Shimmer skeleton - a reusable loading placeholder for async content. */
+.nx-skeleton {
+    position: relative;
+    overflow: hidden;
+    background: #eef2f8;
+    border-radius: 8px;
+    color: transparent;
+}
+
+.nx-skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .78), transparent);
+    animation: nx-shimmer 1.4s infinite;
+}
+
+@keyframes nx-shimmer {
+    to { transform: translateX(100%); }
+}
+
+/* Mobile public menu opens with the same easing as the rest of the system. */
+.public-navbar .navbar-collapse.collapsing {
+    transition: height .28s var(--nx-ease);
+}
+
+/* --- 15.8 Payment celebration (only on confirmed payments) ---------- */
+.nx-celebrate-host {
+    position: relative;
+}
+
+.nx-celebrate {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    pointer-events: none;
+    background: var(--nexos-accent);
+    box-shadow: 0 0 10px rgba(32, 196, 255, .85);
+    animation: nx-spark .95s var(--nx-ease) forwards;
+}
+
+@keyframes nx-spark {
+    0% { opacity: 0; transform: translate3d(0, 0, 0) scale(.3); }
+    25% { opacity: 1; }
+    100% { opacity: 0; transform: translate3d(var(--nx-sx, 0px), var(--nx-sy, -26px), 0) scale(1); }
+}
+
+/* --- 15.9 Reduced motion for the VIP layer ------------------------- */
+@media (prefers-reduced-motion: reduce) {
+    .nx-split .nx-word__in {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+
+    .nx-veil {
+        display: none !important;
+    }
+
+    .nx-celebrate {
+        display: none !important;
+    }
+
+    .btn.is-loading::after {
+        animation: none !important;
+    }
+
+    .hp-hero__glow,
+    .hp-hero__network,
+    .svc-hero::before,
+    .svc-hero::after,
+    .panel-nav a.active::after {
+        animation: none !important;
+    }
+
+    .kpi-card:hover::after,
+    .hp-svc-card:hover::after,
+    .pl-plan:hover::after,
+    .pay-stat:hover::after {
+        opacity: 0 !important;
+    }
+}

@@ -9,6 +9,16 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/motion.css" asp-append-version="true" />
+    <script>
+        // Skip the branded boot loader when this tab has booted recently, so it
+        // never replays on internal navigation or a quick refresh.
+        try {
+            if (Date.now() - Number(sessionStorage.getItem("nx-boot") || 0) < 1800000) {
+                document.documentElement.classList.add("nx-booted");
+            }
+        } catch (e) { /* storage unavailable */ }
+    </script>
 </head>
 @{
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? string.Empty;
@@ -132,6 +142,7 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/motion.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

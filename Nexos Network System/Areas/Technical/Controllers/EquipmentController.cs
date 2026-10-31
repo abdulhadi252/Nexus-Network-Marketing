@@ -63,17 +63,11 @@ public class EquipmentController(ApplicationDbContext db) : Controller
         {
             ModelState.AddModelError(string.Empty, "Selected equipment was not found.");
         }
-        else if (equipment.Status != EquipmentStatus.Available)
-        {
-            ModelState.AddModelError(string.Empty, "Only available equipment can be assigned.");
-        }
 
-        var connection = await db.Connections.FirstOrDefaultAsync(c =>
-            c.Id == model.ConnectionId &&
-            (c.Status == ConnectionStatus.Active || c.Status == ConnectionStatus.Pending));
+        var connection = await db.Connections.FirstOrDefaultAsync(c => c.Id == model.ConnectionId);
         if (connection is null)
         {
-            ModelState.AddModelError(string.Empty, "Select an active or pending connection.");
+            ModelState.AddModelError(string.Empty, "Selected connection was not found.");
         }
 
         if (!ModelState.IsValid)
@@ -82,6 +76,7 @@ public class EquipmentController(ApplicationDbContext db) : Controller
             return View(model);
         }
 
+        // Any selected equipment can be (re)assigned to the selected connection.
         equipment!.Status = EquipmentStatus.Assigned;
         equipment.ConnectionId = connection!.Id;
         equipment.AssignedAt = DateTimeOffset.UtcNow;
@@ -249,15 +244,19 @@ public class EquipmentController(ApplicationDbContext db) : Controller
     private async Task LoadLookupsAsync()
     {
         var available = await db.Equipment
-            .Where(e => e.Status == EquipmentStatus.Available)
             .Include(e => e.Product)
             .OrderBy(e => e.AssetTag)
-            .Select(e => new { e.Id, Label = e.AssetTag + " - " + e.Product.Name })
+            .Select(e => new
+            {
+                e.Id,
+                Label = e.AssetTag + " - " + e.Product.Name + (e.Status == EquipmentStatus.Available
+                    ? string.Empty
+                    : " (" + e.Status + ")")
+            })
             .ToListAsync();
         ViewBag.AvailableEquipment = new SelectList(available, "Id", "Label");
 
         var connections = await db.Connections
-            .Where(c => c.Status == ConnectionStatus.Active || c.Status == ConnectionStatus.Pending)
             .OrderBy(c => c.AccountNumber)
             .Select(c => new { c.Id, Label = c.AccountNumber + " - " + c.Customer.FirstName + " " + c.Customer.LastName })
             .ToListAsync();
